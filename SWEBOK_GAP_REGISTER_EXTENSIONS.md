@@ -1,5 +1,18 @@
 # SWEBOK Gap Register — Extensions
 
+> **Precedence note:** `EXTENSIONS_DECISIONS.md` supersedes specific
+> portions of this file. Specifically:
+>
+> - **Decision 2** replaces the symlink mechanic in GAP-EXT-001 and
+>   the related Section EXT-M with a sync-script + drift-check
+>   pattern (`scripts/sync-agent-files.sh`, `make sync-agents`,
+>   pre-commit `agent-files-current` hook).
+> - **Decision 3** replaces the hard 16 KiB cap on AGENTS.md with a
+>   tiered target (soft warn ≥16 KiB, hard fail ≥24 KiB).
+>
+> Read `EXTENSIONS_DECISIONS.md` first when these subjects come up.
+> Other rows in this register remain authoritative.
+>
 > **Purpose:** continuation of `SWEBOK_GAP_REGISTER.md` capturing
 > **24 additional gaps** identified through external-template
 > research (`RESEARCH_FINDINGS.md`). These are NOT SWEBOK-driven —
@@ -13,7 +26,8 @@
 > verifying CI gate (where applicable) is green.
 >
 > **Read first:** `RESEARCH_FINDINGS.md` for the full rationale
-> behind each row.
+> behind each row, then `EXTENSIONS_DECISIONS.md` for binding
+> overrides.
 
 ---
 
@@ -21,7 +35,7 @@
 
 | ID | Gap | Deliverable | CI Verifier | Status |
 |---|---|---|---|---|
-| GAP-EXT-001 | AGENTS.md becomes the **primary** cross-tool standard file (Linux Foundation Agentic AI Foundation); CLAUDE.md and GEMINI.md become symlinks; `AGENTS.override.md` documented for nested overrides; three-tier boundary structure (always do / ask first / never do); file kept under 16 KiB | Update `{{cookiecutter.project_slug}}/AGENTS.md` (rewrite), replace CLAUDE.md / GEMINI.md with symlinks via `hooks/post_gen_project.py`, add `docs/agent-runtimes.md` section on AGENTS.md spec compliance | `make governance-check` (extended: verify CLAUDE.md is symlink, AGENTS.md ≤16 KiB) | planned |
+| GAP-EXT-001 | AGENTS.md becomes the **primary** cross-tool standard file (Linux Foundation Agentic AI Foundation); CLAUDE.md and GEMINI.md become **derived artifacts** kept in sync via `scripts/sync-agent-files.sh` (replaces the originally-proposed symlink mechanic — see `EXTENSIONS_DECISIONS.md` Decision 2); `AGENTS.override.md` documented for nested overrides; three-tier boundary structure (always do / ask first / never do); soft-target 16 KiB / hard-cap 24 KiB per Decision 3 | Rewrite `{{cookiecutter.project_slug}}/AGENTS.md`; add `scripts/sync-agent-files.sh` + `make sync-agents`; add pre-commit `local` hook `agent-files-current`; extend `hooks/post_gen_project.py` to invoke the sync script after rendering; extend `scripts/check-governance.sh` with the same byte-compare; add `docs/agent-runtimes.md` section on AGENTS.md spec compliance | `make governance-check` (extended: verify CLAUDE.md and GEMINI.md bodies match AGENTS.md after stripping the auto-generated header) + pre-commit `agent-files-current` hook | planned |
 | GAP-EXT-002 | Skills system per Linux Foundation SKILL.md spec — portable directory: `SKILL.md` + optional `scripts/` + `references/` + `assets/`; progressive disclosure via frontmatter; 2 seed skills shipped | `{{cookiecutter.project_slug}}/.claude/skills/governance-audit/SKILL.md` + `{{cookiecutter.project_slug}}/.claude/skills/spec-bump/SKILL.md`; `docs/agent-skills-pattern.md` | `scripts/lint-agents.sh` (BLOATED_SKILL check) | planned |
 
 ---
@@ -105,7 +119,7 @@
 
 | ID | Gap | Deliverable | CI Verifier | Status |
 |---|---|---|---|---|
-| GAP-EXT-021 | `lint-agents.sh` — static-analysis layer for agents and commands; detects EMPTY_DESCRIPTION, MISSING_TRIGGER, BLOATED_SKILL, ORPHAN_REFERENCE, DEAD_CROSS_REF, OVER_CONSTRAINED; STUB_MARKER reuses marker-scan | `{{cookiecutter.project_slug}}/scripts/lint-agents.sh`; `Makefile` (`make lint-agents`); add to `make validate` | `make validate` | planned |
+| GAP-EXT-021 | `lint-agents.sh` — static-analysis layer for agents and commands; detects EMPTY_DESCRIPTION, MISSING_TRIGGER, BLOATED_SKILL, ORPHAN_REFERENCE, DEAD_CROSS_REF, OVER_CONSTRAINED, AGENTS_MD_OVERSIZE_WARN, AGENTS_MD_OVERSIZE_FAIL; STUB_MARKER reuses marker-scan | `{{cookiecutter.project_slug}}/scripts/lint-agents.sh`; `Makefile` (`make lint-agents`); add to `make validate` | `make validate` | planned |
 
 ---
 
@@ -136,7 +150,8 @@ the existing `cookiecutter.json` (do not break parent schema):
 ```
 
 `hooks/post_gen_project.py` is extended to handle each conditional
-removal.
+removal, and to invoke `scripts/sync-agent-files.sh` once after
+rendering (per `EXTENSIONS_DECISIONS.md` Decision 2).
 
 ---
 
@@ -149,8 +164,9 @@ CONSTITUTION.md         (existing)
 DIRECTIVES.md           (existing)
 SECURITY.md             (existing)
 SECURITY-INSIGHTS.yml   (NEW per GAP-EXT-005)
-AGENTS.md               (existing — now primary)
-CLAUDE.md               (existing — now symlink to AGENTS.md)
+AGENTS.md               (existing — now primary, source of truth)
+CLAUDE.md               (existing — now derived artifact)
+GEMINI.md               (existing — now derived artifact)
 README.md               (existing)
 CHANGELOG.md            (NEW per GAP-EXT-010)
 CODE_OF_CONDUCT.md      (NEW per GAP-EXT-011)
@@ -162,8 +178,14 @@ Plus existence of folders: `docs/`, `specs/deep_specs/`,
 `report/`, `.claude/skills/` (NEW per GAP-EXT-002), `.devcontainer/`
 (NEW per GAP-EXT-007).
 
-Plus the symlink check: `CLAUDE.md` resolves to the same inode as
-`AGENTS.md` (NEW per GAP-EXT-001).
+Plus the **agent-files sync-currency check** (NEW per `EXTENSIONS_DECISIONS.md`
+Decision 2): after stripping the auto-generated header from
+`CLAUDE.md` and `GEMINI.md`, both bodies match `AGENTS.md`
+byte-for-byte. **Replaces** the originally-proposed symlink-inode
+check.
+
+Plus the **AGENTS.md size check**: ≥16 KiB warns,
+≥24 KiB fails (per `EXTENSIONS_DECISIONS.md` Decision 3).
 
 ---
 
@@ -174,6 +196,7 @@ The unified validation gate now runs (in order):
 ```text
 marker-scan          (existing)
 governance-check     (extended per EXT-M)
+sync-agents-currency (NEW — implicit in governance-check)
 lint-agents          (NEW per GAP-EXT-021)
 check-traceability   (existing, extended for specs/changes/)
 check-doc-drift      (existing)
@@ -217,8 +240,10 @@ The extension is complete when:
 3. The extended CI workflow runs cleanly (Scorecard ≥7/10 baseline,
    release-please workflow opens a Release PR after the first
    conventional-commit, docs-deploy publishes to Pages).
-4. AGENTS.md is the canonical instruction file; CLAUDE.md is a
-   symlink; both pass the size and content checks.
+4. AGENTS.md is the canonical instruction file; CLAUDE.md and
+   GEMINI.md are auto-generated from it and the
+   `agent-files-current` pre-commit hook + governance check both
+   pass.
 5. The 2 seed skills load via Claude Code's progressive-disclosure
    mechanism (smoke test).
 6. Devcontainer opens in Codespaces (or local VS Code) and

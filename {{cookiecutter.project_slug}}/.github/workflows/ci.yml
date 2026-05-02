@@ -1,0 +1,189 @@
+# CI for {{ cookiecutter.project_name }}
+#
+# This workflow runs the same `make validate` aggregate that
+# contributors run locally, plus dedicated jobs for Layer-4 hook
+# regression, secret scanning, and the conditional integrations the
+# operator opted into at template-render time (Codacy, Snyk,
+# Codecov, SBOM).
+#
+# Action pinning policy (DIRECTIVES.md IMP-006):
+#   Every `uses:` line below pins to a semver tag and carries a
+#   trailing `# v<x>.<y>` comment. The directive's full enforcement
+#   pins to a commit SHA — replace each `@v<n>` with the
+#   corresponding SHA on the first PR against this repository.
+#   `scripts/check-action-pins.sh` (added in a later phase)
+#   verifies SHA pinning mechanically.
+{% raw %}
+on:
+  push:
+    branches:
+      - {% endraw %}{{ cookiecutter.default_branch_name }}{% raw %}
+  pull_request: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+{% endraw %}
+jobs:
+  validate:
+    name: Validate (make validate)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+      - name: Setup Node
+        uses: actions/setup-node@v4 # v4
+        with:
+          node-version: "20"
+{% if cookiecutter.primary_language in ("python", "polyglot") %}
+      - name: Setup Python
+        uses: actions/setup-python@v5 # v5
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        run: pip install --upgrade pip uv
+{% endif %}
+      - name: Sync dependencies
+        run: make sync
+      - name: Validate
+        run: make validate
+
+  hooks-test:
+    name: Hooks regression (CRIT-008)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+      - name: Setup Node
+        uses: actions/setup-node@v4 # v4
+        with:
+          node-version: "20"
+{% if cookiecutter.primary_language in ("python", "polyglot") %}
+      - name: Setup Python
+        uses: actions/setup-python@v5 # v5
+        with:
+          python-version: "3.11"
+{% endif %}
+      - name: Run hooks regression suite
+        run: make hooks-test
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2 # v2
+{% if cookiecutter.include_codacy == "yes" %}{% raw %}
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+{% endraw %}{% endif %}
+
+{% if cookiecutter.include_codacy == "yes" %}  codacy:
+    name: Codacy analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+      - name: Codacy Analysis CLI
+        uses: codacy/codacy-analysis-cli-action@v4 # v4
+        with:{% raw %}
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+{% endraw %}          format: sarif
+          output: codacy.sarif
+          gh-code-scanning-compat: true
+          max-allowed-issues: 2147483647
+{% endif %}
+{% if cookiecutter.include_snyk == "yes" %}
+  snyk:
+    name: Snyk vulnerability scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+{% if cookiecutter.primary_language in ("python", "polyglot") %}
+      - name: Setup Python
+        uses: actions/setup-python@v5 # v5
+        with:
+          python-version: "3.11"
+      - name: Snyk Python
+        uses: snyk/actions/python@master # 0.x
+        continue-on-error: true{% raw %}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+{% endraw %}{% endif %}
+{% if cookiecutter.primary_language in ("typescript", "polyglot") %}
+      - name: Setup Node
+        uses: actions/setup-node@v4 # v4
+        with:
+          node-version: "20"
+      - name: Snyk Node
+        uses: snyk/actions/node@master # 0.x
+        continue-on-error: true{% raw %}
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+{% endraw %}{% endif %}
+{% endif %}
+{% if cookiecutter.include_codecov == "yes" %}
+  codecov:
+    name: Coverage upload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+{% if cookiecutter.primary_language in ("python", "polyglot") %}
+      - name: Setup Python
+        uses: actions/setup-python@v5 # v5
+        with:
+          python-version: "3.11"
+      - name: Install uv
+        run: pip install --upgrade pip uv
+{% endif %}
+      - name: Sync
+        run: make sync
+      - name: Coverage
+        run: make coverage
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4 # v4
+        with:{% raw %}
+          token: ${{ secrets.CODECOV_TOKEN }}
+{% endraw %}          fail_ci_if_error: false
+{% endif %}
+{% if cookiecutter.include_sbom == "yes" %}
+  sbom:
+    name: Generate SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+{% if cookiecutter.primary_language in ("python", "polyglot") %}
+      - name: Setup Python
+        uses: actions/setup-python@v5 # v5
+        with:
+          python-version: "3.11"
+      - name: Install cyclonedx-py
+        run: pip install --upgrade pip cyclonedx-bom
+{% endif %}
+{% if cookiecutter.primary_language in ("typescript", "polyglot") %}
+      - name: Setup Node
+        uses: actions/setup-node@v4 # v4
+        with:
+          node-version: "20"
+      - name: Install cyclonedx-npm
+        run: npm install -g @cyclonedx/cyclonedx-npm
+{% endif %}
+      - name: Generate SBOM
+        run: make sbom
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4 # v4
+        with:
+          name: sbom-{% raw %}${{ github.sha }}{% endraw %}
+          path: sbom/
+          retention-days: 90
+{% endif %}

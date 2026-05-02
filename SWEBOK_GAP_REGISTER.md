@@ -76,8 +76,8 @@ Anchored to IEEE 42010.
 | ID | SWEBOK Ref | Gap | Deliverable | CI Verifier | Status |
 |---|---|---|---|---|---|
 | GAP-031 | §1.7.3 (Requirements KA) | Machine-readable traceability matrix | `specs/traceability.json` + `specs/traceability.schema.json` | `make check-traceability` | planned |
-| GAP-032 | §1.7.3 | Traceability validator script | `scripts/check-traceability.sh` | `make validate` (new gate) | planned |
-| GAP-033 | §1.7.3, §6 (Operations) | Doc-code drift detector — verifies every file path mentioned in specs/docs exists in repo | `scripts/check-doc-drift.sh` + CI job | `make validate` (new gate) | planned |
+| GAP-032 | §1.7.3 | Traceability validator script | `scripts/check-traceability.sh` | `make validate` (new gate) | landed |
+| GAP-033 | §1.7.3, §6 (Operations) | Doc-code drift detector — verifies every file path mentioned in specs/docs exists in repo | `scripts/check-doc-drift.sh` + CI job | `make validate` (new gate) | landed |
 | GAP-034 | §1.7.3 | Documentation ownership matrix (RACI) per living doc | `docs/documentation-ownership.md` | n/a | planned |
 | GAP-035 | n/a (operational) | `/sync` command runs after every PR merge to refresh local state and detect drift | `.claude/commands/sync.md` (full text in `COMMAND_AND_AGENT_SPECS.md`) | `/audit` step 10 | planned |
 
@@ -115,12 +115,12 @@ enforced rather than aspirational.
 
 | ID | Gate | Trigger | Failure Behavior | Status |
 |---|---|---|---|---|
-| GAP-047 | `marker-scan` | every PR | block merge | planned |
-| GAP-048 | `governance-check` (extended to verify required folders too: `docs/`, `specs/deep_specs/`, `specs/security-requirements/`, `report/`) | every PR | block merge | planned |
-| GAP-049 | `check-traceability` | every PR touching `specs/` or `src/` | block merge | planned |
-| GAP-050 | `check-doc-drift` | every PR touching `docs/` or `specs/` | warn (not block) initially, harden after stabilization | planned |
-| GAP-051 | `sbom-generate` | every push to default branch | upload artifact | planned (conditional on `include_sbom=yes`) |
-| GAP-052 | `secret-scan` | every PR | block merge | planned |
+| GAP-047 | `marker-scan` | every PR | block merge | landed |
+| GAP-048 | `governance-check` (extended to verify required folders too: `docs/`, `specs/deep_specs/`, `specs/security-requirements/`, `report/`) | every PR | block merge | landed |
+| GAP-049 | `check-traceability` | every PR touching `specs/` or `src/` | block merge | landed |
+| GAP-050 | `check-doc-drift` | every PR touching `docs/` or `specs/` | warn (not block) initially, harden after stabilization | landed |
+| GAP-051 | `sbom-generate` | every push to default branch | upload artifact | landed (conditional on `include_sbom=yes`) |
+| GAP-052 | `secret-scan` | every PR | block merge | landed |
 | GAP-053 | `dast` (placeholder — language and stack-dependent) | nightly on main | warn | planned |
 
 ---
@@ -148,10 +148,10 @@ completeness so the agent has a single inventory to work from.
 | CORE-014 | `.claude/hooks/README.md` | L4 | landed |
 | CORE-015 | `tests/test_pre_tool_use_hook.py` | L4 | landed |
 | CORE-016 | `tests/test_pre_tool_use_hook.js` (TS path) | L4 | landed |
-| CORE-017 | `.github/workflows/ci.yml` | L5 | planned |
-| CORE-018 | `Makefile` | L5 | planned |
-| CORE-019 | `scripts/marker-scan.sh` | L5 | planned |
-| CORE-020 | `scripts/check-governance.sh` | L5 | planned |
+| CORE-017 | `.github/workflows/ci.yml` | L5 | landed |
+| CORE-018 | `Makefile` | L5 | landed |
+| CORE-019 | `scripts/marker-scan.sh` | L5 | landed |
+| CORE-020 | `scripts/check-governance.sh` | L5 | landed |
 | CORE-021 | `pyproject.toml` (Python path) | L5 | planned |
 | CORE-022 | `package.json` (TS path) | L5 | planned |
 | CORE-023 | `.gitignore` | infra | planned |

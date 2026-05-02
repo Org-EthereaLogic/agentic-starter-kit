@@ -197,8 +197,9 @@ inventory.
 
 - `CLAUDE.md` — Claude Code-specific quick reference.
 - `GEMINI.md` — Gemini CLI-specific quick reference.
-- `METHODOLOGY.md` — full essay on agentic governance as
-  infrastructure.
+- Agentic governance methodology essay — maintained in the
+  template repository and not scaffolded into generated
+  projects by default.
 - `docs/STANDARDS.md` — external standards register (when
   scaffolded).
 

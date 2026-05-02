@@ -15,6 +15,6 @@
   "include_sbom": ["yes", "no"],
   "default_branch_name": "main",
   "_copy_without_render": [
-    ".github/workflows/*.yml"
+    "scripts/*.sh"
   ]
 }

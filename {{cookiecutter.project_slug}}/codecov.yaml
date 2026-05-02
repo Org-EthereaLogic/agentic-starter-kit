@@ -1,0 +1,40 @@
+# Codecov configuration for {{ cookiecutter.project_name }}.
+# Reference: https://docs.codecov.com/docs/codecov-yaml
+#
+# This file ships when `include_codecov=yes` was selected at
+# template-render time. The post-gen hook removes it otherwise.
+#
+# REC-004 — coverage holds or rises. The status checks below
+# enforce that mechanically; threshold drops require an ADR.
+
+coverage:
+  status:
+    project:
+      default:
+        # Project-level coverage must hold relative to the base.
+        target: auto
+        threshold: 0%
+        # Drops below the base require an ADR documenting why.
+        if_ci_failed: error
+    patch:
+      default:
+        # Patch coverage measures only the changed lines.
+        target: 80%
+        threshold: 0%
+        if_ci_failed: error
+
+ignore:
+  - "tests/fixtures"
+  - ".venv"
+  - "node_modules"
+  - "scripts"
+  - ".claude/hooks"
+  - "report"
+  - "sbom"
+
+comment:
+  layout: "reach,diff,flags,files,header,footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: false

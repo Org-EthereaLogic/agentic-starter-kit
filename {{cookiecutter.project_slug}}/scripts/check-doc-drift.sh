@@ -34,8 +34,13 @@ if [[ ${#md_files[@]} -eq 0 ]]; then
 fi
 
 # Extract backtick-wrapped path-like tokens from each file.
-# Pattern: `<path>` where path has at least one slash, an extension,
-# and contains only safe path characters.
+# Pattern matches a backtick-wrapped relative path with at least
+# one segment and a known extension. The pattern is a literal
+# regex string with no shell substitutions, so the surrounding
+# single quotes are intentional.
+# shellcheck disable=SC2016
+backtick_path_regex='`[A-Za-z0-9_./-]+\.(md|json|sh|js|py|ts|yml|yaml|toml|cff)`'
+
 findings=0
 declare -A reported
 for f in "${md_files[@]}"; do
@@ -60,7 +65,7 @@ for f in "${md_files[@]}"; do
         findings=$((findings + 1))
       fi
     fi
-  done < <(grep -hoE '`[A-Za-z0-9_./-]+\.(md|json|sh|js|py|ts|yml|yaml|toml|cff)`' "$f" 2>/dev/null || true)
+  done < <(grep -hoE "$backtick_path_regex" "$f" 2>/dev/null || true)
 done
 
 if [[ $findings -eq 0 ]]; then

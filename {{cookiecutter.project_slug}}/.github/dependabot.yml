@@ -1,0 +1,50 @@
+# Dependabot configuration for {{ cookiecutter.project_name }}.
+# Reference: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+#
+# Always present. Conditional ecosystems based on
+# `cookiecutter.primary_language` and `include_*` options.
+
+version: 2
+updates:
+  # GitHub Actions — IMP-006 says SHA-pinned, but version updates
+  # still surface as Dependabot PRs (the SHA is the value of
+  # the @<sha> ref).
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+
+{% if cookiecutter.primary_language in ("python", "polyglot") %}  # Python — uv-managed via pyproject.toml.
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - python
+
+{% endif %}{% if cookiecutter.primary_language in ("typescript", "polyglot") %}  # Node / TypeScript — package.json.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - node
+
+{% endif %}  # Devcontainer (lands in Phase 14 / GAP-EXT-007). The entry is
+  # benign when no Dockerfile is present.
+  - package-ecosystem: docker
+    directory: "/.devcontainer"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+      - devcontainer

@@ -22,14 +22,6 @@ check_required_file() {
   fi
 }
 
-check_required_dir() {
-  local path="$1"
-  if [[ ! -d "$path" ]]; then
-    echo "ERROR: required directory missing: $path" >&2
-    errors=$((errors + 1))
-  fi
-}
-
 warn_optional_dir() {
   local path="$1"
   if [[ ! -d "$path" ]]; then

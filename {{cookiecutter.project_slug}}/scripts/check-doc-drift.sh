@@ -46,8 +46,11 @@ for f in "${md_files[@]}"; do
     # Skip absolute paths and URLs.
     [[ "$path" =~ ^/ ]] && continue
     [[ "$path" =~ ^https?:// ]] && continue
-    # Skip paths that are clearly not file references.
-    [[ "$path" =~ ^[\.] ]] && continue
+    # Skip the bare current-dir / parent-dir refs (always exist;
+    # don't actually resolve to a file). Do NOT skip dot-prefixed
+    # paths like `.claude/...` or `.github/...` — those are real
+    # relative paths and must be drift-checked.
+    [[ "$path" == "." || "$path" == ".." ]] && continue
     # Resolve relative to repo root (the script is run from there).
     if [[ ! -e "$path" ]]; then
       key="${f}::${path}"

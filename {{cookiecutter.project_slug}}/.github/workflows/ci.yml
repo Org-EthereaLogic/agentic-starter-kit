@@ -7,10 +7,16 @@
 # Codecov, SBOM).
 #
 # Action pinning policy (DIRECTIVES.md IMP-006):
-#   Every `uses:` line below pins to a semver tag and carries a
-#   trailing `# v<x>.<y>` comment. The directive's full enforcement
-#   pins to a commit SHA — replace each `@v<n>` with the
-#   corresponding SHA on the first PR against this repository.
+#   Most `uses:` lines below pin to a semver tag and carry a
+#   trailing `# v<x>.<y>` comment. The Snyk language sub-actions
+#   (`snyk/actions/python`, `snyk/actions/node`) inherit their
+#   versioning from the `snyk/actions` parent repository and ship
+#   here on `@master` — those are branch refs, not semver pins.
+#   IMP-006's full enforcement requires a commit SHA on every
+#   `uses:` line. Before the first PR against this repository:
+#     - Replace each `@v<n>` with the corresponding commit SHA.
+#     - Replace each `@master` with the commit SHA the user has
+#       audited and accepted.
 #   `scripts/check-action-pins.sh` (added in a later phase)
 #   verifies SHA pinning mechanically.
 {% raw %}

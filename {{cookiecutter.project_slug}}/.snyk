@@ -1,0 +1,21 @@
+# Snyk configuration for {{ cookiecutter.project_name }}.
+# Reference: https://docs.snyk.io/snyk-cli/test-for-vulnerabilities/the-.snyk-file
+#
+# This file ships when `include_snyk=yes` was selected at
+# template-render time. The post-gen hook removes it otherwise.
+#
+# Suppression policy:
+#   Per `docs/security/vulnerability-management.md` (lands in
+#   Phase 7), every entry under `ignore:` requires:
+#     - A reviewer name in the comment.
+#     - An expiry date (ISO 8601).
+#     - A short rationale.
+#   The expiry date is not enforced by Snyk; reviewer attention
+#   on PR enforces it. Phase 7's vulnerability-management doc
+#   formalizes the cadence.
+
+version: v1.25.0
+
+ignore: {}
+
+patch: {}

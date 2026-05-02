@@ -152,19 +152,19 @@ completeness so the agent has a single inventory to work from.
 | CORE-018 | `Makefile` | L5 | landed |
 | CORE-019 | `scripts/marker-scan.sh` | L5 | landed |
 | CORE-020 | `scripts/check-governance.sh` | L5 | landed |
-| CORE-021 | `pyproject.toml` (Python path) | L5 | planned |
-| CORE-022 | `package.json` (TS path) | L5 | planned |
-| CORE-023 | `.gitignore` | infra | planned |
-| CORE-024 | `.editorconfig` | infra | planned |
-| CORE-025 | `.env.example` | infra | planned |
-| CORE-026 | `.pre-commit-config.yaml` | infra | planned |
-| CORE-027 | `.codacy.yml` | infra | planned (conditional) |
-| CORE-028 | `codecov.yaml` | infra | planned (conditional) |
-| CORE-029 | `.snyk` | infra | planned (conditional) |
-| CORE-030 | `.github/dependabot.yml` | infra | planned |
-| CORE-031 | `.github/PULL_REQUEST_TEMPLATE.md` | infra | planned |
-| CORE-032 | `CONTRIBUTING.md` | infra | planned |
-| CORE-033 | `LICENSE` (templated) | infra | planned |
+| CORE-021 | `pyproject.toml` (Python path) | L5 | landed |
+| CORE-022 | `package.json` (TS path) | L5 | landed |
+| CORE-023 | `.gitignore` | infra | landed |
+| CORE-024 | `.editorconfig` | infra | landed |
+| CORE-025 | `.env.example` | infra | landed |
+| CORE-026 | `.pre-commit-config.yaml` | infra | landed |
+| CORE-027 | `.codacy.yml` | infra | landed (conditional) |
+| CORE-028 | `codecov.yaml` | infra | landed (conditional) |
+| CORE-029 | `.snyk` | infra | landed (conditional) |
+| CORE-030 | `.github/dependabot.yml` | infra | landed |
+| CORE-031 | `.github/PULL_REQUEST_TEMPLATE.md` | infra | landed |
+| CORE-032 | `CONTRIBUTING.md` | infra | landed |
+| CORE-033 | `LICENSE` (templated) | infra | landed |
 | CORE-034 | `docs/PRD.md` | infra | planned |
 | CORE-035 | `docs/tooling-versions.md` | infra | planned |
 | CORE-036 | `specs/README.md` | infra | planned |

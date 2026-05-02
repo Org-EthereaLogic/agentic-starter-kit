@@ -1,0 +1,31 @@
+# Codacy configuration for {{ cookiecutter.project_name }}.
+# Reference: https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+#
+# This file ships when `include_codacy=yes` was selected at
+# template-render time. The post-gen hook removes it otherwise.
+
+---
+engines:
+{% if cookiecutter.primary_language in ("python", "polyglot") %}  pylint:
+    enabled: true
+  bandit:
+    enabled: true
+{% endif %}{% if cookiecutter.primary_language in ("typescript", "polyglot") %}  eslint:
+    enabled: true
+{% endif %}  duplication:
+    enabled: true
+  metrics:
+    enabled: true
+  shellcheck:
+    enabled: true
+
+exclude_paths:
+  - "node_modules/**"
+  - ".venv/**"
+  - "venv/**"
+  - "build/**"
+  - "dist/**"
+  - "__pycache__/**"
+  - "tests/fixtures/**"
+  - "sbom/**"
+  - "report/**"

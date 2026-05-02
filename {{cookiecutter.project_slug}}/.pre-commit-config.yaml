@@ -1,0 +1,107 @@
+# pre-commit configuration for {{ cookiecutter.project_name }}.
+# Reference: https://pre-commit.com
+#
+# After clone, run `pre-commit install` to install the hook into
+# `.git/hooks/pre-commit`. Versions below were current at template-
+# build time; run `pre-commit autoupdate` periodically to refresh.
+#
+# Local-repo hooks at the bottom invoke the project's own gates
+# (marker-scan, governance-check) so the same checks that run in CI
+# also run on every commit.
+
+default_language_version:
+  python: python3
+  node: "20"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^(.*\.md|tests/fixtures/.*)$'
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-yaml
+        # GitHub Actions workflow expressions are rejected by the
+        # default ruamel parser; --unsafe relaxes that.
+        args: [--unsafe]
+      - id: check-json
+        exclude: '^tests/fixtures/.*$'
+      - id: check-toml
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+{% if cookiecutter.primary_language in ("python", "polyglot") %}  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.7.4
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - pytest>=8
+
+{% endif %}{% if cookiecutter.primary_language in ("typescript", "polyglot") %}  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        types_or: [javascript, typescript, json, yaml, markdown]
+        exclude: '^(tests/fixtures/.*|.*\.md)$'
+
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.13.0
+    hooks:
+      - id: eslint
+        files: \.(js|ts)$
+        types: [file]
+        additional_dependencies:
+          - eslint@^9
+          - "@typescript-eslint/parser@^8"
+          - "@typescript-eslint/eslint-plugin@^8"
+
+{% endif %}  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.10.0
+    hooks:
+      - id: shellcheck
+        args: [-x]
+
+  # Project-local hooks — invoke the same gates as `make validate`.
+  # Each runs only when relevant paths change so commits stay fast.
+  - repo: local
+    hooks:
+      - id: marker-scan
+        name: marker-scan (CRIT-001)
+        entry: bash scripts/marker-scan.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: governance-check
+        name: governance-check (CRIT-002)
+        entry: bash scripts/check-governance.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-commit]
+      - id: check-traceability
+        name: check-traceability
+        entry: bash scripts/check-traceability.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+      - id: check-doc-drift
+        name: check-doc-drift
+        entry: bash scripts/check-doc-drift.sh
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+# Skip hooks during merge / rebase auto-commits — those are
+# operational, not authoring, and re-run cleanly after the merge.
+ci:
+  skip: []

@@ -125,7 +125,6 @@ in `scripts/` and reviewer attention enforces.
   short version).
 - `GEMINI.md` — Gemini CLI quick reference (parallel to this
   file).
-- `METHODOLOGY.md` — standalone essay on the methodology.
 - `docs/STANDARDS.md` — standards register (SWEBOK v4, ISO/IEC/IEEE
   32675:2022, IEEE 42010, AGENTS.md format, IEEE 2675,
   CycloneDX/SPDX, CERT Top 10), once scaffolded.

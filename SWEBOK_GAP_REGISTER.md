@@ -143,11 +143,11 @@ completeness so the agent has a single inventory to work from.
 | CORE-009 | `{{cookiecutter.project_slug}}/CONSTITUTION.md` | L2 | landed |
 | CORE-010 | `{{cookiecutter.project_slug}}/DIRECTIVES.md` | L2 | landed |
 | CORE-011 | `{{cookiecutter.project_slug}}/SECURITY.md` | L2 | landed |
-| CORE-012 | `.claude/settings.json` | L4 | planned |
-| CORE-013 | `.claude/hooks/pre-tool-use.js` | L4 | planned |
-| CORE-014 | `.claude/hooks/README.md` | L4 | planned |
-| CORE-015 | `tests/test_pre_tool_use_hook.py` | L4 | planned |
-| CORE-016 | `tests/test_pre_tool_use_hook.js` (TS path) | L4 | planned |
+| CORE-012 | `.claude/settings.json` | L4 | landed |
+| CORE-013 | `.claude/hooks/pre-tool-use.js` | L4 | landed |
+| CORE-014 | `.claude/hooks/README.md` | L4 | landed |
+| CORE-015 | `tests/test_pre_tool_use_hook.py` | L4 | landed |
+| CORE-016 | `tests/test_pre_tool_use_hook.js` (TS path) | L4 | landed |
 | CORE-017 | `.github/workflows/ci.yml` | L5 | planned |
 | CORE-018 | `Makefile` | L5 | planned |
 | CORE-019 | `scripts/marker-scan.sh` | L5 | planned |

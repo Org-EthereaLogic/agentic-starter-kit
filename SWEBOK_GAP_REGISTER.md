@@ -116,7 +116,7 @@ enforced rather than aspirational.
 | ID | Gate | Trigger | Failure Behavior | Status |
 |---|---|---|---|---|
 | GAP-047 | `marker-scan` | every PR | block merge | landed |
-| GAP-048 | `governance-check` (extended to verify required folders too: `docs/`, `specs/deep_specs/`, `specs/security-requirements/`, `report/`) | every PR | block merge | landed |
+| GAP-048 | `governance-check` — strict on Layer 1+2+4 files (CONSTITUTION, DIRECTIVES, SECURITY, README, CLAUDE, AGENTS, GEMINI, hook + settings); warns on optional folders (`docs/`, `specs/deep_specs/`, `specs/security-requirements/`, `report/`) until later phases populate them, then later phases harden the warning to a block | every PR | strict-set: block merge; phased folders: warn until populated, then block | landed |
 | GAP-049 | `check-traceability` | every PR touching `specs/` or `src/` | block merge | landed |
 | GAP-050 | `check-doc-drift` | every PR touching `docs/` or `specs/` | warn (not block) initially, harden after stabilization | landed |
 | GAP-051 | `sbom-generate` | every push to default branch | upload artifact | landed (conditional on `include_sbom=yes`) |

@@ -137,9 +137,9 @@ completeness so the agent has a single inventory to work from.
 | CORE-003 | `README.md` (top-level) | infra | landed |
 | CORE-004 | `METHODOLOGY.md` (essay) | infra | landed |
 | CORE-005 | `LICENSE` (top-level) | infra | landed |
-| CORE-006 | `{{cookiecutter.project_slug}}/CLAUDE.md` | L1 | planned |
-| CORE-007 | `{{cookiecutter.project_slug}}/AGENTS.md` | L1 | planned |
-| CORE-008 | `{{cookiecutter.project_slug}}/GEMINI.md` | L1 | planned |
+| CORE-006 | `{{cookiecutter.project_slug}}/CLAUDE.md` | L1 | landed |
+| CORE-007 | `{{cookiecutter.project_slug}}/AGENTS.md` | L1 | landed |
+| CORE-008 | `{{cookiecutter.project_slug}}/GEMINI.md` | L1 | landed |
 | CORE-009 | `{{cookiecutter.project_slug}}/CONSTITUTION.md` | L2 | landed |
 | CORE-010 | `{{cookiecutter.project_slug}}/DIRECTIVES.md` | L2 | landed |
 | CORE-011 | `{{cookiecutter.project_slug}}/SECURITY.md` | L2 | landed |

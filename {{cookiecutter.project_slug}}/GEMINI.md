@@ -125,7 +125,8 @@ individually or rely on reviewer attention.
   with this file.
 - `CLAUDE.md` — Claude Code's quick reference, parallel to this
   file.
-- `METHODOLOGY.md` — standalone essay on the methodology.
+- Methodology essay — include separately if this scaffold adds
+  one.
 - `docs/STANDARDS.md` — external standards register (when
   scaffolded).
 

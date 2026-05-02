@@ -10,8 +10,8 @@ This template exists for solo operators and small teams running
 agentic coding workflows who want governance to be *infrastructure*
 (mechanically enforced) rather than *advice* (politely ignored).
 
-For the full philosophy, read [`METHODOLOGY.md`](./METHODOLOGY.md).
-For the construction blueprint, read [`BUILD_PLAN.md`](./BUILD_PLAN.md).
+For the full philosophy, read [`docs/METHODOLOGY.md`](./docs/METHODOLOGY.md).
+For the construction blueprint, read [`docs/BUILD_PLAN.md`](./docs/BUILD_PLAN.md).
 
 ---
 
@@ -143,7 +143,17 @@ file or pattern needing attention.
 
 ```text
 agentic-starter-kit/
+├── AGENTS.md                       # Agent guidance for this template repo
+├── CLAUDE.md                       # Claude Code quick reference
 ├── cookiecutter.json               # Variable schema for the prompts
+├── docs/                           # Planning, research, and gap registers
+│   ├── METHODOLOGY.md              # The standalone essay
+│   ├── BRIEFING.md                 # Build governance for the template
+│   ├── BUILD_PLAN.md               # Phased build inventory
+│   ├── COMMAND_AND_AGENT_SPECS.md  # New-command/new-agent canonical text
+│   └── SWEBOK_GAP_REGISTER.md      # Source-of-truth gap register
+├── .github/
+│   └── CODEOWNERS                  # Review ownership routing
 ├── hooks/
 │   └── post_gen_project.py         # Conditional file pruning
 ├── {{cookiecutter.project_slug}}/  # The templated project tree
@@ -175,19 +185,14 @@ agentic-starter-kit/
 │   ├── tests/
 │   └── report/
 ├── README.md                       # This file (template-repo manual)
-├── METHODOLOGY.md                  # The standalone essay
 ├── LICENSE                         # MIT — for the template repo itself
-├── BRIEFING.md                     # Build governance for the template
-├── BUILD_PLAN.md                   # Phased build inventory
-├── COMMAND_AND_AGENT_SPECS.md      # New-command/new-agent canonical text
-├── SWEBOK_GAP_REGISTER.md          # Source-of-truth gap register
 └── .gitignore
 ```
 
 ## Contributing
 
 The template is governed by the same rules it ships. Authoring
-discipline is documented in `BRIEFING.md` (audience: agents and
+discipline is documented in `docs/BRIEFING.md` (audience: agents and
 humans authoring template content). Every PR runs the same
 `make validate` gate that the scaffolded projects run.
 

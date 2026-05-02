@@ -161,7 +161,7 @@ gets:
   order.
 - `DIRECTIVES.md` — eighteen directives and their enforcement.
 - `SECURITY.md` — disclosure process and agentic-specific scope.
-- `METHODOLOGY.md` (template repo) — the standalone essay on
+- `docs/METHODOLOGY.md` (template repo) — the standalone essay on
   agentic governance as infrastructure.
 
 ---

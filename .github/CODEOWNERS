@@ -1,0 +1,8 @@
+# Review ownership for the template repository.
+# Replace this default with narrower teams as the repository grows.
+
+* @Org-EthereaLogic/omnilogic
+
+/docs/ @Org-EthereaLogic/omnilogic
+/hooks/ @Org-EthereaLogic/omnilogic
+/{{cookiecutter.project_slug}}/ @Org-EthereaLogic/omnilogic

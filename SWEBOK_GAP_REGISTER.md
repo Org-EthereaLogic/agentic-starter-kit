@@ -140,9 +140,9 @@ completeness so the agent has a single inventory to work from.
 | CORE-006 | `{{cookiecutter.project_slug}}/CLAUDE.md` | L1 | planned |
 | CORE-007 | `{{cookiecutter.project_slug}}/AGENTS.md` | L1 | planned |
 | CORE-008 | `{{cookiecutter.project_slug}}/GEMINI.md` | L1 | planned |
-| CORE-009 | `{{cookiecutter.project_slug}}/CONSTITUTION.md` | L2 | planned |
-| CORE-010 | `{{cookiecutter.project_slug}}/DIRECTIVES.md` | L2 | planned |
-| CORE-011 | `{{cookiecutter.project_slug}}/SECURITY.md` | L2 | planned |
+| CORE-009 | `{{cookiecutter.project_slug}}/CONSTITUTION.md` | L2 | landed |
+| CORE-010 | `{{cookiecutter.project_slug}}/DIRECTIVES.md` | L2 | landed |
+| CORE-011 | `{{cookiecutter.project_slug}}/SECURITY.md` | L2 | landed |
 | CORE-012 | `.claude/settings.json` | L4 | planned |
 | CORE-013 | `.claude/hooks/pre-tool-use.js` | L4 | planned |
 | CORE-014 | `.claude/hooks/README.md` | L4 | planned |

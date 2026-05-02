@@ -102,8 +102,8 @@ make hooks-test         # CRIT-008 — hook regression suite green
 make validate           # aggregates the above + lint/typecheck/test
 ```
 
-Until those targets exist, the equivalent shell-level checks live
-in `scripts/` and reviewer attention enforces.
+Until those targets exist (added in Phase 4 of the build),
+reviewer attention enforces.
 
 ## File map
 

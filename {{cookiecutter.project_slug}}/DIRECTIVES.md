@@ -42,7 +42,8 @@ without amending the directive itself.
 
 **Statement.** The strings `TODO`, `FIXME`, `TBD`, `PLACEHOLDER`
 do not appear in canonical surfaces. Canonical surfaces are
-`specs/`, `.claude/`, `CLAUDE.md`, `AGENTS.md`, `docs/`.
+`specs/`, `.claude/`, `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`,
+`docs/`.
 
 **Rationale.** A stub marker in a contract is a confession that the
 contract is incomplete. Canonical surfaces are contracts; the two
@@ -58,17 +59,17 @@ a concatenated regex so it does not match itself.
 
 **Statement.** The following files exist at their canonical paths
 on every commit to the default branch:
-`CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md`, `README.md`.
-Once later layers add the navigation/spec/evidence scaffold, the
-default branch also retains `AGENTS.md`, `CLAUDE.md`, at least one
-spec under `specs/deep_specs/`, and non-empty `docs/`,
+`CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md`, `CLAUDE.md`,
+`AGENTS.md`, `GEMINI.md`, `README.md`. Once later layers add the
+spec and evidence scaffolding, the default branch also retains at
+least one spec under `specs/deep_specs/`, and non-empty `docs/`,
 `specs/deep_specs/`, `specs/security-requirements/`, `report/`.
 
-**Rationale.** Layer 2 (constitutional) requires its files to be
-present now, and later layers extend that required set. Removing a
-required artifact breaks the agentic decision chain. The check is
-mechanical; absence is a build break once that artifact is part of
-the scaffold.
+**Rationale.** Layers 1 (navigation) and 2 (constitutional) require
+their files to be present now, and later layers extend that
+required set. Removing a required artifact breaks the agentic
+decision chain. The check is mechanical; absence is a build break
+once that artifact is part of the scaffold.
 
 **Enforcement.** `make governance-check` runs on every PR. The
 script is in `scripts/check-governance.sh`.

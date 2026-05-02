@@ -1,0 +1,6 @@
+{
+  "tool_name": "Bash",
+  "tool_input": {
+    "command": "bash -c \"git push origin feat/x:{{ cookiecutter.default_branch_name }}\""
+  }
+}

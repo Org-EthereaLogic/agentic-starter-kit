@@ -2,45 +2,14 @@
 # scripts/check-governance.sh — enforce CRIT-002
 #
 # Verifies the required governance files and folders are present.
-# Per the phased-enforcement framing in DIRECTIVES.md CRIT-002,
-# the "exist now" set is checked strictly; the "later layers add"
-# set is checked tolerantly (warn + continue).
-#
-# Exits 0 if the strict set is satisfied; exits 1 if any strictly-
-# required artifact is missing or invalid.
+# Per DIRECTIVES.md CRIT-002, "exist now" is checked strictly;
+# "later layers add" is checked tolerantly (warn + continue).
 
 set -euo pipefail
 
-errors=0
-warnings=0
-
-check_required_file() {
-  local path="$1"
-  if [[ ! -f "$path" ]]; then
-    echo "ERROR: required file missing: $path" >&2
-    errors=$((errors + 1))
-  fi
-}
-
-warn_optional_dir() {
-  local path="$1"
-  if [[ ! -d "$path" ]]; then
-    echo "WARN: optional directory not yet present: $path"
-    warnings=$((warnings + 1))
-  fi
-}
-
-warn_optional_file_in_dir() {
-  local dir="$1"
-  local pattern="$2"
-  if [[ ! -d "$dir" ]]; then
-    return
-  fi
-  if ! find "$dir" -maxdepth 2 -name "$pattern" -print -quit | grep -q .; then
-    echo "WARN: $dir contains no files matching '$pattern' yet"
-    warnings=$((warnings + 1))
-  fi
-}
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/common.sh"
 
 # --- Strictly required files (Layer 1 + Layer 2 + Layer 4) ---
 
@@ -57,22 +26,18 @@ required_files=(
 )
 
 for f in "${required_files[@]}"; do
-  check_required_file "$f"
+  check_file_exists "$f" || true
 done
 
 # --- Hook content checks (CRIT-008) ---
 
 hook_path=".claude/hooks/pre-tool-use.js"
-if [[ -f "$hook_path" && ! -s "$hook_path" ]]; then
-  echo "ERROR: $hook_path is empty" >&2
-  errors=$((errors + 1))
-fi
+check_file_not_empty "$hook_path" || true
 
 settings_path=".claude/settings.json"
 if [[ -f "$settings_path" ]]; then
   if ! grep -q "pre-tool-use.js" "$settings_path"; then
-    echo "ERROR: $settings_path does not register pre-tool-use.js" >&2
-    errors=$((errors + 1))
+    log_error "$settings_path does not register pre-tool-use.js"
   fi
 fi
 
@@ -86,20 +51,16 @@ optional_dirs=(
 )
 
 for d in "${optional_dirs[@]}"; do
-  warn_optional_dir "$d"
+  check_dir_exists "$d" || log_warn "optional directory not yet present: $d"
 done
 
-warn_optional_file_in_dir "specs/deep_specs" "*.md"
-
-# --- Verdict ---
-
-if [[ $errors -gt 0 ]]; then
-  echo "" >&2
-  echo "governance-check FAILED — $errors error(s), $warnings warning(s)" >&2
-  echo "Per DIRECTIVES.md CRIT-002, the strictly-required artifacts" >&2
-  echo "must exist on every commit to the default branch." >&2
-  exit 1
+if check_dir_exists "specs/deep_specs"; then
+  if ! find "specs/deep_specs" -maxdepth 2 -name "*.md" -print -quit | grep -q .; then
+    log_warn "specs/deep_specs contains no .md files yet"
+  fi
 fi
 
-echo "governance-check OK ($warnings warning(s) about future-phase artifacts)"
-exit 0
+# --- Report ---
+
+report_status "governance-check" \
+  "Per DIRECTIVES.md CRIT-002, strictly-required artifacts must exist on every commit."

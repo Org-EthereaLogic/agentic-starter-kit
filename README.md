@@ -46,9 +46,10 @@ Plus a complete documentation set anchored to SWEBOK v4:
   fabricated metrics, hallucinated paths, unsupported external state,
   missing citations.
 
-Plus a **machine-readable traceability matrix** (`specs/traceability.json`
-+ JSON Schema + validator script + CI gate) that converts "we have
-specs" into "drift between specs and code is mechanically detected."
+Plus a **machine-readable traceability matrix**
+(`specs/traceability.json`, JSON Schema, validator script, CI gate)
+that converts "we have specs" into "drift between specs and code
+is mechanically detected."
 
 ## How to use it
 
@@ -86,23 +87,23 @@ cookiecutter ./agentic-starter-kit
 The template prompts for the following variables (sensible defaults
 shown):
 
-| Variable              | Default                       | Choices                              | Notes                                                                |
-|-----------------------|-------------------------------|--------------------------------------|----------------------------------------------------------------------|
-| `project_name`        | `My Agentic Project`          | free text                            | Display name used in narrative documents                             |
-| `project_slug`        | derived from `project_name`   | derived                              | Lowercased, dashes for spaces and underscores                        |
-| `project_description` | `<one-line project description>` | free text                         | One-line summary used in `pyproject.toml` / `package.json` / README  |
-| `python_package_name` | derived from `project_slug`   | derived                              | Underscores instead of dashes                                        |
-| `author_name`         | `<your name>`                 | free text                            |                                                                      |
-| `author_email`        | `<your email>`                | free text                            | Used as the security disclosure address baseline                     |
-| `year`                | `2026`                        | free text                            | Appears in `LICENSE` and copyright headers                           |
-| `license`             | `MIT`                         | `MIT`, `Apache-2.0`, `Proprietary`   |                                                                      |
-| `primary_language`    | `python`                      | `python`, `typescript`, `polyglot`   | Drives which build files are kept (see post-gen hook)                |
-| `include_databricks`  | `no`                          | `no`, `yes`                          | Reserved — Databricks bundle scaffolding to be added in a later release |
-| `include_codacy`      | `yes`                         | `yes`, `no`                          | Adds `.codacy.yml` plus a CI job                                     |
-| `include_codecov`     | `yes`                         | `yes`, `no`                          | Adds `codecov.yaml` plus a CI upload job                             |
-| `include_snyk`        | `yes`                         | `yes`, `no`                          | Adds `.snyk` plus a CI job                                           |
-| `include_sbom`        | `yes`                         | `yes`, `no`                          | Adds `scripts/generate-sbom.sh` plus a CI job                        |
-| `default_branch_name` | `main`                        | free text                            | Protected branch the runtime hook guards                             |
+| Variable | Default | Choices | Notes |
+|---|---|---|---|
+| `project_name` | `My Agentic Project` | free text | Display name used in narrative documents |
+| `project_slug` | derived from `project_name` | derived | Lowercased; dashes replace spaces and underscores |
+| `project_description` | `<one-line project description>` | free text | One-line summary used in `pyproject.toml`, `package.json`, README |
+| `python_package_name` | derived from `project_slug` | derived | Underscores replace dashes |
+| `author_name` | `<your name>` | free text | |
+| `author_email` | `<your email>` | free text | Used as the security disclosure address baseline |
+| `year` | `2026` | free text | Appears in `LICENSE` and copyright headers |
+| `license` | `MIT` | `MIT`, `Apache-2.0`, `Proprietary` | |
+| `primary_language` | `python` | `python`, `typescript`, `polyglot` | Drives which build files are kept by the post-gen hook |
+| `include_databricks` | `no` | `no`, `yes` | Reserved; Databricks bundle scaffolding lands in a later release |
+| `include_codacy` | `yes` | `yes`, `no` | Adds `.codacy.yml` plus a CI job |
+| `include_codecov` | `yes` | `yes`, `no` | Adds `codecov.yaml` plus a CI upload job |
+| `include_snyk` | `yes` | `yes`, `no` | Adds `.snyk` plus a CI job |
+| `include_sbom` | `yes` | `yes`, `no` | Adds `scripts/generate-sbom.sh` plus a CI job |
+| `default_branch_name` | `main` | free text | Protected branch the runtime hook guards |
 
 The post-generation hook in `hooks/post_gen_project.py` removes
 language-specific or integration-specific files based on these
@@ -139,7 +140,7 @@ file or pattern needing attention.
 
 ## Repository layout
 
-```
+```text
 agentic-starter-kit/
 ├── cookiecutter.json               # Variable schema for the prompts
 ├── hooks/

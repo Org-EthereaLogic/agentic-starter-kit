@@ -4,18 +4,21 @@
 
 ---
 
-## Bring-up
+## Getting Started
+
+**Important:** Before running validation, you must install dependencies:
 
 ```sh
 git init
 git checkout -b feat/initial
-make sync         # install language-specific dependencies
+make sync         # ← required: install language-specific dependencies
 make validate     # run the full pre-merge gate
 make hooks-test   # exercise the protected-branch runtime hook
 ```
 
-If `make validate` is clean, the scaffold is healthy. Each gate's
-failure surfaces a specific file or pattern needing attention.
+- `make sync` installs dev tools (ruff, mypy, pytest, etc.) and must run first
+- `make validate` aggregates all governance checks and is the canonical pre-merge gate
+- If `make validate` is clean, the scaffold is healthy. Each gate's failure surfaces a specific file or pattern needing attention
 
 ## Governance layers
 

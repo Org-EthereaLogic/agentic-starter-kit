@@ -1,10 +1,10 @@
 {
   "project_name": "My Agentic Project",
   "project_slug": "{{ cookiecutter.project_name|lower|replace(' ', '-')|replace('_', '-') }}",
-  "project_description": "<one-line project description>",
+  "project_description": "An agentic application",
   "python_package_name": "{{ cookiecutter.project_slug|replace('-', '_') }}",
-  "author_name": "<your name>",
-  "author_email": "<your email>",
+  "author_name": "Author Name",
+  "author_email": "author@example.com",
   "year": "2026",
   "license": ["MIT", "Apache-2.0", "Proprietary"],
   "primary_language": ["python", "typescript", "polyglot"],

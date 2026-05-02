@@ -9,14 +9,15 @@
 // The eight bypass classes covered are documented in
 // `.claude/hooks/README.md`.
 
-"use strict";
+import test from "node:test";
+import assert from "node:assert/strict";
+import { execFileSync, spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const { execFileSync, spawnSync } = require("node:child_process");
-const { mkdtempSync, readFileSync, writeFileSync } = require("node:fs");
-const { tmpdir } = require("node:os");
-const path = require("node:path");
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const HOOK_PATH = path.join(REPO_ROOT, ".claude", "hooks", "pre-tool-use.js");

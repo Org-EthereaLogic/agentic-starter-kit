@@ -50,7 +50,7 @@ do not receive backports.
 | Version | Supported |
 |---|---|
 | `latest` | yes |
-| `prior major` | yes — until `release date + 12 months` |
+| `prior major` | yes — until `YYYY-MM-DD + 12 months` |
 | earlier | no |
 
 Concrete version numbers and dates land in this table after the

@@ -21,7 +21,7 @@
 
 ## Class definitions
 
-| Class | Severity | Target failure consequence | Enforcement layer |
+| Class | Severity | Intended failure consequence | Enforcement layer |
 |---|---|---|---|
 | Critical (`CRIT-NNN`) | Hard | Build break; merge blocked; commit may be rejected by hook | Layer 4 runtime hook + Layer 5 CI when scaffolded; reviewer attention until then |
 | Important (`IMP-NNN`) | Soft-hard | PR review block; trail-of-evidence required to override | Layer 5 CI when scaffolded; reviewer attention until then |

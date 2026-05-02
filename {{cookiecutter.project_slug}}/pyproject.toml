@@ -45,7 +45,8 @@ dev-dependencies = [
   "pytest>=8,<9",
   "pytest-cov>=5,<7",
   "pre-commit>=3.7,<5",
-]
+{% if cookiecutter.include_sbom == "yes" %}  "cyclonedx-bom>=4,<6",
+{% endif %}]
 
 # --- Ruff ---------------------------------------------------------
 

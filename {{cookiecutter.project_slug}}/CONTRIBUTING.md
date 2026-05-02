@@ -22,7 +22,7 @@ pipx install uv         # or: pip install --user uv
 # Node 20+ from your package manager (brew, apt, dnf).
 {% endif %}
 make sync               # install dependencies (language-specific)
-pre-commit install      # install the pre-commit hook
+pre-commit install --hook-type pre-commit --hook-type pre-push  # install both local Git hook stages
 make validate           # confirm the scaffold is healthy
 make hooks-test         # exercise the protected-branch hook
 ```

@@ -1,14 +1,22 @@
 # External Template Research — Findings & Gap Analysis
 
-> **Purpose:** comparative analysis of popular GitHub templates, agentic
-> coding starter kits, spec-driven methodologies, and OSS supply-chain
-> standards versus the current `agentic-starter-kit` build. Each finding
-> includes a verdict on whether it gets pulled into our template and
-> where.
+> **Precedence note:** `EXTENSIONS_DECISIONS.md` supersedes specific
+> portions of this file. In particular, Decision 2 in that file
+> rejects the symlink mechanic discussed in §3.1 below; Decision 3
+> tiers the size cap. Read `EXTENSIONS_DECISIONS.md` first when
+> these subjects come up. Other findings in this document remain
+> authoritative.
 >
-> **Author note:** this file is reference material for the IDE agent.
-> When extending the template per `IDE_PROMPT_PHASE_12.md`, treat the
-> verdicts in this document as authoritative.
+> **Purpose:** comparative analysis of popular GitHub templates,
+> agentic coding starter kits, spec-driven methodologies, and OSS
+> supply-chain standards versus the current `agentic-starter-kit`
+> build. Each finding includes a verdict on whether it gets pulled
+> into our template and where.
+>
+> **Author note:** this file is reference material for the IDE
+> agent. When extending the template per `IDE_PROMPT_PHASE_12.md`,
+> treat the verdicts in this document as authoritative except
+> where `EXTENSIONS_DECISIONS.md` overrides.
 >
 > **Created:** 2026-05-01.
 
@@ -41,7 +49,7 @@
 
 | Standard / Ecosystem | What it is | Verdict |
 |---|---|---|
-| **AGENTS.md** (Linux Foundation Agentic AI Foundation) | Cross-tool agent instruction format; 6 core areas (commands, testing, project structure, code style, git workflow, boundaries); supports `AGENTS.override.md` nesting; Codex caps at 32 KiB | **Adopt as primary**; CLAUDE.md becomes a symlink (workaround until Anthropic adds native support) |
+| **AGENTS.md** (Linux Foundation Agentic AI Foundation) | Cross-tool agent instruction format; 6 core areas (commands, testing, project structure, code style, git workflow, boundaries); supports `AGENTS.override.md` nesting; Codex caps at 32 KiB | **Adopt as primary**; CLAUDE.md and GEMINI.md become derived artifacts via sync-script + drift-check (see EXTENSIONS_DECISIONS.md Decision 2 — supersedes the symlink approach originally proposed) |
 | **SKILL.md** (Linux Foundation) | Portable directory format: `SKILL.md` + `scripts/` + `references/` + `assets/`; progressive disclosure via frontmatter | **Adopt** as `.claude/skills/` pattern; ship 2 seed skills |
 | **OpenSSF Scorecard** | 18+ automated security checks (branch protection, code review, dependency mgmt, fuzzing, etc.); GitHub Action | **Adopt** as CI job; aim for ≥7/10 baseline |
 | **OpenSSF Best Practices Badge** | Passing / Silver / Gold security & sustainment criteria | **Document** opt-in path; not auto-enrolled |
@@ -81,13 +89,19 @@ perform better**.
 **Current state.** The template ships CLAUDE.md, AGENTS.md, and
 GEMINI.md as three separate files, treating them as parallel.
 
-**Action.** Demote CLAUDE.md and GEMINI.md to symlinks of AGENTS.md.
-Add `AGENTS.override.md` documentation for nested overrides. Keep
-each file under 16 KiB to stay well below Codex's 32 KiB cap and
-respect the Princeton finding. Add a "boundaries" section using the
-three-tier pattern (always do / ask first / never do) found by the
-GitHub blog analysis of 2,500+ AGENTS.md files to be the
-highest-correlation success pattern.
+**Action.** Demote CLAUDE.md and GEMINI.md to **derived artifacts**
+generated from AGENTS.md by `scripts/sync-agent-files.sh`, with
+drift detection via pre-commit hook and `make governance-check`.
+This supersedes the symlink approach originally proposed — see
+`EXTENSIONS_DECISIONS.md` Decision 2 for the rationale (Windows
+`core.symlinks=false` and Codespaces edge cases). Add
+`AGENTS.override.md` documentation for nested overrides. Keep
+each file under 16 KiB (soft target; hard cap 24 KiB) per
+`EXTENSIONS_DECISIONS.md` Decision 3 to stay below Codex's 32 KiB
+cap and respect the Princeton finding. Add a "boundaries" section
+using the three-tier pattern (always do / ask first / never do)
+found by the GitHub blog analysis of 2,500+ AGENTS.md files to be
+the highest-correlation success pattern.
 
 **Lands in.** GAP-EXT-001.
 
@@ -104,7 +118,9 @@ works in Claude, Codex, Gemini CLI, Cursor.
 **Current state.** No skills directory.
 
 **Action.** Add `.claude/skills/` (mirrored to `.agents/skills/` or
-symlinked). Ship two seed skills:
+synced via the same pattern as AGENTS.md → CLAUDE.md). Ship two
+seed skills:
+
 - `governance-audit` — packages the audit-step prose and the
   `make audit` wrapper
 - `spec-bump` — packages the spec-versioning workflow
@@ -159,6 +175,7 @@ markdownlint, etc., conditional on language path).
 ### 3.5 Release automation: release-please
 
 **Finding.** Two leading approaches:
+
 - **release-please** (Google) — creates and maintains a single
   "Release PR" that aggregates conventional commits since the last
   release; merging the PR publishes. Fully GitHub-native.
@@ -188,9 +205,9 @@ with search, theme, and version selectors.
 **Current state.** `docs/` is a markdown folder. No site generator.
 
 **Action.** Add MkDocs Material config for Python path and VitePress
-config for TS path, conditional on a new
-`include_docs_site=yes` cookiecutter option. GitHub Pages
-auto-deploy workflow on push to default branch.
+config for TS path, conditional on a new `include_docs_site=yes`
+cookiecutter option. GitHub Pages auto-deploy workflow on push to
+default branch.
 
 **Lands in.** GAP-EXT-009.
 
@@ -198,6 +215,7 @@ auto-deploy workflow on push to default branch.
 
 **Finding.** Top-tier OSS templates ship a consistent set of
 community files:
+
 - `CHANGELOG.md` (Keep a Changelog format) — required for
   release-please anyway
 - `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) — community norm
@@ -249,6 +267,7 @@ on Python path.
 ### 3.10 Spec-driven development integration
 
 **Finding.** Three SDD frameworks have matured:
+
 - **Spec Kit** (39k+ stars) — `/specify`, `/plan`, `/tasks`,
   constitution-anchored, GitHub-native
 - **OpenSpec** — brownfield-first; `openspec/changes/<id>/`
@@ -263,6 +282,7 @@ to Spec Kit but doesn't formally integrate any of these.
 **Current state.** Custom spec model.
 
 **Action.** **Don't fork to a new framework.** Instead:
+
 1. Add **OpenSpec-style change proposals** as
    `specs/changes/<change-id>/` for brownfield evolution (lighter
    than full ADRs).
@@ -346,6 +366,7 @@ Don't auto-install MCP servers — that's user choice.
 
 **Finding.** `wshobson/agents` runs three evaluation layers on
 its 184 agents and 150 skills:
+
 1. **Static analysis** (instant) — frontmatter linting, length
    checks, broken cross-references
 2. **LLM judge** (semantic) — quality grading
@@ -441,7 +462,7 @@ our context:
 
 | Anti-pattern | Why we reject |
 |---|---|
-| **LLM-generated AGENTS.md files** | Princeton study: -2% success, +23% cost. Our AGENTS.md is hand-authored and stays under 16 KiB. |
+| **LLM-generated AGENTS.md files** | Princeton study: -2% success, +23% cost. Our AGENTS.md is hand-authored and stays under 16 KiB (soft target). |
 | **Auto-enroll in OpenSSF Best Practices Badge** | Voluntary commitment; better as documentation pointing the user at the opt-in path. |
 | **All-three SDD frameworks at once** (Spec Kit + OpenSpec + BMAD) | Compatibility docs are cheap; framework collisions are expensive. We ship our model and document interop. |
 | **Plugin marketplace approach** | We're a single template; not building a registry. |
@@ -450,6 +471,7 @@ our context:
 | **Live-spec automation that writes back to specs** | Drift detection (read-only) is safe; auto-spec-update is not. Specs are versioned governance, not generated artifacts. |
 | **`semantic-release` over `release-please` as default** | Fully-automated publishing removes the human gatekeeper that solo operators need. |
 | **Persistent-identity sub-agents with custom tool grants** | Adds complexity without clear ROI for our scale. Reconsider in v2. |
+| **Symlinking CLAUDE.md → AGENTS.md** | Cross-platform fragility (Windows, Codespaces). Replaced by sync-script + drift-check per `EXTENSIONS_DECISIONS.md` Decision 2. |
 
 ---
 
@@ -467,6 +489,8 @@ checks:
 | `DEAD_CROSS_REF` | Markdown link target file does not exist |
 | `OVER_CONSTRAINED` | Agent prompt has >10 "MUST NOT" rules — likely over-specified |
 | `STUB_MARKER` | Already covered by `marker-scan.sh` (CRIT-001) |
+| `AGENTS_MD_OVERSIZE_WARN` | `AGENTS.md` ≥16 KiB (warn, per `EXTENSIONS_DECISIONS.md` Decision 3) |
+| `AGENTS_MD_OVERSIZE_FAIL` | `AGENTS.md` ≥24 KiB (fail) |
 
 ---
 

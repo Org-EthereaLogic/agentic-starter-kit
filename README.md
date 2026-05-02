@@ -27,7 +27,8 @@ Every project the template scaffolds carries five layers:
 | 4 | Runtime enforcement  | Hooks that block bad actions before they happen     | `.claude/hooks/pre-tool-use.js`, `.claude/settings.json`, `tests/test_pre_tool_use_hook.{py,js}`|
 | 5 | External validation  | CI gates that audit independently                   | `.github/workflows/ci.yml`, `Makefile`, `scripts/*.sh`                                          |
 
-Plus a complete documentation set anchored to SWEBOK v4:
+Planned later phases add a complete documentation set anchored to
+SWEBOK v4:
 
 - `docs/ARCHITECTURE.md` — IEEE 42010 architecture description with
   named views (logical / process / deployment / data), stakeholders,
@@ -46,10 +47,10 @@ Plus a complete documentation set anchored to SWEBOK v4:
   fabricated metrics, hallucinated paths, unsupported external state,
   missing citations.
 
-Plus a **machine-readable traceability matrix**
+Later phases also add a **machine-readable traceability matrix**
 (`specs/traceability.json`, JSON Schema, validator script, CI gate)
-that converts "we have specs" into "drift between specs and code
-is mechanically detected."
+that converts "we have specs" into "drift between specs and code is
+mechanically detected."
 
 ## How to use it
 

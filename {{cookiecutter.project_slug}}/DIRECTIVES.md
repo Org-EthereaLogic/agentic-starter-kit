@@ -2,10 +2,11 @@
 
 > **Authority.** This document codifies the project's rules in three
 > classes — Critical, Important, Recommended. Critical failures are
-> build breaks; Important failures block merge; Recommended failures
-> are soft signals. Each directive carries an enforcement mechanism;
-> a directive whose enforcement is "the agent should remember" is
-> not a directive but advice.
+> target build breaks; Important failures target merge blocks;
+> Recommended failures are soft signals. Each directive carries an
+> enforcement mechanism or review control; later layers wire the
+> mechanical hooks and CI jobs, but a directive whose enforcement is
+> "the agent should remember" is not a directive but advice.
 >
 > **Authority chain.** This document derives from `CONSTITUTION.md`.
 > `SECURITY.md` overrides this document on security-relevant
@@ -20,10 +21,10 @@
 
 ## Class definitions
 
-| Class | Severity | Failure consequence | Enforcement layer |
+| Class | Severity | Target failure consequence | Enforcement layer |
 |---|---|---|---|
-| Critical (`CRIT-NNN`) | Hard | Build break; merge blocked; commit may be rejected by hook | Layer 4 runtime hook + Layer 5 CI |
-| Important (`IMP-NNN`) | Soft-hard | PR review block; trail-of-evidence required to override | Layer 5 CI + reviewer attention |
+| Critical (`CRIT-NNN`) | Hard | Build break; merge blocked; commit may be rejected by hook | Layer 4 runtime hook + Layer 5 CI when scaffolded; reviewer attention until then |
+| Important (`IMP-NNN`) | Soft-hard | PR review block; trail-of-evidence required to override | Layer 5 CI when scaffolded; reviewer attention until then |
 | Recommended (`REC-NNN`) | Soft | Surfaced in review; not blocking | Reviewer attention |
 
 `CONSTITUTION.md §P3` — Hard Policy Boundaries — applies only to
@@ -57,16 +58,17 @@ a concatenated regex so it does not match itself.
 
 **Statement.** The following files exist at their canonical paths
 on every commit to the default branch:
-`CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md`, `AGENTS.md`,
-`CLAUDE.md`, `README.md`, plus at least one spec under
-`specs/deep_specs/`. The following directories exist and are
-non-empty: `docs/`, `specs/deep_specs/`, `specs/security-requirements/`,
-`report/`.
+`CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md`, `README.md`.
+Once later layers add the navigation/spec/evidence scaffold, the
+default branch also retains `AGENTS.md`, `CLAUDE.md`, at least one
+spec under `specs/deep_specs/`, and non-empty `docs/`,
+`specs/deep_specs/`, `specs/security-requirements/`, `report/`.
 
-**Rationale.** Layer 2 (constitutional) and Layer 1 (navigation)
-require their files to be present. Removing one breaks the
-agentic decision chain. The check is mechanical; absence is a
-build break.
+**Rationale.** Layer 2 (constitutional) requires its files to be
+present now, and later layers extend that required set. Removing a
+required artifact breaks the agentic decision chain. The check is
+mechanical; absence is a build break once that artifact is part of
+the scaffold.
 
 **Enforcement.** `make governance-check` runs on every PR. The
 script is in `scripts/check-governance.sh`.

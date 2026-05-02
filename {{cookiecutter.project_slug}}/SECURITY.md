@@ -3,9 +3,9 @@
 > **Authority.** This document declares how to report a security
 > issue against {{ cookiecutter.project_name }}, what is in scope,
 > and which artifacts hold the working details. It is **tier 1**
-> in the decision order — when this document conflicts with
-> `CONSTITUTION.md`, `DIRECTIVES.md`, or any spec, this document
-> wins.
+> in the decision order for security-relevant decisions — when this
+> document conflicts with `CONSTITUTION.md`, `DIRECTIVES.md`, or
+> any spec on a security matter, this document wins.
 
 ---
 
@@ -49,8 +49,8 @@ do not receive backports.
 
 | Version | Supported |
 |---|---|
-| `<latest>` | yes |
-| `<prior major>` | yes — until <release date + 12 months> |
+| `latest` | yes |
+| `prior major` | yes — until `release date + 12 months` |
 | earlier | no |
 
 Concrete version numbers and dates land in this table after the
@@ -104,9 +104,10 @@ for {{ cookiecutter.project_name }}:
 
 ## Working artifacts
 
-The full security program is documented across these files. This
-SECURITY.md is the *entry point*; the depth lives in the listed
-documents.
+As later layers land, the full security program is documented
+across these files. This SECURITY.md is the *entry point*; until
+those artifacts exist, treat the table below as the planned depth
+map.
 
 | Artifact | Purpose |
 |---|---|
@@ -122,8 +123,8 @@ documents.
 ## Disclosure history
 
 Acknowledged disclosures are recorded in
-`docs/security/disclosure-history.md` (created when the first
-disclosure lands).
+`docs/security/disclosure-history.md` once that file exists
+(created when the first disclosure lands).
 
 ## Amendment
 

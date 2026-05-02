@@ -20,8 +20,8 @@ amendment process that lets the contract evolve.
 
 The Constitution does not describe specific rules; that is the job
 of `DIRECTIVES.md`. It does not describe security policy; that is
-the job of `SECURITY.md`. It does not describe architecture; that
-is the job of `docs/ARCHITECTURE.md`. It declares the principles
+the job of `SECURITY.md`. It does not describe architecture; later
+documentation layers add that material. It declares the principles
 those documents derive from.
 
 ## 2. Foundational principles
@@ -186,13 +186,14 @@ standard PR workflow with conventional-commit prefixes.
 - `DIRECTIVES.md` codifies the rules derived from these principles.
 - `SECURITY.md` declares the security disclosure process and
   agentic-specific scope.
-- `docs/ARCHITECTURE.md` documents the architecture that implements
-  these principles.
-- `docs/THREAT_MODEL.md` documents the threats this project's
-  security posture defends against.
-- `docs/STANDARDS.md` lists the external standards this constitution
-  derives authority from (SWEBOK v4, ISO/IEC/IEEE 32675:2022, IEEE
-  42010, AGENTS.md, IEEE 2675, CycloneDX/SPDX, CERT Top 10).
+- Later layers add `docs/ARCHITECTURE.md` to document the
+  architecture that implements these principles.
+- Later layers add `docs/THREAT_MODEL.md` to document the threats
+  this project's security posture defends against.
+- Later layers add `docs/STANDARDS.md` to list the external
+  standards this constitution derives authority from (SWEBOK v4,
+  ISO/IEC/IEEE 32675:2022, IEEE 42010, AGENTS.md, IEEE 2675,
+  CycloneDX/SPDX, CERT Top 10).
 
 ---
 

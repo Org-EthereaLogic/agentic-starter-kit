@@ -79,15 +79,16 @@ Detailed in `AGENTS.md`. Compressed:
 
 | Path | Purpose |
 |---|---|
-| `.claude/commands/` | Slash-command definitions. Each is a Markdown file with YAML frontmatter declaring `description`, `argument-hint`, and `allowed-tools`. |
-| `.claude/agents/` | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
-| `.claude/hooks/pre-tool-use.js` | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
-| `.claude/settings.json` | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
+| `.claude/commands/` *(when scaffolded)* | Slash-command definitions. Each is a Markdown file with YAML frontmatter declaring `description`, `argument-hint`, and `allowed-tools`. |
+| `.claude/agents/` *(when scaffolded)* | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
+| `.claude/hooks/pre-tool-use.js` *(when scaffolded)* | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
+| `.claude/settings.json` *(when scaffolded)* | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
 
-Specific command and agent inventories populate during the build's
-Layer 3 scaffolding. Until then, treat the directories as the
-contract surface; the file listings inside them are the inventory
-when present.
+These `.claude/...` paths are part of the intended contract surface
+for the build, but they may not exist in a freshly rendered Phase 2
+scaffold. Specific command and agent inventories populate during
+the build's Layer 3 scaffolding, and file-level listings apply only
+after those paths have been scaffolded.
 
 ## Required checks before commit
 

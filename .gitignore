@@ -1,0 +1,65 @@
+# Insiders AI rules — local-only configuration
+.github/instructions/codacy.instructions.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.eggs/
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.venv/
+venv/
+ENV/
+env/
+build/
+dist/
+pip-wheel-metadata/
+
+# Node / TypeScript
+node_modules/
+*.tsbuildinfo
+.next/
+.nuxt/
+.cache/
+out/
+.npm/
+.yarn/
+.pnp.*
+
+# Editor / OS
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Cookiecutter local test outputs
+/.cookiecutter-test/
+/.cookiecutter-test-*/
+/cookiecutter-test/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# SBOM artifacts (template repo's own SBOM if generated)
+sbom/
+
+# Reports generated locally during template development
+report/

@@ -1,5 +1,14 @@
 # IDE Prompt — Agentic Starter Kit, Extensions Build (Phases 12–15)
 
+> **Precedence note:** `EXTENSIONS_DECISIONS.md` supersedes specific
+> portions of this prompt. In particular, the symlink mechanic in
+> Step 2 below is **superseded by Decision 2** (use sync-script +
+> drift-check instead). The 16 KiB hard cap is **superseded by
+> Decision 3** (soft warn at 16 KiB, hard fail at 24 KiB). When the
+> agent reads this prompt, it must also read
+> `EXTENSIONS_DECISIONS.md` — the latter wins on the points it
+> addresses.
+>
 > **How to use this:** open VS Code Insiders, navigate to
 > `/Users/etherealogic-2/Dev/agentic-starter-kit`, start a new
 > Claude Code session in this directory, and paste the
@@ -27,25 +36,31 @@ already complete. Your job is Phases 12–15.
 
 ### Step 1 — Read the planning files in order
 
-Before authoring anything, read all five in this order:
+Before authoring anything, read all six in this order:
 
 1. `BRIEFING.md` — mission, the five layers, eight constitutional
    principles, eighteen directives, authorial style rules. **The
    style rules from §6 apply to every file you write in this
    extension.**
 2. `RESEARCH_FINDINGS.md` — what was researched, what we adopt,
-   what we reject. Verdicts in this file are authoritative.
-3. `SWEBOK_GAP_REGISTER.md` — the original 53 gaps. Treat as
+   what we reject. Verdicts in this file are authoritative except
+   where overridden by the next file.
+3. `EXTENSIONS_DECISIONS.md` — **binding override decisions** that
+   supersede the other extension-rails files on the points they
+   address. Read this carefully — Decisions 2 and 3 directly
+   modify the deliverables described later in this prompt.
+4. `SWEBOK_GAP_REGISTER.md` — the original 53 gaps. Treat as
    reference; do not modify rows here.
-4. `SWEBOK_GAP_REGISTER_EXTENSIONS.md` — the **24 new gaps**
+5. `SWEBOK_GAP_REGISTER_EXTENSIONS.md` — the **24 new gaps**
    (GAP-EXT-001 through GAP-EXT-024) you are landing in this
    build. Use this as your master checklist.
-5. `BUILD_PLAN.md` — original phasing for Phases 0–11 (already
+6. `BUILD_PLAN.md` — original phasing for Phases 0–11 (already
    done). Reference only.
 
 After reading, summarize back to me in one short paragraph what
-you understand the extension build to be and which phase boundaries
-you'll commit on. Do not start authoring until I confirm.
+you understand the extension build to be **and which decisions
+from `EXTENSIONS_DECISIONS.md` modify the work described below**.
+Do not start authoring until I confirm.
 
 ### Step 2 — Phase 12: Cross-tool standardization + community files
 
@@ -53,29 +68,52 @@ Land these gaps as one phase (one feat branch, one PR):
 
 **GAP-EXT-001 — AGENTS.md as primary cross-tool standard.**
 
+> **Decision 2 of `EXTENSIONS_DECISIONS.md` supersedes the
+> symlink mechanic described below.** The deliverable is now a
+> sync-script + drift-check pattern. The symlink instruction is
+> retained in this prompt only as historical context — **do not
+> implement it**. Implement what Decision 2 specifies.
+
 - Rewrite `{{cookiecutter.project_slug}}/AGENTS.md` to follow the
   Linux Foundation Agentic AI Foundation specification: six core
   sections (Commands, Testing, Project Structure, Code Style,
   Git Workflow, Boundaries). The Boundaries section uses the
   three-tier pattern: **always do**, **ask first**, **never do**.
   Cite our directives by ID where they apply.
-- Keep AGENTS.md under **16 KiB**. The Princeton study shows
-  shorter agent-instruction files outperform long ones; Codex
-  caps at 32 KiB. Stay well below the cap.
-- Delete the standalone CLAUDE.md and GEMINI.md content. Replace
-  with symlinks. Update `hooks/post_gen_project.py` to:
-  ```python
-  os.symlink("AGENTS.md", "CLAUDE.md")
-  os.symlink("AGENTS.md", "GEMINI.md")
-  ```
-  Symlinks must be created relatively (so the project remains
-  portable) and after the templated AGENTS.md is rendered.
+- Target AGENTS.md at the **soft target ≤16 KiB** (per
+  `EXTENSIONS_DECISIONS.md` Decision 3). The lint check WARNs at
+  16 KiB and FAILs at 24 KiB. If the file legitimately exceeds
+  16 KiB, justify in the PR description (and consider pushing
+  detail into nested `AGENTS.override.md` files or SKILL.md
+  files).
+- Per `EXTENSIONS_DECISIONS.md` Decision 2: do NOT use
+  `os.symlink` for CLAUDE.md / GEMINI.md. Instead:
+  - Create `{{cookiecutter.project_slug}}/scripts/sync-agent-files.sh`
+    that copies AGENTS.md → CLAUDE.md and AGENTS.md → GEMINI.md,
+    prepending each derived file with the auto-generated header:
+    ```
+    <!-- AUTO-GENERATED from AGENTS.md by scripts/sync-agent-files.sh.
+         Do not edit directly. Edit AGENTS.md and run `make sync-agents`. -->
+    ```
+  - Add `make sync-agents` Makefile target (idempotent wrapper).
+  - Add `agent-files-current` pre-commit hook in
+    `.pre-commit-config.yaml` (local hook) that strips the header
+    from CLAUDE.md and GEMINI.md and byte-compares against
+    AGENTS.md. Fails with remediation message:
+    `CLAUDE.md / GEMINI.md drift detected. Run: make sync-agents`
+  - Update `hooks/post_gen_project.py` to invoke
+    `scripts/sync-agent-files.sh` once after rendering, so
+    freshly-instantiated projects ship with all three files in sync.
+  - Extend `scripts/check-governance.sh` to perform the same
+    byte-compare, so `make governance-check` catches drift even
+    outside a commit.
 - Add `AGENTS.override.md` documentation in
   `docs/agent-runtimes.md` for nested-directory overrides. Cite
   OpenAI's Codex repository (88 AGENTS.md files) as the precedent.
-- Update `scripts/check-governance.sh` to verify CLAUDE.md is a
-  symlink that resolves to AGENTS.md, and that AGENTS.md size is
-  ≤16 KiB.
+- Update `scripts/lint-agents.sh` (Phase 15 deliverable, but the
+  size check belongs to GAP-EXT-001 conceptually) to run the
+  AGENTS_MD_OVERSIZE_WARN (≥16 KiB) and AGENTS_MD_OVERSIZE_FAIL
+  (≥24 KiB) checks.
 
 **GAP-EXT-002 — Skills system.**
 
@@ -89,8 +127,6 @@ Land these gaps as one phase (one feat branch, one PR):
   Body kept under **6 KiB** (BLOATED_SKILL anti-pattern threshold).
 - Add `docs/agent-skills-pattern.md` documenting how to add new
   skills.
-- Mirror to `.agents/skills/` via post-gen symlink for cross-tool
-  compatibility.
 
 **GAP-EXT-010, 011, 012, 013 — Community files.**
 
@@ -112,10 +148,15 @@ Land these gaps as one phase (one feat branch, one PR):
   MAINTAINERS.md.
 
 **Phase 12 gate:**
+
 - All listed files render without Jinja2 errors.
-- Symlinks resolve correctly post-instantiation.
-- AGENTS.md ≤16 KiB.
+- `scripts/sync-agent-files.sh` is shellcheck-clean and idempotent.
+- AGENTS.md ≤16 KiB (soft target — warn-only above).
+- After `make sync-agents`, CLAUDE.md and GEMINI.md byte-match
+  AGENTS.md (after stripping the auto-generated header).
 - `make governance-check` passes on the instantiated project.
+- Pre-commit `agent-files-current` hook fires and blocks a
+  deliberate drift test.
 
 Commit on branch `feat/scaffold-phase-12`. Update
 `SWEBOK_GAP_REGISTER_EXTENSIONS.md` Status cells. Open PR.
@@ -158,6 +199,7 @@ Commit on branch `feat/scaffold-phase-12`. Update
   that's a project-owner decision.
 
 **Phase 13 gate:**
+
 - `.github/workflows/scorecard.yml` parses cleanly (use `actionlint`
   if available, else verify manually).
 - `make governance-check` passes with new SECURITY-INSIGHTS.yml
@@ -178,7 +220,7 @@ Commit on branch `feat/scaffold-phase-13`. Update register. PR.
     language-specific image conditional on `primary_language`.
   - `features`: uv, Node 20+, gh CLI, pre-commit (using
     `ghcr.io/devcontainers/features/*`).
-  - `postCreateCommand`: `make sync && pre-commit install`.
+  - `postCreateCommand`: `make sync && pre-commit install && make sync-agents`.
   - `customizations.vscode.extensions`: curated list (Python,
     Pylance, ESLint, GitLens, markdownlint, mypy-type-checker,
     ms-azuretools.vscode-docker, ms-vscode.makefile-tools).
@@ -222,6 +264,7 @@ Commit on branch `feat/scaffold-phase-13`. Update register. PR.
   (ignore the typical false positives for this project profile).
 
 **Phase 14 gate:**
+
 - Devcontainer config valid (parse with `jq`).
 - release-please-config.json valid (parse with `jq`).
 - mkdocs.yml or vitepress config parses.
@@ -302,6 +345,8 @@ Commit on branch `feat/scaffold-phase-14`. Update register. PR.
   - `DEAD_CROSS_REF` — markdown links resolve.
   - `OVER_CONSTRAINED` — agent prompts have ≤10 "MUST NOT" rules
     (warning, not block).
+  - `AGENTS_MD_OVERSIZE_WARN` — `wc -c AGENTS.md` ≥16384 (warn).
+  - `AGENTS_MD_OVERSIZE_FAIL` — `wc -c AGENTS.md` ≥24576 (fail).
 - `Makefile`: `make lint-agents`. Add to `make validate`.
 
 **GAP-EXT-023 — just (justfile) alternative.**
@@ -317,7 +362,7 @@ Commit on branch `feat/scaffold-phase-14`. Update register. PR.
 - `{{cookiecutter.project_slug}}/scripts/bootstrap.sh` — detects
   OS, installs uv, Node 20+, pre-commit, gh CLI via the system
   package manager (brew on macOS, apt on Debian/Ubuntu, dnf on
-  Fedora). Idempotent. Then runs `make sync`.
+  Fedora). Idempotent. Then runs `make sync && make sync-agents`.
 - Update `.claude/commands/start.md` to detect missing tools and
   print install instructions per OS.
 - Update README quickstart to reference both
@@ -325,6 +370,7 @@ Commit on branch `feat/scaffold-phase-14`. Update register. PR.
   ones who already have prerequisites).
 
 **Phase 15 gate:**
+
 - `make validate` passes including new `lint-agents` step.
 - All new commands/agents/hooks pass `lint-agents`.
 - `make monitor` produces tail output (smoke).
@@ -337,6 +383,7 @@ Commit on branch `feat/scaffold-phase-15`. Update register. PR.
 After all four phases merge, run the full validation pass:
 
 1. From the template root:
+
    ```bash
    pipx run cookiecutter . --no-input -o /tmp/test-extensions-py/ \
      --extra-context include_codacy=yes include_codecov=yes \
@@ -353,14 +400,17 @@ After all four phases merge, run the full validation pass:
      include_release_automation=no include_scorecard=no \
      include_slsa=no include_citation=no include_funding=no
    ```
+
 2. For each instantiation, verify:
    - `make validate` (or `just validate`) passes.
    - `make hooks-test` passes.
    - `make check-traceability` passes.
    - `make lint-agents` passes.
    - `make deptry` passes (Python / polyglot only).
-   - CLAUDE.md is a symlink resolving to AGENTS.md.
-   - AGENTS.md is ≤16 KiB.
+   - `make sync-agents` is idempotent.
+   - CLAUDE.md and GEMINI.md byte-match AGENTS.md after header
+     strip.
+   - AGENTS.md ≤16 KiB (warn-only above).
    - Devcontainer JSON parses.
    - `.github/workflows/scorecard.yml` parses (use `yamllint` if
      available).
@@ -394,6 +444,8 @@ Specific to extensions:
   Document the opt-in path; the user decides.
 - **Don't fork to a competing SDD framework.** Document interop;
   ship our model.
+- **Don't use `os.symlink`** for CLAUDE.md / GEMINI.md. Use the
+  sync-script pattern from `EXTENSIONS_DECISIONS.md` Decision 2.
 
 ### Step 8 — When blocked
 
@@ -408,6 +460,9 @@ Stop and ask if you encounter:
 - A test that suggests a real hook bypass rather than a test bug.
 - Any moment where you would otherwise need to make up a metric
   or date.
+- AGENTS.md crossing the 16 KiB soft target — surface the
+  refactor options (nested override, SKILL.md extraction) before
+  proceeding.
 
 When asking, propose 2–3 specific options with tradeoffs. I'll
 pick.
@@ -424,13 +479,14 @@ The extensions are complete when all hold:
       instantiation's `report/` directory.
 - [ ] No commit in extension history used `--no-verify` or pushed
       to `main` directly.
-- [ ] AGENTS.md is the canonical instruction file; CLAUDE.md is
-      a symlink.
+- [ ] AGENTS.md is the canonical instruction file; CLAUDE.md and
+      GEMINI.md are sync-derived and pass the drift check.
 - [ ] Scorecard workflow runs cleanly on at least one test
       instantiation (or smoke-test simulation).
 - [ ] `RESEARCH_FINDINGS.md` Status column reflects current state.
 
 When all eight conditions hold, post a summary in chat with:
+
 - Total file count added (this extension)
 - Total commit count (this extension)
 - Per-phase landed-gap count
@@ -449,9 +505,12 @@ When all eight conditions hold, post a summary in chat with:
 A few things to keep in mind once the agent is running:
 
 1. **Phase 12 is the riskiest of the four** because it changes
-   foundational files (AGENTS.md becomes primary, CLAUDE.md
-   becomes a symlink). If any agent runtime in your workflow
-   breaks during Phase 12, this is the first place to look.
+   foundational files (AGENTS.md becomes primary, CLAUDE.md and
+   GEMINI.md become sync-derived). If any agent runtime in your
+   workflow breaks during Phase 12, this is the first place to
+   look. Per `EXTENSIONS_DECISIONS.md` Decision 2, the sync-script
+   approach replaces the original symlink plan — this is what
+   makes Phase 12 cross-platform safe.
 
 2. **Phase 13 (OpenSSF) is the highest external-credibility
    payoff.** Your Databricks ISV / partnership conversations
@@ -467,15 +526,15 @@ A few things to keep in mind once the agent is running:
    Every time you add a slash command or agent in any project
    instantiated from this template, this check is what catches the
    common failure modes (empty description, broken cross-ref,
-   bloated skill).
+   bloated skill, oversize AGENTS.md).
 
 5. **AGENTS.md compatibility with Claude Code.** As of the time
    of this writing, Claude Code does not natively support
-   AGENTS.md — it reads CLAUDE.md. The symlink workaround is
-   stable but if Anthropic ships native AGENTS.md support
-   (Issue #6235 has thousands of upvotes), you'll want to revisit
-   `hooks/post_gen_project.py` to remove the symlink at that
-   point.
+   AGENTS.md — it reads CLAUDE.md. The sync-script pattern keeps
+   both files in lockstep without the cross-platform fragility of
+   symlinks. If Anthropic ships native AGENTS.md support
+   (Issue #6235 has thousands of upvotes), the sync mechanic is
+   still useful — it just becomes optional rather than mandatory.
 
 6. **MCP server choices are intentionally minimal in our docs.**
    The MCP ecosystem is changing fast. Keeping our recommended

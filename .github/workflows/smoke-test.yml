@@ -1,0 +1,196 @@
+name: Template Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cookiecutter.json"
+      - "{{cookiecutter.project_slug}}/**"
+      - ".github/workflows/smoke-test.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "cookiecutter.json"
+      - "{{cookiecutter.project_slug}}/**"
+      - ".github/workflows/smoke-test.yml"
+
+jobs:
+  test-python:
+    name: Python Variant
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install cookiecutter
+        run: pip install cookiecutter -q
+
+      - name: Render Python template
+        run: |
+          cookiecutter . --no-input \
+            project_name="Test Python Project" \
+            author_email="test@example.com" \
+            primary_language=python \
+            -o /tmp/test-render
+
+      - name: Initialize git repo
+        run: |
+          cd /tmp/test-render/test-python-project
+          git init
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          git add .
+          git commit -m "initial: scaffold"
+
+      - name: Install dependencies
+        run: |
+          cd /tmp/test-render/test-python-project
+          pip install uv -q
+          make sync
+
+      - name: Run marker-scan
+        run: |
+          cd /tmp/test-render/test-python-project
+          make marker-scan
+
+      - name: Run governance-check
+        run: |
+          cd /tmp/test-render/test-python-project
+          make governance-check
+
+      - name: Run hooks-test
+        run: |
+          cd /tmp/test-render/test-python-project
+          make hooks-test
+
+      - name: Run test suite
+        run: |
+          cd /tmp/test-render/test-python-project
+          make test
+
+      - name: Run validation gate
+        run: |
+          cd /tmp/test-render/test-python-project
+          make validate
+
+  test-typescript:
+    name: TypeScript Variant
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install cookiecutter
+        run: pip install cookiecutter -q
+
+      - name: Render TypeScript template
+        run: |
+          cookiecutter . --no-input \
+            project_name="Test TypeScript Project" \
+            author_email="test@example.com" \
+            primary_language=typescript \
+            -o /tmp/test-render
+
+      - name: Initialize git repo
+        run: |
+          cd /tmp/test-render/test-typescript-project
+          git init
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          git add .
+          git commit -m "initial: scaffold"
+
+      - name: Install dependencies
+        run: |
+          cd /tmp/test-render/test-typescript-project
+          npm install
+
+      - name: Run marker-scan
+        run: |
+          cd /tmp/test-render/test-typescript-project
+          make marker-scan
+
+      - name: Run governance-check
+        run: |
+          cd /tmp/test-render/test-typescript-project
+          make governance-check
+
+      - name: Run hooks-test
+        run: |
+          cd /tmp/test-render/test-typescript-project
+          make hooks-test
+
+      - name: Run validation gate
+        run: |
+          cd /tmp/test-render/test-typescript-project
+          make validate
+
+  test-variants:
+    name: Template Variants
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        license: [MIT, Apache-2.0, Proprietary]
+        include_databricks: ["yes", "no"]
+        include_sbom: ["yes", "no"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install cookiecutter
+        run: pip install cookiecutter -q
+
+      - name: Render template with variants
+        run: |
+          mkdir -p /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_databricks }}-${{ matrix.include_sbom }}
+          cd /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_databricks }}-${{ matrix.include_sbom }}
+          cookiecutter $GITHUB_WORKSPACE --no-input \
+            project_name="Test Variant" \
+            author_email="test@example.com" \
+            license="${{ matrix.license }}" \
+            include_databricks="${{ matrix.include_databricks }}" \
+            include_sbom="${{ matrix.include_sbom }}"
+
+      - name: Verify structure
+        run: |
+          cd /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_databricks }}-${{ matrix.include_sbom }}/test-variant
+
+          # Check required files exist
+          test -f pyproject.toml || exit 1
+          test -f README.md || exit 1
+          test -f Makefile || exit 1
+          test -f CONSTITUTION.md || exit 1
+          test -f DIRECTIVES.md || exit 1
+
+          # Verify no unrendered variables
+          ! grep -r "{{.*}}" . --include="*.md" --include="*.py" --include="*.json" && echo "✓ No unrendered variables"
+
+  summary:
+    name: Smoke Test Summary
+    needs: [test-python, test-typescript, test-variants]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check test results
+        run: |
+          if [[ "${{ needs.test-python.result }}" == "success" && \
+                "${{ needs.test-typescript.result }}" == "success" && \
+                "${{ needs.test-variants.result }}" == "success" ]]; then
+            echo "✅ All smoke tests passed"
+            exit 0
+          else
+            echo "❌ Some smoke tests failed"
+            exit 1
+          fi

@@ -30,6 +30,9 @@ Before any substantive change, read these files **in this order**:
    (`CRIT-004`).
 5. The `README.md` in the directory you are about to modify, when
    one exists.
+6. `docs/MCP_POLICY.md` — required reading **before any change to
+   `.mcp.json`**. MCP servers are an untrusted boundary; the
+   policy walks through the audit checklist that gates additions.
 
 The order is not aspirational. When two sources disagree, the
 lower-numbered tier wins.

@@ -23,11 +23,23 @@ required_files=(
   "GEMINI.md"
   ".claude/settings.json"
   ".claude/hooks/pre-tool-use.js"
+  ".mcp.json"
+  "docs/MCP_POLICY.md"
 )
 
 for f in "${required_files[@]}"; do
   check_file_exists "$f" || true
 done
+
+# --- .mcp.json structural check ---
+
+if [[ -f ".mcp.json" ]]; then
+  if ! command -v node >/dev/null 2>&1; then
+    log_error "node is required to validate .mcp.json (see docs/MCP_POLICY.md)"
+  elif ! node -e 'const fs = require("fs"); const parsed = JSON.parse(fs.readFileSync(".mcp.json", "utf8")); const servers = parsed && parsed.mcpServers; const isObject = typeof servers === "object" && servers !== null && !Array.isArray(servers); process.exit(isObject ? 0 : 1);' 2>/dev/null; then
+    log_error ".mcp.json must contain a top-level \"mcpServers\" object (see docs/MCP_POLICY.md)"
+  fi
+fi
 
 # --- Hook content checks (CRIT-008) ---
 

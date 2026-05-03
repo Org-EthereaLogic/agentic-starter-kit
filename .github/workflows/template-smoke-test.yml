@@ -1,0 +1,160 @@
+name: Template Smoke Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cookiecutter.json'
+      - '{{cookiecutter.project_slug}}/**'
+      - '.github/workflows/template-smoke-test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cookiecutter.json'
+      - '{{cookiecutter.project_slug}}/**'
+      - '.github/workflows/template-smoke-test.yml'
+
+jobs:
+  smoke-test:
+    name: Test Template Variants
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant:
+          - name: 'Python (MIT, no extras)'
+            primary_language: 'python'
+            license: 'MIT'
+            include_sbom: 'no'
+            include_codacy: 'no'
+            include_snyk: 'no'
+
+          - name: 'Python (Apache2, with SBOM)'
+            primary_language: 'python'
+            license: 'Apache-2.0'
+            include_sbom: 'yes'
+            include_codacy: 'no'
+            include_snyk: 'no'
+
+          - name: 'TypeScript (MIT, no extras)'
+            primary_language: 'typescript'
+            license: 'MIT'
+            include_sbom: 'no'
+            include_codacy: 'no'
+            include_snyk: 'no'
+
+          - name: 'TypeScript (GPL-3.0, with tools)'
+            primary_language: 'typescript'
+            license: 'GPL-3.0'
+            include_sbom: 'yes'
+            include_codacy: 'yes'
+            include_snyk: 'yes'
+
+          - name: 'Polyglot (MIT, all options)'
+            primary_language: 'polyglot'
+            license: 'MIT'
+            include_sbom: 'yes'
+            include_codacy: 'yes'
+            include_snyk: 'yes'
+
+    steps:
+      - name: Checkout template source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install cookiecutter
+        run: pip install cookiecutter --quiet
+
+      - name: Render template variant
+        env:
+          PRIMARY_LANGUAGE: ${{ matrix.variant.primary_language }}
+          LICENSE: ${{ matrix.variant.license }}
+          INCLUDE_SBOM: ${{ matrix.variant.include_sbom }}
+          INCLUDE_CODACY: ${{ matrix.variant.include_codacy }}
+          INCLUDE_SNYK: ${{ matrix.variant.include_snyk }}
+        run: |
+          cookiecutter . \
+            --no-input \
+            --output-dir /tmp/rendered \
+            -f \
+            primary_language="$PRIMARY_LANGUAGE" \
+            license="$LICENSE" \
+            include_sbom="$INCLUDE_SBOM" \
+            include_codacy="$INCLUDE_CODACY" \
+            include_snyk="$INCLUDE_SNYK"
+
+          # Move rendered project to working directory
+          mv /tmp/rendered/my-agentic-project rendered-project
+
+      - name: Verify no unrendered variables
+        run: |
+          if grep -r "{{cookiecutter\." rendered-project/; then
+            echo "ERROR: Found unrendered cookiecutter variables"
+            exit 1
+          fi
+          echo "✓ No unrendered variables found"
+
+      - name: Initialize git
+        run: |
+          cd rendered-project
+          git init
+          git config user.email "test@example.com"
+          git config user.name "Test"
+          git checkout -b feat/initial
+
+      - name: Install Python dependencies
+        if: contains(matrix.variant.primary_language, 'python')
+        run: |
+          cd rendered-project
+          python -m pip install --upgrade pip uv
+          make sync
+
+      - name: Install Node dependencies
+        if: contains(matrix.variant.primary_language, 'typescript')
+        run: |
+          cd rendered-project
+          npm install
+
+      - name: Run validation gate
+        run: |
+          cd rendered-project
+          make validate
+
+      - name: Verify governance rules
+        run: |
+          cd rendered-project
+          python3 scripts/lib/governance.py --validate
+
+      - name: Report variant success
+        run: |
+          echo "✅ Variant: ${{ matrix.variant.name }}"
+          echo "   Primary Language: ${{ matrix.variant.primary_language }}"
+          echo "   License: ${{ matrix.variant.license }}"
+          echo "   SBOM: ${{ matrix.variant.include_sbom }}"
+          echo "   Codacy: ${{ matrix.variant.include_codacy }}"
+          echo "   Snyk: ${{ matrix.variant.include_snyk }}"
+
+  smoke-test-summary:
+    name: Smoke Test Summary
+    if: always()
+    needs: smoke-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check smoke test results
+        run: |
+          if [ "${{ needs.smoke-test.result }}" = "success" ]; then
+            echo "✅ All template variants passed smoke test"
+            exit 0
+          else
+            echo "❌ One or more variants failed smoke test"
+            exit 1
+          fi

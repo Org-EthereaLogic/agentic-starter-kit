@@ -3,9 +3,16 @@
 # Runs the OpenSSF Scorecards analysis weekly and on every push to
 # the default branch. Uploads the SARIF result to GitHub
 # code-scanning so Scorecards findings appear inline with other
-# security alerts. Per IMP-006, action pins use semver tags with a
-# trailing comment; the SHA-pinning lift tracked in
-# scripts/check-action-pins.sh applies here too.
+# security alerts.
+#
+# Action pinning policy (DIRECTIVES.md IMP-006):
+#   Most `uses:` lines below pin to a semver tag and carry a
+#   trailing `# v<x>.<y>` comment.
+#   IMP-006's full enforcement requires a commit SHA on every
+#   `uses:` line. Before the first PR against this repository,
+#   replace each `@v<n>` with the corresponding commit SHA.
+#   `scripts/check-action-pins.sh` (added in a later phase)
+#   verifies SHA pinning mechanically.
 {% raw %}
 name: OSSF Scorecards
 

@@ -2,15 +2,22 @@
 # {{ cookiecutter.project_name }}.
 #
 # Triggered when a `v*` tag is pushed. The build job produces
-# release artifacts and a base64-encoded SHA-256 hashes file; the
+# distributable artifacts and a base64-encoded SHA-256 hashes file;
+# those build outputs remain attached to the workflow run. The
 # `provenance` job consumes the hashes and produces verifiable SLSA
 # L3 provenance via the official slsa-github-generator reusable
-# workflow. The provenance attestation is uploaded as a release
-# asset alongside the artifacts.
+# workflow, which uploads the attestation to the tagged release.
 #
-# Per IMP-006, action pins use semver tags + comments. The SLSA
-# reusable workflow MUST pin to a tag (not a SHA) per the generator
-# project's documentation.
+# Action pinning policy (DIRECTIVES.md IMP-006):
+#   Most `uses:` lines below pin to a semver tag and carry a
+#   trailing `# v<x>.<y>` comment.
+#   IMP-006's full enforcement requires a commit SHA on every
+#   `uses:` line. Before the first PR against this repository,
+#   replace each `@v<n>` with the corresponding commit SHA.
+#   The SLSA generator reusable workflow is the single exception in
+#   this file because its upstream documentation requires a tag ref.
+#   `scripts/check-action-pins.sh` (added in a later phase)
+#   verifies SHA pinning mechanically.
 {% raw %}
 name: Release (SLSA L3)
 

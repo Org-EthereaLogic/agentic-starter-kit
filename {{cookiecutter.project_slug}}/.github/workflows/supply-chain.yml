@@ -2,9 +2,16 @@
 #
 # Runs language-native dependency audit on every PR and on push to
 # the default branch. Python: pip-audit against pyproject.toml.
-# TypeScript: npm audit (production deps only). Per IMP-006, action
-# pins use semver tags with trailing comments; SHA-pinning lift is
-# tracked in scripts/check-action-pins.sh.
+# TypeScript: npm audit (production deps only).
+#
+# Action pinning policy (DIRECTIVES.md IMP-006):
+#   Most `uses:` lines below pin to a semver tag and carry a
+#   trailing `# v<x>.<y>` comment.
+#   IMP-006's full enforcement requires a commit SHA on every
+#   `uses:` line. Before the first PR against this repository,
+#   replace each `@v<n>` with the corresponding commit SHA.
+#   `scripts/check-action-pins.sh` (added in a later phase)
+#   verifies SHA pinning mechanically.
 {% raw %}
 name: Supply-chain audit
 
@@ -64,7 +71,7 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: npm audit (production deps)
         run: npm audit --omit=dev --audit-level=high
@@ -93,7 +100,7 @@ jobs:
         # reviewer subagent to ingest.
         run: |
           mkdir -p macaron-output
-          macaron analyze -rp . -o macaron-output/ || true
+          macaron analyze -rp . -o macaron-output/
 
       - name: Upload Macaron report
         uses: actions/upload-artifact@v4 # v4

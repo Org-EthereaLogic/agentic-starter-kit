@@ -1,0 +1,472 @@
+# Governance Rules — {{ cookiecutter.project_name }}
+#
+# Machine-readable directive registry extracted from DIRECTIVES.md.
+# Serves as the source of truth for governance enforcement across:
+# - CI/CD pipelines
+# - Agent decision-making
+# - Audit and verification workflows
+# - Documentation and rule references
+#
+# Structure:
+# - directives: list of all governance rules
+#   - id: unique identifier (e.g., CRIT-001, IMP-002, REC-003)
+#   - class: Critical, Important, or Recommended
+#   - title: short, human-readable title
+#   - statement: the rule itself
+#   - rationale: why the rule exists
+#   - enforcement: how the rule is checked/blocked
+#   - enabled: whether the rule applies (per-project customization)
+
+directives:
+  # ========== CRITICAL (8) ==========
+  - id: CRIT-001
+    class: Critical
+    title: No forbidden stub markers in canonical surfaces
+    statement: |
+      The strings [marked for completion], [must fix], [needs work],
+      [incomplete] do not appear in canonical surfaces (specs/, .claude/,
+      CLAUDE.md, AGENTS.md, GEMINI.md, docs/).
+      (These are descriptions of: TO DO, FIX ME, TO BE DETERMINED, PLACEHOLDER)
+    rationale: |
+      A stub marker in a contract is a confession that the contract
+      is incomplete. Canonical surfaces are contracts; the two are
+      incompatible.
+    enforcement:
+      type: script
+      script: scripts/marker-scan.sh
+      target: every PR and push to default branch
+      when_fails: build break
+    enabled: true
+
+  - id: CRIT-002
+    class: Critical
+    title: Required governance files exist
+    statement: |
+      The following files exist at their canonical paths on every
+      commit to the default branch: CONSTITUTION.md, DIRECTIVES.md,
+      SECURITY.md, CLAUDE.md, AGENTS.md, GEMINI.md, README.md.
+    rationale: |
+      Layers 1 (navigation) and 2 (constitutional) require their
+      files to be present. Removing a required artifact breaks the
+      agentic decision chain.
+    enforcement:
+      type: script
+      script: scripts/check-governance.sh
+      target: every PR
+      when_fails: build break
+    enabled: true
+
+  - id: CRIT-003
+    class: Critical
+    title: No runtime dependency on sibling-project internals
+    statement: |
+      Code in this project does not import from a sibling project's
+      internal/, _internal/, or otherwise non-public namespace.
+      Cross-project references go through published APIs only.
+    rationale: |
+      A sibling's refactor of an internal module breaks downstream
+      consumers. Published APIs are versioned contracts that survive
+      refactors.
+    enforcement:
+      type: mixed
+      components:
+        - type: linter
+          languages: [python, typescript]
+        - type: reviewer
+      when_fails: build break / merge block
+    enabled: true
+
+  - id: CRIT-004
+    class: Critical
+    title: Specs are canonical
+    statement: |
+      Specifications under specs/deep_specs/ are the canonical
+      authority for the system component they describe. Narrative
+      documents that contradict a spec lose the conflict.
+    rationale: |
+      Drift between specs and narrative documentation is the
+      dominant decay mode for technical writing. Naming the spec as
+      canonical resolves the ambiguity in advance.
+    enforcement:
+      type: mixed
+      components:
+        - type: decision_order
+          reference: CONSTITUTION.md §3
+        - type: reviewer
+        - type: audit
+          command: /audit
+      when_fails: merge block
+    enabled: true
+
+  - id: CRIT-005
+    class: Critical
+    title: PASS claims require dual evidence
+    statement: |
+      A claim that work has passed verification (tests, checks,
+      gates) requires both a measured artifact (logged output,
+      report file, screenshot) AND a CI-verifiable check that
+      produced the same verdict. Single-source PASS claims are
+      recorded as unverified.
+    rationale: |
+      Single-source PASS is a trust assertion; dual-source PASS is
+      mechanical verification. The agent's most common failure is to
+      report a green status without actually running the check.
+    enforcement:
+      type: audit
+      commands: [/verify, /audit]
+      target: evidence artifacts under report/
+      when_fails: unverified flag / merge block
+    enabled: true
+
+  - id: CRIT-006
+    class: Critical
+    title: No simulated data when real data is available
+    statement: |
+      Test fixtures must be sourced from real samples or generated
+      with a recorded seed. Synthetic data is not used to substitute
+      for real data when real data is accessible.
+    rationale: |
+      Synthetic data passes tests that real data fails. Production
+      failures often live in distributions that synthesizers do not
+      reproduce.
+    enforcement:
+      type: mixed
+      components:
+        - type: reviewer
+        - type: convention
+          pattern: test fixtures include header comment naming source or seed
+      when_fails: merge block
+    enabled: true
+
+  - id: CRIT-007
+    class: Critical
+    title: No --no-verify on commits
+    statement: |
+      Commits never use --no-verify. Pre-commit hooks catch quality
+      regressions; bypassing them is a silent regression in itself.
+    rationale: |
+      A --no-verify commit cannot be distinguished from a clean
+      commit by the audit trail. The hook bypass is invisible after
+      the fact.
+    enforcement:
+      type: hook
+      layer: 4
+      location: .claude/hooks/pre-tool-use.js
+      target: every bash command in tool invocations
+      when_fails: tool execution blocked
+    enabled: true
+
+  - id: CRIT-008
+    class: Critical
+    title: Protected-branch hook is registered and tested
+    statement: |
+      .claude/settings.json registers .claude/hooks/pre-tool-use.js
+      on PreToolUse:Bash. The hook test suite
+      (tests/test_pre_tool_use_hook.py for Python,
+      tests/test_pre_tool_use_hook.js for TypeScript) passes on
+      every commit.
+    rationale: |
+      The runtime hook is Layer 4's only mechanism for preventing
+      forbidden agent actions before they happen. An unregistered or
+      untested hook is no hook at all.
+    enforcement:
+      type: mixed
+      components:
+        - type: script
+          script: make hooks-test
+          target: every PR
+        - type: governance_check
+          verifies: registration in settings.json
+      when_fails: build break
+    enabled: true
+
+  # ========== IMPORTANT (6) ==========
+  - id: IMP-001
+    class: Important
+    title: Append-only report/
+    statement: |
+      Files in report/ are not edited or deleted after they land.
+      Corrections are new dated artifacts that name the file they
+      correct and the reason for correction.
+    rationale: |
+      The audit trail is forensic; mutating it destroys forensic
+      value.
+    enforcement:
+      type: audit
+      command: /audit
+      detects: any non-add change to report/ files in PR diff
+      when_fails: merge block
+    enabled: true
+
+  - id: IMP-002
+    class: Important
+    title: Conventional commits with project-defined scopes
+    statement: |
+      Commit messages follow Conventional Commits:
+      <type>(<scope>): <description>. Allowed types: feat, fix,
+      refactor, chore, docs, test, build, ci, perf, style. Scopes
+      are project-defined and listed in CONTRIBUTING.md.
+    rationale: |
+      Machine-parseable commit history powers changelog generation,
+      release automation, and audit trails.
+    enforcement:
+      type: mixed
+      components:
+        - type: hook
+          layer: precommit
+          validates: commit message format
+        - type: ci
+          rejects: PRs whose merge commit does not conform
+      when_fails: commit rejected / merge block
+    enabled: true
+
+  - id: IMP-003
+    class: Important
+    title: Branches use <type>/<slug> naming
+    statement: |
+      Working branches are named <type>/<slug> — e.g.,
+      feat/auth-rfc, fix/race-condition, chore/scaffold-phase-3.
+      Direct work on the default branch is forbidden by the runtime
+      hook (CRIT-008).
+    rationale: |
+      Branch names are the second-most-visible artifact of a
+      project's hygiene. Predictable names make the branch list a
+      navigation surface, not noise.
+    enforcement:
+      type: mixed
+      components:
+        - type: hook
+          layer: 4
+          blocks: direct work on default branch
+        - type: reviewer
+        - type: audit
+          command: /audit
+          checks: current branch name
+      when_fails: tool execution blocked / merge block
+    enabled: true
+
+  - id: IMP-004
+    class: Important
+    title: Stage only relevant files
+    statement: |
+      Commits never use git add -A or git add . Files are staged
+      explicitly by name or by narrowly-scoped path glob. Staged
+      files are reviewed before commit.
+    rationale: |
+      git add -A fabricates accidental scope: an untracked editor
+      swap file, a credential file, or a cache directory can land
+      in a commit without the operator noticing.
+    enforcement:
+      type: hook
+      layer: precommit
+      warns: files staged outside conventional patterns
+      when_fails: warning / reviewer attention
+    enabled: true
+
+  - id: IMP-005
+    class: Important
+    title: Spec versioning via /spec-bump
+    statement: |
+      Decision-content changes to canonical specs under
+      specs/deep_specs/ require /spec-bump to be run before edit.
+      The bump produces a new ADR documenting the change.
+    rationale: |
+      Specs are tier-4 authority. Silent edits break the audit
+      trail. Versioning enforces visibility.
+    enforcement:
+      type: audit
+      command: /audit
+      detects: PR diff touching specs/deep_specs/*.md without paired ADR
+      when_fails: merge block
+    enabled: true
+
+  - id: IMP-006
+    class: Important
+    title: SHA-pinned GitHub Actions
+    statement: |
+      Every uses: line in a GitHub Actions workflow file pins to a
+      commit SHA and carries a trailing # v<x>.<y> comment
+      indicating the corresponding semver tag at pin time.
+    rationale: |
+      Float pins (@v3, @main) are supply-chain attack surface. A
+      compromised action executes in your CI environment without
+      warning.
+    enforcement:
+      type: script
+      script: scripts/check-action-pins.sh
+      target: every PR and CI
+      when_fails: build break
+    enabled: true
+
+  # ========== RECOMMENDED (4) ==========
+  - id: REC-001
+    class: Recommended
+    title: Conventional file size budget
+    statement: |
+      Files target ~500 lines. Files exceeding the budget are not
+      forbidden but should be justified — either as inherent data
+      files (long fixtures, generated tables) or as intentionally
+      held together.
+    rationale: |
+      File size is a proxy for cognitive load. Reviewer quality
+      drops as file size rises. The number is not magic; it is a
+      soft signal.
+    enforcement:
+      type: script
+      script: scripts/check-file-sizes.sh
+      reports: files exceeding budget
+      when_fails: reviewer consideration (not binding)
+    enabled: true
+
+  - id: REC-002
+    class: Recommended
+    title: Module READMEs
+    statement: |
+      Each significant directory has a README.md documenting its
+      purpose, public surface, and dependencies.
+    rationale: |
+      Directory-level documentation is the most-skimmed form. A
+      reader navigating the repo can orient at any depth.
+    enforcement:
+      type: mixed
+      components:
+        - type: reviewer
+        - type: drift_check
+          script: scripts/check-doc-drift.sh
+          verifies: READMEs reference real files
+      when_fails: reviewer feedback
+    enabled: true
+
+  - id: REC-003
+    class: Recommended
+    title: Test pyramid maintained
+    statement: |
+      Unit tests outnumber integration tests; integration tests
+      outnumber end-to-end tests. Integration tests do not silently
+      replace unit tests for code that has unit-test scope.
+    rationale: |
+      Test runtime grows superlinearly as the pyramid inverts. A
+      team running mostly e2e tests cannot iterate.
+    enforcement:
+      type: mixed
+      components:
+        - type: reviewer
+        - type: coverage_report
+          shows: test-class breakdown
+      when_fails: reviewer feedback
+    enabled: true
+
+# ========== DIRECTIVES BY CLASS ==========
+# For quick lookups, organized by class and enabled status
+
+critical:
+  count: 8
+  all:
+    - CRIT-001
+    - CRIT-002
+    - CRIT-003
+    - CRIT-004
+    - CRIT-005
+    - CRIT-006
+    - CRIT-007
+    - CRIT-008
+
+important:
+  count: 6
+  all:
+    - IMP-001
+    - IMP-002
+    - IMP-003
+    - IMP-004
+    - IMP-005
+    - IMP-006
+
+recommended:
+  count: 3
+  all:
+    - REC-001
+    - REC-002
+    - REC-003
+
+# ========== ENFORCEMENT MAPPINGS ==========
+# For tooling and CI integration
+
+enforcement_by_type:
+  script:
+    - id: CRIT-001
+      script: scripts/marker-scan.sh
+    - id: CRIT-002
+      script: scripts/check-governance.sh
+    - id: IMP-006
+      script: scripts/check-action-pins.sh
+    - id: REC-001
+      script: scripts/check-file-sizes.sh
+
+  hook:
+    - id: CRIT-007
+      location: .claude/hooks/pre-tool-use.js
+      event: PreToolUse:Bash
+    - id: CRIT-008
+      location: .claude/hooks/pre-tool-use.js
+      test: make hooks-test
+
+  reviewer:
+    - id: CRIT-003
+    - id: CRIT-004
+    - id: CRIT-005
+    - id: CRIT-006
+    - id: IMP-003
+    - id: IMP-004
+    - id: REC-001
+    - id: REC-002
+    - id: REC-003
+
+  audit:
+    - id: CRIT-004
+      command: /audit
+    - id: CRIT-005
+      command: /verify, /audit
+    - id: IMP-001
+      command: /audit
+    - id: IMP-005
+      command: /audit
+
+  ci:
+    - id: IMP-002
+      gate: merge commit validation
+    - id: IMP-006
+      gate: action pin verification
+
+# ========== GATE PHASES ==========
+# Rules applied at each validation phase
+
+validation_gates:
+  marker_scan:
+    rule: CRIT-001
+    command: make marker-scan
+    phase: pre-merge
+
+  governance_check:
+    rule: CRIT-002, CRIT-008
+    command: make governance-check
+    phase: pre-merge
+
+  hooks_test:
+    rule: CRIT-008
+    command: make hooks-test
+    phase: pre-merge
+
+  action_pins:
+    rule: IMP-006
+    command: scripts/check-action-pins.sh
+    phase: ci
+
+  audit:
+    rules:
+      - CRIT-004
+      - CRIT-005
+      - IMP-001
+      - IMP-003
+      - IMP-005
+    command: /audit
+    phase: pr-review

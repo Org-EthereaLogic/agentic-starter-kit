@@ -93,10 +93,12 @@ indent-style = "space"
 
 # --- type checker -------------------------------------------------
 {% if cookiecutter.python_typechecker == "ty" %}
-[tool.ty]
+[tool.ty.environment]
 # Astral's `ty`. Configuration intentionally minimal — ty's defaults
 # are aligned with the strict-mode end of the spectrum.
 python-version = "3.10"
+
+[tool.ty.src]
 exclude = [
   "tests/fixtures",
   "build",
@@ -105,8 +107,11 @@ exclude = [
   "report",
 ]
 
-[tool.ty.rules]
-# pytest fixtures often fight with strict reporting; relax in tests.
+[[tool.ty.overrides]]
+include = ["tests/**"]
+
+[tool.ty.overrides.rules]
+# pytest fixtures often fight with strict reporting; relax in tests only.
 unresolved-import = "warn"
 {% else %}
 [tool.mypy]

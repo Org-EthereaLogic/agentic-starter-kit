@@ -72,7 +72,10 @@ This policy covers vulnerabilities affecting:
 ### Agentic-specific issues
 
 These categories are non-traditional but are explicitly in scope
-for {{ cookiecutter.project_name }}:
+for {{ cookiecutter.project_name }}. The full enumeration follows
+the OWASP Top 10 for Agentic Applications 2026
+(`docs/THREAT_MODEL.md §2`); the four below are the most common
+classes of report:
 
 - **Prompt injection.** Untrusted content (user input, retrieved
   documents, tool output) that steers the agent into actions
@@ -111,7 +114,7 @@ map.
 
 | Artifact | Purpose |
 |---|---|
-| `docs/THREAT_MODEL.md` | STRIDE table; ML-specific section (model poisoning, evasion, prompt injection); container/cloud security |
+| `docs/THREAT_MODEL.md` | OWASP Agentic Top 10 (2026) coverage matrix (§2 — every ASI mapped to directives + enforcement); STRIDE table; ML-specific section (model poisoning, evasion, prompt injection); container/cloud security |
 | `docs/SECURITY_PROGRAM.md` | DevSecOps lifecycle integration: requirements, design, build, run |
 | `docs/cert-top-10-compliance.md` | Self-audit map against the CERT Top 10 secure-coding rules |
 | `docs/sbom-policy.md` | CycloneDX SBOM generation and review policy |

@@ -41,8 +41,8 @@ Anchored to ISO/IEC/IEEE 32675:2022 (DevOps).
 
 | ID | SWEBOK Ref | Gap | Deliverable | CI Verifier | Status |
 |---|---|---|---|---|---|
-| GAP-013 | §3.1 | Formal STRIDE threat model with explicit assets and trust boundaries | `docs/THREAT_MODEL.md` (full content) | n/a | planned |
-| GAP-014 | §6.3 | ML-specific threats — model poisoning (training data integrity), evasion (adversarial inputs), prompt injection — promoted to dedicated section | `docs/THREAT_MODEL.md §6` | n/a | planned |
+| GAP-013 | §3.1 | Formal STRIDE threat model with explicit assets and trust boundaries | `docs/THREAT_MODEL.md` (full content) | n/a | in_progress (skeleton + OWASP §2 landed in Phase A1; full STRIDE expanded in Phase 6) |
+| GAP-014 | §6.3 | ML-specific threats — model poisoning (training data integrity), evasion (adversarial inputs), prompt injection — promoted to dedicated section | `docs/THREAT_MODEL.md §4` | n/a | in_progress (cross-referenced from OWASP §2 ASI-01/ASI-06; expanded in Phase 6) |
 | GAP-015 | §6.1 | Container & cloud security posture | `docs/THREAT_MODEL.md §7` + `docs/security/container-security.md` | n/a | planned |
 | GAP-016 | §4.6 | Vulnerability management covering CVE + CWE + CAPEC + CVSS quarterly review | `docs/security/vulnerability-management.md` | n/a | planned |
 | GAP-017 | §3.1, §3.6 | DevSecOps lifecycle integration — security in requirements, design, build, run | `docs/SECURITY_PROGRAM.md` (new) | n/a | planned |
@@ -121,7 +121,22 @@ enforced rather than aspirational.
 | GAP-050 | `check-doc-drift` | every PR touching `docs/` or `specs/` | warn (not block) initially, harden after stabilization | landed |
 | GAP-051 | `sbom-generate` | every push to default branch | upload artifact | landed (conditional on `include_sbom=yes`) |
 | GAP-052 | `secret-scan` | every PR | block merge | landed |
-| GAP-053 | `dast` (placeholder — language and stack-dependent) | nightly on main | warn | planned |
+| GAP-053 | `dast` (language and stack-dependent placeholder gate) | nightly on main | warn | planned |
+
+---
+
+## Section G2 — OWASP Agentic Top 10 (2026) coverage
+
+This section is added as part of Phase A1 of the roadmap. It
+records that every ASI in the OWASP Agentic Top 10 (2026) is
+mapped to one or more directives and one or more enforcement
+mechanisms in `docs/THREAT_MODEL.md §2`. The status of each ASI
+is tracked in the threat model itself; this row records the
+existence of the mapping as a single artifact.
+
+| ID | Source | Gap | Deliverable | CI Verifier | Status |
+|---|---|---|---|---|---|
+| GAP-054 | OWASP Top 10 for Agentic Applications 2026 | Explicit per-risk mapping from each ASI to (a) directives and (b) runtime/CI enforcement | `docs/THREAT_MODEL.md §2` (coverage table) | `make marker-scan` (canonical-surface integrity); `make governance-check` (file presence) | landed (Phase A1) |
 
 ---
 

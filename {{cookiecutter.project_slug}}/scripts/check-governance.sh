@@ -53,6 +53,42 @@ if [[ -f "$settings_path" ]]; then
   fi
 fi
 
+# --- Layer 3 agent inventory (Phase B1) ---
+#
+# Six agents are always required regardless of primary_language.
+# Exactly one of python-pro / typescript-pro must remain after
+# post_gen_project.py prunes the unselected language; the polyglot
+# path keeps both.
+
+required_agents=(
+  ".claude/agents/lead-software-engineer.md"
+  ".claude/agents/sdlc-technical-writer.md"
+  ".claude/agents/test-automator.md"
+  ".claude/agents/ux-delight-specialist.md"
+  ".claude/agents/security-reviewer.md"
+  ".claude/agents/governance-auditor.md"
+)
+
+for f in "${required_agents[@]}"; do
+  check_file_exists "$f" || true
+done
+
+if [[ -d ".claude/agents" ]]; then
+  if [[ ! -f ".claude/agents/python-pro.md" && ! -f ".claude/agents/typescript-pro.md" ]]; then
+    log_error "no language-specific agent present; expected python-pro.md or typescript-pro.md"
+  fi
+  for agent in .claude/agents/*.md; do
+    [[ -f "$agent" ]] || continue
+    [[ "$(basename "$agent")" == "README.md" ]] && continue
+    if ! grep -q "^name:" "$agent" || \
+       ! grep -q "^description:" "$agent" || \
+       ! grep -q "^model:" "$agent" || \
+       ! grep -q "^memory:" "$agent"; then
+      log_error "$agent missing required frontmatter (name, description, model, memory)"
+    fi
+  done
+fi
+
 # --- Optionally required (later phases populate) ---
 
 optional_dirs=(

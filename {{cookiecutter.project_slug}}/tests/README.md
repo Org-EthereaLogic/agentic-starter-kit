@@ -1,14 +1,21 @@
-# Hook Regression Test Suite
+# Test Suite Overview
 
-This directory contains regression tests for `.claude/hooks/pre-tool-use.js`.
+This directory contains regression tests for the Layer-3 slash
+command contracts and the Layer-4 hooks.
 
 ## Overview
 
-The hook protects the default branch by blocking certain git operations. The test suite validates eight bypass classes and several baseline cases per the [hook README](../.claude/hooks/README.md).
+The hook protects the default branch by blocking certain git
+operations. The hook suites validate eight bypass classes and
+several baseline cases per the [hook README](../.claude/hooks/README.md).
+
+The slash-command contract suite validates the shipped `/gov.*`
+inventory, required YAML frontmatter, and prompt regressions that
+must not drift back into the scaffold.
 
 **Test coverage:** 18 cases across Python (unittest) and JavaScript (node:test)
 
-## Test Specification (Single Source of Truth)
+## Hook Test Specification (Single Source of Truth)
 
 **File:** `hook_test_spec.yaml`
 
@@ -26,6 +33,17 @@ tests:
 ```
 
 ## Test Files
+
+### Slash commands: `test_command_contracts.py`
+
+- Framework: `unittest`
+- Coverage: `/gov.*` inventory, frontmatter keys, reviewed prompt
+  regressions
+
+Run with:
+```bash
+python3 tests/test_command_contracts.py
+```
 
 ### Python: `test_pre_tool_use_hook.py`
 

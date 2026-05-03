@@ -25,7 +25,8 @@ change: $ARGUMENTS
 - `docs/THREAT_MODEL.md`
 - `CONSTITUTION.md` (hard policy boundaries)
 - `SECURITY.md`
-- `docs/SECURITY_PROGRAM.md`
+- If present: `docs/SECURITY_PROGRAM.md` and related security
+  runbooks
 
 ## Workflow
 
@@ -60,8 +61,8 @@ change: $ARGUMENTS
 5. Update `docs/THREAT_MODEL.md` in place. The file is a *living
    doc*, not append-only — but every substantive change must be
    accompanied by an entry in
-   `docs/security/threat-model-changelog.md` (create if missing)
-   with date, change summary, reviewer.
+  `docs/security/threat-model-changelog.md` (create the parent
+  directory if missing) with date, change summary, reviewer.
 
 ## Forbidden
 

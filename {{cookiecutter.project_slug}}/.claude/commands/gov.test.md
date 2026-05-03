@@ -31,14 +31,14 @@ target: $ARGUMENTS
 
 | # | test_name | execution_command | test_purpose |
 |---|---|---|---|
-| 1 | `marker_scan` | `make marker-scan` | No forbidden stub markers in canonical surfaces (`CRIT-001`) |
-| 2 | `governance_check` | `make governance-check` | Required governance files and folders exist (`CRIT-002`) |
-| 3 | `check_traceability` | `make check-traceability` | `specs/traceability.json` references exist on disk |
-| 4 | `check_doc_drift` | `make check-doc-drift` | Path references in `docs/` and `specs/` resolve |
-| 5 | `hooks_test` | `make hooks-test` | Runtime hook regression suite green (`CRIT-008`) |
+| 1 | `marker-scan` | `make marker-scan` | No forbidden stub markers in canonical surfaces (`CRIT-001`) |
+| 2 | `governance-check` | `make governance-check` | Required governance files and folders exist (`CRIT-002`) |
+| 3 | `check-traceability` | `make check-traceability` | `specs/traceability.json` references exist on disk |
+| 4 | `check-doc-drift` | `make check-doc-drift` | Path references in `docs/` and `specs/` resolve |
+| 5 | `hooks-test` | `make hooks-test` | Runtime hook regression suite green (`CRIT-008`) |
 | 6 | `lint` | `make lint` | Language linter(s) clean |
 | 7 | `typecheck` | `make typecheck` | Static type-checker(s) clean |
-| 8 | `test_suite` | `make test` | Unit + integration test suite green |
+| 8 | `test` | `make test` | Unit + integration test suite green |
 
 ## Report
 

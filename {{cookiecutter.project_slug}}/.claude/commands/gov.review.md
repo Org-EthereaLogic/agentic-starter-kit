@@ -15,19 +15,23 @@ spec_or_scope: $ARGUMENTS
 
 ## Required Pre-Read
 
-- `CLAUDE.md`
-- `AGENTS.md`
+- `SECURITY.md`
 - `CONSTITUTION.md`
 - `DIRECTIVES.md`
-- `SECURITY.md`
+- `AGENTS.md`
+- `CLAUDE.md`
 - The relevant documents under `specs/deep_specs/` for the scope.
-- `specs/traceability.json` for the affected acceptance criteria.
+- The `README.md` in each directory being reviewed.
+- If present: `specs/traceability.json`
+- If present: `docs/ARCHITECTURE.md`
 
 ## Instructions
 
-1. Review changed files against requirements (`docs/PRD.md`),
-   architecture (`docs/ARCHITECTURE.md`), test-plan expectations,
-   and traceability obligations (`specs/traceability.json`).
+1. Review changed files against the relevant canonical specs under
+  `specs/deep_specs/`, the project `README.md` and directory
+  READMEs, the constitutional docs, and, when scaffolded, the
+  supporting artifacts `docs/ARCHITECTURE.md` and
+  `specs/traceability.json`.
 2. Check for prohibited stub markers (`make marker-scan`),
    unverifiable claims, drift between `docs/` and `specs/`, and
    broken repository taxonomy.
@@ -38,7 +42,13 @@ spec_or_scope: $ARGUMENTS
    traceability mapping cites the correct directive
    (`CRIT-008` for hook regressions, `CRIT-002` for governance file
    presence) rather than a feature-level requirement.
-5. Run `make validate` and record per-gate outcome.
+5. Run the validation gates individually in `make validate` order
+  and record each outcome: `make marker-scan`,
+  `make governance-check`, `make check-traceability`,
+  `make check-doc-drift`, `make hooks-test`, `make lint`,
+  `make typecheck`, `make test`. When a gate explicitly reports a
+  later-phase prerequisite is absent, record `not_scaffolded`
+  instead of `pass`.
 6. For security-relevant changes, delegate to the
    `security-reviewer` subagent and require its sign-off before
    recommending merge.
@@ -55,14 +65,14 @@ Return a JSON object:
     {"severity": "blocker|major|minor", "file": "...", "line": 0, "note": "..."}
   ],
   "make_validate": {
-    "marker_scan": "pass|fail",
-    "governance_check": "pass|fail",
-    "check_traceability": "pass|fail",
-    "check_doc_drift": "pass|fail",
-    "hooks_test": "pass|fail",
-    "lint": "pass|fail",
-    "typecheck": "pass|fail",
-    "test": "pass|fail"
+    "marker_scan": "pass|fail|not_scaffolded",
+    "governance_check": "pass|fail|not_scaffolded",
+    "check_traceability": "pass|fail|not_scaffolded",
+    "check_doc_drift": "pass|fail|not_scaffolded",
+    "hooks_test": "pass|fail|not_scaffolded",
+    "lint": "pass|fail|not_scaffolded",
+    "typecheck": "pass|fail|not_scaffolded",
+    "test": "pass|fail|not_scaffolded"
   }
 }
 ```

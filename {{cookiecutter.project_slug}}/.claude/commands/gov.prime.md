@@ -26,7 +26,7 @@ session_focus: $ARGUMENTS
 - `DIRECTIVES.md`
 - `SECURITY.md`
 - `README.md`
-- The index of `specs/deep_specs/`
+- `specs/deep_specs/README.md`
 
 ## Report
 
@@ -38,8 +38,10 @@ After reading, output a brief orientation summary:
 - Methodology precedence (the six-tier decision order in
   `CONSTITUTION.md §3`).
 - Quality-control integration status (Codacy, Codecov, Snyk, SBOM,
-  Macaron) per `cookiecutter.json` selections shipped into this
-  project.
+  Macaron) inferred from files and workflows present in the
+  rendered project, not from template-only `cookiecutter.json`.
+  When an integration surface is absent, mark it `not present` or
+  `not scaffolded` instead of guessing the original option.
 - Key files relevant to `session_focus` (if provided) or to the
   current task context inferred from branch and recent commits.
 - Any open questions about scope or intent.

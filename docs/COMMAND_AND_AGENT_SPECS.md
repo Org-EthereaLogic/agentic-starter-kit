@@ -139,20 +139,28 @@ For each living document, verify it still reflects current reality:
 
 1. **Specs reference real files.** For every file path mentioned in
    `specs/deep_specs/*.md`, confirm the path exists in the repo.
-   This is `scripts/check-doc-drift.sh` invoked over `specs/`.
+   Run `scripts/check-doc-drift.sh warn` (or
+   `make check-doc-drift`) and interpret the findings that
+   originate from `specs/`. The script always scans both `docs/`
+   and `specs/`; it cannot be scoped to a single subtree.
 2. **ADR status is current.** No `accepted` ADR should reference a
    `superseded` ADR without itself being superseded. No spec should
    sit in `proposed` for more than 30 days without a status update.
 3. **Directory READMEs match contents.** For each module directory
    with a README, confirm the listed files reflect actual contents.
-4. **OPERATIONS.md is current** if the merged PR touched anything
-   under `.github/workflows/`, deployment configs, or release tooling.
-5. **THREAT_MODEL.md is current** if the merged PR added new
-   external inputs, new auth paths, or new third-party dependencies.
-6. **ARCHITECTURE.md is current** if the merged PR changed module
-   boundaries, added components, or shifted deployment shape.
-7. **Traceability matrix is current.** Run
-   `make check-traceability` and surface deltas.
+4. **OPERATIONS.md is current** if that file is scaffolded and the
+   merged PR touched anything under `.github/workflows/`,
+   deployment configs, or release tooling.
+5. **THREAT_MODEL.md is current** if `docs/THREAT_MODEL.md` exists
+   and the merged PR added new external inputs, new auth paths, or
+   new third-party dependencies.
+6. **ARCHITECTURE.md is current** if that file is scaffolded and
+   the merged PR changed module boundaries, added components, or
+   shifted deployment shape.
+7. **Traceability matrix is current.** If
+   `specs/traceability.json` exists, run `make check-traceability`
+   and surface deltas. Otherwise note that the matrix is not yet
+   scaffolded.
 
 For each drift finding, do not auto-fix — surface it with a
 recommendation. Drift remediation is `/gov.implement` work.
@@ -175,7 +183,8 @@ Write an append-only sync record under `report/`:
     default branch
   - **Living-doc drift findings** — each finding with file path
     and suggested follow-up
-  - **Traceability deltas** — added / removed / orphaned
+   - **Traceability status** — matrix present/absent and any
+      validator findings
   - **Open items** — what needs `/gov.implement` follow-up
 
 Never edit a prior sync record. If a finding is wrong, write a new
@@ -240,7 +249,8 @@ change: $ARGUMENTS
 - `docs/THREAT_MODEL.md`
 - `CONSTITUTION.md` (P3 — hard policy boundaries)
 - `SECURITY.md`
-- `docs/SECURITY_PROGRAM.md`
+- If present: `docs/SECURITY_PROGRAM.md` and related security
+   runbooks
 
 ## Workflow
 
@@ -274,7 +284,8 @@ change: $ARGUMENTS
 5. Update `docs/THREAT_MODEL.md` in place. The file is a *living
    doc*, not append-only — but every substantive change must be
    accompanied by an entry in `docs/security/threat-model-changelog.md`
-   (create if missing) with date, change summary, reviewer.
+   (create the parent directory if missing) with date, change
+   summary, reviewer.
 
 ## Forbidden
 
@@ -312,37 +323,44 @@ for ad-hoc invocation outside CI.
 
 ## Workflow
 
-1. `make check-traceability`.
-2. If clean: report PASS with the count of mapped acceptance
+1. If `specs/traceability.json` is absent, stop and report
+   `NOT SCAFFOLDED` with the note that the matrix lands in a later
+   phase and must exist before a PASS/FAIL verdict is meaningful.
+2. `make check-traceability`.
+3. If clean: report PASS with the count of mapped acceptance
    criteria.
-3. If dirty: surface every finding with the criterion ID, the
-   missing/orphaned artifact, and the suggested remediation
-   (which `/gov.implement` will need to perform).
+4. If dirty: surface every validator finding exactly as emitted
+   (missing source globs, tests globs, evidence files, or schema
+   errors). Do not claim orphaned-file or orphaned-criteria
+   detection that the current validator does not implement.
 
 ## Report
 
-Pass/fail. On fail: a table with columns
+Pass/fail/not scaffolded. On fail: a table with columns
 | Criterion ID | Issue | Suggested fix |
 ```
 
 ---
 
-## Command: `/gov.audit` extensions (steps 10 and 11)
+## Command: `/gov.audit` extensions (Phase 5 checklist)
 
 **File:** `{{cookiecutter.project_slug}}/.claude/commands/gov.audit.md`
 (port from govforge, then add)
 
-When porting from govforge's `/audit`, append two new steps:
+When porting from govforge's `/audit`, append two new Phase 5
+checks:
 
 ```markdown
-10. **Sync recency** — most recent
+1. **Sync recency** — most recent
     `report/*-sync-post-merge.md` is no older than the most recent
     merge to `{{ cookiecutter.default_branch_name }}`. If staler,
     surface the gap and recommend running `/gov.sync`.
 
-11. **Traceability validity** — `make check-traceability` is clean
-    over the current state. Surface any orphaned criteria or missing
-    test mappings.
+2. **Traceability validity** — if `specs/traceability.json` is
+   absent, report `not scaffolded` rather than PASS. If present,
+   `make check-traceability` must be clean over the current state.
+   Surface validator findings exactly as reported; do not claim
+   orphan detection the current validator does not implement.
 ```
 
 These steps make doc-drift mechanically auditable, not just

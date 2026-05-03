@@ -27,21 +27,28 @@ discovering the branch is wrong.
 
 Per `AGENTS.md` Required Pre-Read:
 
-- `CLAUDE.md`
-- `AGENTS.md`
+- `SECURITY.md`
 - `CONSTITUTION.md`
 - `DIRECTIVES.md`
-- `SECURITY.md`
+- `AGENTS.md`
+- `CLAUDE.md`
 - The relevant canonical documents under `specs/deep_specs/`.
 - The `README.md` in each directory being modified.
+- `docs/MCP_POLICY.md` before changing `.mcp.json`.
 
 ## Workflow
 
-1. Preserve the file taxonomy documented in `docs/ARCHITECTURE.md`
-   and the layered structure described in `CONSTITUTION.md`.
+1. Preserve the file taxonomy documented in `README.md`,
+  `specs/deep_specs/README.md`, and the relevant ADRs. If
+  `docs/ARCHITECTURE.md` exists, treat it as the stronger
+  architecture index. Keep the layered structure described in
+  `CONSTITUTION.md`.
 2. Apply the smallest change that satisfies the scope (`P6`).
-3. Update `specs/traceability.json` and the directory `README.md`
-   files when behavior changes.
+3. Update `specs/traceability.json` when it exists or when the
+  change is scaffolding that matrix, and update the directory
+  `README.md` files when behavior changes. If the matrix is not
+  present in the current phase, report the traceability impact as
+  `unscaffolded` rather than silently skipping it.
 4. When the change produces countable items (tests, requirement IDs,
    source files), enumerate distinct IDs and label counts explicitly
    as `collected` vs `passed+skipped`. Do not infer counts from ID

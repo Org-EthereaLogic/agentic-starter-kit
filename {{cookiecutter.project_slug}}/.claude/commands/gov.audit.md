@@ -20,13 +20,15 @@ scope: $ARGUMENTS
 
 ## Phase 1: Required Pre-Read
 
-- `CLAUDE.md`
-- `AGENTS.md`
+- `SECURITY.md`
 - `CONSTITUTION.md`
 - `DIRECTIVES.md`
-- `SECURITY.md`
-- `docs/ARCHITECTURE.md`
-- `specs/traceability.json`
+- `AGENTS.md`
+- `CLAUDE.md`
+- `README.md`
+- `specs/deep_specs/README.md`
+- If present and in scope: `docs/ARCHITECTURE.md`
+- If present: `specs/traceability.json`
 
 If `scope` is provided, narrow the audit accordingly; otherwise
 audit the full surface.
@@ -43,18 +45,22 @@ audit the full surface.
 - Run `make lint`.
 - Confirm `docs/` does not override `specs/` on any canonical claim
   (`CRIT-004`).
-- Confirm quality-control files exist where the cookiecutter
-  selections required them: `.github/workflows/ci.yml`,
-  `.codacy.yml` (when `include_codacy == "yes"`), `codecov.yaml`
-  (when `include_codecov == "yes"`), `.snyk` (when
-  `include_snyk == "yes"`).
+- Confirm quality-control integration is internally consistent for
+  the files that are present in the rendered project:
+  `.github/workflows/ci.yml`, `.codacy.yml`, `codecov.yaml`,
+  `.snyk`, `scripts/generate-sbom.sh`, and any Macaron workflow.
+  If an optional integration file is absent, classify it as
+  `not scaffolded` unless another checked-in file explicitly
+  requires it.
 
 ## Phase 3: Product boundary verification
 
 - Confirm no runtime dependency on sibling project clones
   (`CRIT-003`).
-- Confirm the source tree follows the module taxonomy described in
-  `docs/ARCHITECTURE.md`.
+- Confirm the source tree follows the taxonomy documented in
+  `README.md`, `specs/deep_specs/README.md`, and the relevant ADRs.
+  If `docs/ARCHITECTURE.md` exists, treat it as the stronger
+  architecture index for this check.
 - Verify `specs/deep_specs/` is current relative to the source
   tree (rename, deletion, or new module added without spec update
   is a finding).
@@ -72,14 +78,16 @@ audit the full surface.
 
 ## Phase 5: Sync and traceability recency
 
-10. **Sync recency** — most recent
+1. **Sync recency** — most recent
     `report/*-sync-post-merge.md` is no older than the most recent
     merge to `{{ cookiecutter.default_branch_name }}`. If staler,
     surface the gap and recommend running `/gov.sync`.
 
-11. **Traceability validity** — `make check-traceability` is clean
-    over the current state. Surface any orphaned criteria or
-    missing test mappings.
+2. **Traceability validity** — if `specs/traceability.json` is
+  absent, report `not scaffolded` rather than PASS. If present,
+  `make check-traceability` must be clean over the current state.
+  Surface validator findings exactly as reported; do not claim
+  orphan detection the current validator does not implement.
 
 These steps make doc-drift mechanically auditable, not just
 operator-discoverable.

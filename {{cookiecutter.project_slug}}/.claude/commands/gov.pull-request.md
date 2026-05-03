@@ -23,13 +23,15 @@ If the current branch is `{{ cookiecutter.default_branch_name }}` or
 
 ## Run
 
-1. !`git diff origin/{{ cookiecutter.default_branch_name }}...HEAD --stat`
-2. !`git log origin/{{ cookiecutter.default_branch_name }}..HEAD --oneline`
-3. `make validate` — must pass (expands to `marker-scan`,
+1. Resolve `base_ref` to `target_branch` when provided;
+  otherwise use `{{ cookiecutter.default_branch_name }}`.
+2. `git diff origin/<base_ref>...HEAD --stat`
+3. `git log origin/<base_ref>..HEAD --oneline`
+4. `make validate` — must pass (expands to `marker-scan`,
    `governance-check`, `check-traceability`, `check-doc-drift`,
    `hooks-test`, `lint`, `typecheck`, `test`).
-4. Push: `git push -u origin $(git branch --show-current)`.
-5. Create PR: `gh pr create --title "<title>" --body "<body>" --base <target_branch>`.
+5. Push: `git push -u origin $(git branch --show-current)`.
+6. Create PR: `gh pr create --title "<title>" --body "<body>" --base <target_branch>`.
 
 If `make validate` fails, stop and fix before creating the PR.
 

@@ -43,9 +43,9 @@ jobs:
             include_codacy: 'no'
             include_snyk: 'no'
 
-          - name: 'TypeScript (GPL-3.0, with tools)'
+          - name: 'TypeScript (Apache-2.0, with tools)'
             primary_language: 'typescript'
-            license: 'GPL-3.0'
+            license: 'Apache-2.0'
             include_sbom: 'yes'
             include_codacy: 'yes'
             include_snyk: 'yes'
@@ -112,14 +112,14 @@ jobs:
           git checkout -b feat/initial
 
       - name: Install Python dependencies
-        if: contains(matrix.variant.primary_language, 'python')
+        if: matrix.variant.primary_language != 'typescript'
         run: |
           cd rendered-project
           python -m pip install --upgrade pip uv
           make sync
 
       - name: Install Node dependencies
-        if: contains(matrix.variant.primary_language, 'typescript')
+        if: matrix.variant.primary_language == 'typescript'
         run: |
           cd rendered-project
           npm install

@@ -1,0 +1,5 @@
+{
+  "type": "commonjs",
+  "private": true,
+  "//": "Scopes Node module-type to .claude/hooks/. Without this, polyglot/typescript projects whose root package.json declares 'type: module' would treat pre-tool-use.js as ESM and crash on require()."
+}

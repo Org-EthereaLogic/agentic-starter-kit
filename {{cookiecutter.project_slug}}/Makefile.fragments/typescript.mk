@@ -17,12 +17,16 @@ lint-typescript:
 
 typecheck-typescript:
 {% if cookiecutter.primary_language in ("typescript", "polyglot") %}
-	@if [ "$(HAS_TSC)" = "yes" ] && [ -f tsconfig.json ]; then \
+	@if [ ! -f tsconfig.json ]; then \
+		echo "typecheck-typescript: no tsconfig.json"; \
+	elif ! find src tests -type f \( -name '*.ts' -o -name '*.tsx' \) 2>/dev/null | grep -q .; then \
+		echo "typecheck-typescript: no .ts/.tsx sources yet (added in Phase 5)"; \
+	elif [ "$(HAS_TSC)" = "yes" ]; then \
 		tsc --noEmit; \
-	elif [ "$(HAS_NPX)" = "yes" ] && [ -f tsconfig.json ]; then \
+	elif [ "$(HAS_NPX)" = "yes" ]; then \
 		npx --no-install tsc --noEmit 2>/dev/null || echo "WARN: tsc not installed (added in Phase 5)"; \
 	else \
-		echo "WARN: tsc not installed or no tsconfig.json (added in Phase 5)"; \
+		echo "WARN: tsc not installed (added in Phase 5)"; \
 	fi
 {% else %}
 	@echo "typecheck-typescript: not applicable (TypeScript not in primary_language)"

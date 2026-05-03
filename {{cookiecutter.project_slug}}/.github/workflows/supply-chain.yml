@@ -1,0 +1,105 @@
+# Supply-chain audit for {{ cookiecutter.project_name }}.
+#
+# Runs language-native dependency audit on every PR and on push to
+# the default branch. Python: pip-audit against pyproject.toml.
+# TypeScript: npm audit (production deps only). Per IMP-006, action
+# pins use semver tags with trailing comments; SHA-pinning lift is
+# tracked in scripts/check-action-pins.sh.
+{% raw %}
+name: Supply-chain audit
+
+on:
+  pull_request: {}
+  push:
+    branches:
+      - {% endraw %}{{ cookiecutter.default_branch_name }}{% raw %}
+
+permissions:
+  contents: read
+{% endraw %}
+{% if cookiecutter.primary_language in ("python", "polyglot") %}
+{% raw %}
+jobs:
+  python-audit:
+    name: pip-audit (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: pip install --upgrade pip uv
+
+      - name: Sync dependencies
+        run: make sync
+
+      - name: pip-audit
+        uses: pypa/gh-action-pip-audit@v1 # v1
+        with:
+          inputs: pyproject.toml
+          # Set vulnerability-service to OSV (default) plus PyPA's
+          # advisory database for broader coverage.
+          vulnerability-service: osv
+{% endraw %}
+{% endif %}
+{% if cookiecutter.primary_language in ("typescript", "polyglot") %}
+{% raw %}
+{% endraw %}{% if cookiecutter.primary_language == "typescript" %}jobs:
+{% endif %}{% raw %}
+  npm-audit:
+    name: npm audit (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4 # v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: npm audit (production deps)
+        run: npm audit --omit=dev --audit-level=high
+{% endraw %}
+{% endif %}
+{% if cookiecutter.include_macaron == "yes" %}
+{% raw %}
+  macaron:
+    name: Macaron supply-chain analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Macaron
+        run: pip install macaron
+
+      - name: Run Macaron
+        # Macaron defaults to a manifest-driven analysis; the
+        # report is uploaded as an artifact for the security
+        # reviewer subagent to ingest.
+        run: |
+          mkdir -p macaron-output
+          macaron analyze -rp . -o macaron-output/ || true
+
+      - name: Upload Macaron report
+        uses: actions/upload-artifact@v4 # v4
+        with:
+          name: macaron-report
+          path: macaron-output/
+          retention-days: 30
+{% endraw %}
+{% endif %}

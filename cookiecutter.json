@@ -14,6 +14,7 @@
   "include_codecov": ["yes", "no"],
   "include_snyk": ["yes", "no"],
   "include_sbom": ["yes", "no"],
+  "include_macaron": ["no", "yes"],
   "default_branch_name": "main",
   "_copy_without_render": [
     "scripts/*.sh"

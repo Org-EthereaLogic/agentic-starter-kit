@@ -1,0 +1,94 @@
+# Tag-driven release with SLSA Level 3 provenance for
+# {{ cookiecutter.project_name }}.
+#
+# Triggered when a `v*` tag is pushed. The build job produces
+# release artifacts and a base64-encoded SHA-256 hashes file; the
+# `provenance` job consumes the hashes and produces verifiable SLSA
+# L3 provenance via the official slsa-github-generator reusable
+# workflow. The provenance attestation is uploaded as a release
+# asset alongside the artifacts.
+#
+# Per IMP-006, action pins use semver tags + comments. The SLSA
+# reusable workflow MUST pin to a tag (not a SHA) per the generator
+# project's documentation.
+{% raw %}
+name: Release (SLSA L3)
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions: read-all
+
+jobs:
+  build:
+    name: Build release artifacts
+    runs-on: ubuntu-latest
+    outputs:
+      hashes: ${{ steps.hash.outputs.hashes }}
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+        with:
+          persist-credentials: false
+{% endraw %}{% if cookiecutter.primary_language in ("python", "polyglot") %}{% raw %}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5 # v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tooling
+        run: pip install --upgrade pip build uv
+
+      - name: Build wheel and sdist
+        run: |
+          python -m build --sdist --wheel --outdir dist/
+{% endraw %}{% endif %}{% if cookiecutter.primary_language in ("typescript", "polyglot") %}{% raw %}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4 # v4
+        with:
+          node-version: "20"
+
+      - name: Build npm tarball
+        run: |
+          mkdir -p dist
+          npm pack --pack-destination dist/
+{% endraw %}{% endif %}{% raw %}
+
+      - name: List build artifacts
+        run: ls -la dist/
+
+      - name: Hash artifacts
+        id: hash
+        working-directory: dist
+        run: |
+          # Produce a base64-encoded SHA-256 hashes file for
+          # the SLSA generator to consume.
+          hashes="$(sha256sum * | base64 -w0)"
+          echo "hashes=${hashes}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4 # v4
+        with:
+          name: release-artifacts
+          path: dist/
+          retention-days: 7
+
+  provenance:
+    name: Generate SLSA L3 provenance
+    needs: [build]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    # SLSA reusable workflow — tag-pinned per generator policy.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0
+    with:
+      base64-subjects: ${{ needs.build.outputs.hashes }}
+      upload-assets: true
+{% endraw %}

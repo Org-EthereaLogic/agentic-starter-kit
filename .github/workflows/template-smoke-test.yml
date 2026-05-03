@@ -70,13 +70,14 @@ jobs:
             include_codacy: 'yes'
             include_snyk: 'yes'
 
-          - name: 'Polyglot (MIT, all options, mypy)'
+          - name: 'Polyglot (MIT, all options + macaron, mypy)'
             primary_language: 'polyglot'
             python_typechecker: 'mypy'
             license: 'MIT'
             include_sbom: 'yes'
             include_codacy: 'yes'
             include_snyk: 'yes'
+            include_macaron: 'yes'
 
     steps:
       - name: Checkout template source
@@ -103,6 +104,7 @@ jobs:
           INCLUDE_SBOM: ${{ matrix.variant.include_sbom }}
           INCLUDE_CODACY: ${{ matrix.variant.include_codacy }}
           INCLUDE_SNYK: ${{ matrix.variant.include_snyk }}
+          INCLUDE_MACARON: ${{ matrix.variant.include_macaron || 'no' }}
         run: |
           cookiecutter . \
             --no-input \
@@ -113,7 +115,8 @@ jobs:
             license="$LICENSE" \
             include_sbom="$INCLUDE_SBOM" \
             include_codacy="$INCLUDE_CODACY" \
-            include_snyk="$INCLUDE_SNYK"
+            include_snyk="$INCLUDE_SNYK" \
+            include_macaron="$INCLUDE_MACARON"
 
           # Move rendered project to working directory
           mv /tmp/rendered/my-agentic-project rendered-project
@@ -125,6 +128,12 @@ jobs:
             exit 1
           fi
           echo "✓ No unrendered variables found"
+
+      - name: Validate new supply-chain workflows are well-formed YAML
+        run: |
+          for wf in scorecards release supply-chain; do
+            python3 -c "import yaml,sys; yaml.safe_load(open('rendered-project/.github/workflows/'+'$wf'+'.yml')); print('  ✓ '+'$wf'+'.yml')"
+          done
 
       - name: Initialize git
         run: |

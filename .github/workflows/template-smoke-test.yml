@@ -14,6 +14,9 @@ on:
       - '{{cookiecutter.project_slug}}/**'
       - '.github/workflows/template-smoke-test.yml'
 
+permissions:
+  contents: read
+
 jobs:
   smoke-test:
     name: Test Template Variants

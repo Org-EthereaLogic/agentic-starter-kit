@@ -88,6 +88,42 @@ if [[ -d ".claude/agents" ]]; then
   done
 fi
 
+# --- Layer 3 skill inventory (Phase B3) ---
+#
+# Skills are progressive-disclosure capability packs per the Linux
+# Foundation SKILL.md spec. Each skill is a single .md with YAML
+# frontmatter declaring `name`, `description`, and `paths:` (a glob
+# list that gates lazy loading). Three starter skills ship with the
+# template; renaming one without updating this list is a finding.
+
+required_skills=(
+  ".claude/skills/run-validate.md"
+  ".claude/skills/audit-trail-tail.md"
+  ".claude/skills/traceability-update.md"
+)
+
+for f in "${required_skills[@]}"; do
+  check_file_exists "$f" || true
+done
+
+if [[ -d ".claude/skills" ]]; then
+  for skill in .claude/skills/*.md; do
+    [[ -f "$skill" ]] || continue
+    [[ "$(basename "$skill")" == "README.md" ]] && continue
+    if ! grep -q "^name:" "$skill" || \
+       ! grep -q "^description:" "$skill" || \
+       ! grep -q "^paths:" "$skill"; then
+      log_error "$skill missing required frontmatter (name, description, paths)"
+      continue
+    fi
+    expected_name="$(basename "$skill" .md)"
+    declared_name="$(grep -m1 "^name:" "$skill" | sed -E 's/^name:[[:space:]]*//' | tr -d '"' | tr -d "'")"
+    if [[ "$declared_name" != "$expected_name" ]]; then
+      log_error "$skill frontmatter name '$declared_name' does not match filename '$expected_name'"
+    fi
+  done
+fi
+
 # --- Optionally required (later phases populate) ---
 
 optional_dirs=(

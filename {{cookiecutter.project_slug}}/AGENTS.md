@@ -183,18 +183,22 @@ attention.
 - Mark unsupported claims `unverified`, never `passed`.
 - Wrap prose at ~80 columns for diff-friendliness.
 
-## Commands and agents
+## Commands, agents, and skills
 
 The `.claude/commands/` directory holds slash commands — workflow
 primitives parameterized as Markdown files with YAML frontmatter.
 The `.claude/agents/` directory holds curated subagent definitions.
-Both populate during the build's Layer 3 scaffolding phase; the
-specific commands and agents available depend on which build phases
-have landed in the project's tree.
+The `.claude/skills/` directory holds progressive-disclosure
+capability packs that auto-load only when the agent touches a path
+matching the skill's `paths:` glob list (Linux Foundation
+`SKILL.md` spec). All three populate during the build's Layer 3
+scaffolding phase; the specific commands, agents, and skills
+available depend on which build phases have landed in the
+project's tree.
 
-When those layers are present, see `.claude/commands/README.md`
-and `.claude/agents/README.md` (or the directory listings) for the
-inventory.
+When those layers are present, see `.claude/commands/README.md`,
+`.claude/agents/README.md`, and `.claude/skills/README.md` (or the
+directory listings) for the inventory.
 
 ## See also
 

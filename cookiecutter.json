@@ -8,6 +8,7 @@
   "year": "2026",
   "license": ["MIT", "Apache-2.0", "Proprietary"],
   "primary_language": ["python", "typescript", "polyglot"],
+  "python_typechecker": ["ty", "mypy"],
   "include_databricks": ["no", "yes"],
   "include_codacy": ["yes", "no"],
   "include_codecov": ["yes", "no"],

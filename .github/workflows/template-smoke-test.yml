@@ -22,15 +22,25 @@ jobs:
       fail-fast: false
       matrix:
         variant:
-          - name: 'Python (MIT, no extras)'
+          - name: 'Python (MIT, no extras, ty)'
             primary_language: 'python'
+            python_typechecker: 'ty'
             license: 'MIT'
             include_sbom: 'no'
             include_codacy: 'no'
             include_snyk: 'no'
 
-          - name: 'Python (Apache2, with SBOM)'
+          - name: 'Python (MIT, mypy fallback)'
             primary_language: 'python'
+            python_typechecker: 'mypy'
+            license: 'MIT'
+            include_sbom: 'no'
+            include_codacy: 'no'
+            include_snyk: 'no'
+
+          - name: 'Python (Apache2, with SBOM, ty)'
+            primary_language: 'python'
+            python_typechecker: 'ty'
             license: 'Apache-2.0'
             include_sbom: 'yes'
             include_codacy: 'no'
@@ -38,6 +48,7 @@ jobs:
 
           - name: 'TypeScript (MIT, no extras)'
             primary_language: 'typescript'
+            python_typechecker: 'ty'
             license: 'MIT'
             include_sbom: 'no'
             include_codacy: 'no'
@@ -45,13 +56,15 @@ jobs:
 
           - name: 'TypeScript (Apache-2.0, with tools)'
             primary_language: 'typescript'
+            python_typechecker: 'ty'
             license: 'Apache-2.0'
             include_sbom: 'yes'
             include_codacy: 'yes'
             include_snyk: 'yes'
 
-          - name: 'Polyglot (MIT, all options)'
+          - name: 'Polyglot (MIT, all options, ty)'
             primary_language: 'polyglot'
+            python_typechecker: 'ty'
             license: 'MIT'
             include_sbom: 'yes'
             include_codacy: 'yes'
@@ -77,6 +90,7 @@ jobs:
       - name: Render template variant
         env:
           PRIMARY_LANGUAGE: ${{ matrix.variant.primary_language }}
+          PYTHON_TYPECHECKER: ${{ matrix.variant.python_typechecker }}
           LICENSE: ${{ matrix.variant.license }}
           INCLUDE_SBOM: ${{ matrix.variant.include_sbom }}
           INCLUDE_CODACY: ${{ matrix.variant.include_codacy }}
@@ -87,6 +101,7 @@ jobs:
             --output-dir /tmp/rendered \
             -f \
             primary_language="$PRIMARY_LANGUAGE" \
+            python_typechecker="$PYTHON_TYPECHECKER" \
             license="$LICENSE" \
             include_sbom="$INCLUDE_SBOM" \
             include_codacy="$INCLUDE_CODACY" \
@@ -138,6 +153,7 @@ jobs:
         run: |
           echo "✅ Variant: ${{ matrix.variant.name }}"
           echo "   Primary Language: ${{ matrix.variant.primary_language }}"
+          echo "   Type-checker:    ${{ matrix.variant.python_typechecker }}"
           echo "   License: ${{ matrix.variant.license }}"
           echo "   SBOM: ${{ matrix.variant.include_sbom }}"
           echo "   Codacy: ${{ matrix.variant.include_codacy }}"

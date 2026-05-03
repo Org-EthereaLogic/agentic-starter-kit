@@ -99,6 +99,7 @@ shown):
 | `year` | `2026` | free text | Appears in `LICENSE` and copyright headers |
 | `license` | `MIT` | `MIT`, `Apache-2.0`, `Proprietary` | |
 | `primary_language` | `python` | `python`, `typescript`, `polyglot` | Drives which build files are kept by the post-gen hook |
+| `python_typechecker` | `ty` | `ty`, `mypy` | Astral `ty` is the 2026 default; `mypy` is offered as the opt-in fallback. Affects only the Python and polyglot paths |
 | `include_databricks` | `no` | `no`, `yes` | Reserved; Databricks bundle scaffolding lands in a later release |
 | `include_codacy` | `yes` | `yes`, `no` | Adds `.codacy.yml` plus a CI job |
 | `include_codecov` | `yes` | `yes`, `no` | Adds `codecov.yaml` plus a CI upload job |

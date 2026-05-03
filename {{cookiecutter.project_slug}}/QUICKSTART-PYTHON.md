@@ -174,9 +174,12 @@ Ruff is installed as a dev dependency via `pyproject.toml`. Ensure you've run:
 make sync
 ```
 
-### "WARN: mypy not installed"
+### "WARN: ty not installed" (or "WARN: mypy not installed")
 
-Same as ruff — run `make sync` to install dev dependencies.
+Same as ruff — run `make sync` to install dev dependencies. The
+type-checker is selected at template-generation time via the
+`python_typechecker` cookiecutter variable. Default is `ty`
+(Astral). Projects on `mypy` see the mypy variant of the warning.
 
 ### Tests fail but I haven't changed anything
 

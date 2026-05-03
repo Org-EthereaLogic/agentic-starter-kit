@@ -78,7 +78,7 @@ Pre-commit runs on every `git commit`. It executes:
 
 - The `pre-commit-hooks` baseline (whitespace, EOL, large files,
   YAML / JSON / TOML validity, private-key detection).
-{% if cookiecutter.primary_language in ("python", "polyglot") %}- `ruff` (lint + format) and `mypy` (type-check) for Python.
+{% if cookiecutter.primary_language in ("python", "polyglot") %}- `ruff` (lint + format) and `{{ cookiecutter.python_typechecker }}` (type-check) for Python.
 {% endif %}{% if cookiecutter.primary_language in ("typescript", "polyglot") %}- `prettier` (format) and `eslint` (lint) for TypeScript.
 {% endif %}- `shellcheck` for shell scripts.
 - The project's local hooks: `marker-scan` (CRIT-001) and

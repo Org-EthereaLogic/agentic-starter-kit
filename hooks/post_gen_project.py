@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 PRIMARY_LANGUAGE = "{{ cookiecutter.primary_language }}"
+PYTHON_TYPECHECKER = "{{ cookiecutter.python_typechecker }}"
 INCLUDE_DATABRICKS = "{{ cookiecutter.include_databricks }}"
 INCLUDE_CODACY = "{{ cookiecutter.include_codacy }}"
 INCLUDE_CODECOV = "{{ cookiecutter.include_codecov }}"
@@ -94,6 +95,8 @@ def write_summary() -> None:
     print()
     print("Project scaffolded successfully.")
     print(f"  primary_language : {PRIMARY_LANGUAGE}")
+    if PRIMARY_LANGUAGE in ("python", "polyglot"):
+        print(f"  python_typecheck : {PYTHON_TYPECHECKER}")
     print(f"  license          : {LICENSE_CHOICE}")
     print(f"  databricks       : {INCLUDE_DATABRICKS}")
     print(f"  codacy           : {INCLUDE_CODACY}")

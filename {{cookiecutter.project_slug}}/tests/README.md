@@ -1,7 +1,7 @@
 # Test Suite Overview
 
 This directory contains regression tests for the Layer-3 slash
-command contracts and the Layer-4 hooks.
+command and skill contracts plus the Layer-4 hooks.
 
 ## Overview
 
@@ -13,7 +13,13 @@ The slash-command contract suite validates the shipped `/gov.*`
 inventory, required YAML frontmatter, and prompt regressions that
 must not drift back into the scaffold.
 
-**Test coverage:** 18 cases across Python (unittest) and JavaScript (node:test)
+The skill contract suite validates the shipped `.claude/skills/`
+inventory, reviewed skill-language regressions, and the
+whitespace-tolerant frontmatter parsing enforced by
+`scripts/check-governance.sh`.
+
+**Test coverage:** hook regression suites plus Layer-3 contract
+checks across Python (`unittest`) and JavaScript (`node:test`)
 
 ## Hook Test Specification (Single Source of Truth)
 
@@ -43,6 +49,17 @@ tests:
 Run with:
 ```bash
 python3 tests/test_command_contracts.py
+```
+
+### Skills: `test_skill_contracts.py`
+
+- Framework: `unittest`
+- Coverage: skill inventory, frontmatter keys, reviewed prose
+  regressions, and `check-governance.sh` skill-frontmatter behavior
+
+Run with:
+```bash
+python3 tests/test_skill_contracts.py
 ```
 
 ### Python: `test_pre_tool_use_hook.py`

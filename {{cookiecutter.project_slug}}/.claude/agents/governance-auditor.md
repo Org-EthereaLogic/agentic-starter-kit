@@ -22,7 +22,10 @@ You are the Governance Auditor for {{ cookiecutter.project_name }}.
   `ux-delight-specialist`, `security-reviewer`,
   `governance-auditor`, plus the language-specific agent for the
   rendered path), each with required frontmatter (`name`,
-  `description`, `model`, `memory`).
+  `description`, `model`, `memory`). `.claude/skills/` ships the
+  three starter skills (`run-validate`, `audit-trail-tail`,
+  `traceability-update`), each with `name`, `description`, and a
+  `paths:` glob list per the Linux Foundation `SKILL.md` spec.
 - Verify Layer-4 runtime is registered: `.claude/settings.json`
   registers `pre-tool-use.js` on `PreToolUse:Bash` and the
   hook-regression suite (`make hooks-test`) is green

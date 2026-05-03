@@ -83,6 +83,7 @@ Detailed in `AGENTS.md`. Compressed:
 | --- | --- |
 | `.claude/commands/` *(when scaffolded)* | Slash-command definitions. Each is a Markdown file with YAML frontmatter declaring `description`, `argument-hint`, and `allowed-tools`. |
 | `.claude/agents/` *(when scaffolded)* | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
+| `.claude/skills/` *(when scaffolded)* | Progressive-disclosure capability packs. Single Markdown files with frontmatter declaring `name`, `description`, and a `paths:` glob list that gates lazy loading. |
 | `.claude/hooks/pre-tool-use.js` *(when scaffolded)* | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
 | `.claude/settings.json` *(when scaffolded)* | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
 | `.mcp.json` | MCP server registration for this project. Ships a read-only filesystem/git baseline plus a token-scoped GitHub entry; see `docs/MCP_POLICY.md` before changing any entry. |

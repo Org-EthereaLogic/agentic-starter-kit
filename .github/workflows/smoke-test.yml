@@ -14,6 +14,9 @@ on:
       - "{{cookiecutter.project_slug}}/**"
       - ".github/workflows/smoke-test.yml"
 
+permissions:
+  contents: read
+
 jobs:
   test-python:
     name: Python Variant

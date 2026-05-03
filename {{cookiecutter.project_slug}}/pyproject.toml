@@ -1,9 +1,13 @@
 # pyproject.toml — {{ cookiecutter.project_name }}
 #
-# Python project metadata and tool configuration. Used by `uv` (or
-# pip) to manage dependencies and by ruff / mypy / pytest for
+# Python project metadata and tool configuration. Used by `uv` for
+# dependency management and by ruff / {{ cookiecutter.python_typechecker }} / pytest for
 # tool config. Ships when `primary_language` is `python` or
 # `polyglot`; the post-gen hook removes it for `typescript`.
+#
+# Type-checker is selected via the `python_typechecker` cookiecutter
+# variable. Default is `ty` (Astral); `mypy` is offered as an
+# opt-in fallback for projects with stub-heavy ecosystems.
 
 [project]
 name = "{{ cookiecutter.python_package_name }}"
@@ -31,8 +35,9 @@ packages = ["src/{{ cookiecutter.python_package_name }}"]
 [dependency-groups]
 dev = [
   "ruff>=0.7,<1",
-  "mypy>=1.11,<2",
-  "pytest>=8,<9",
+{% if cookiecutter.python_typechecker == "ty" %}  "ty>=0.0.1,<1",
+{% else %}  "mypy>=1.11,<2",
+{% endif %}  "pytest>=8,<9",
   "pytest-cov>=5,<7",
   "pre-commit>=3.7,<5",
 {% if cookiecutter.include_sbom == "yes" %}  "cyclonedx-bom>=4,<6",
@@ -86,8 +91,24 @@ ignore = [
 quote-style = "double"
 indent-style = "space"
 
-# --- mypy ---------------------------------------------------------
+# --- type checker -------------------------------------------------
+{% if cookiecutter.python_typechecker == "ty" %}
+[tool.ty]
+# Astral's `ty`. Configuration intentionally minimal — ty's defaults
+# are aligned with the strict-mode end of the spectrum.
+python-version = "3.10"
+exclude = [
+  "tests/fixtures",
+  "build",
+  "dist",
+  "sbom",
+  "report",
+]
 
+[tool.ty.rules]
+# pytest fixtures often fight with strict reporting; relax in tests.
+unresolved-import = "warn"
+{% else %}
 [tool.mypy]
 python_version = "3.10"
 strict = true
@@ -105,6 +126,7 @@ exclude = [
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_decorators = false  # pytest fixtures often fight with strict
+{% endif %}
 
 # --- pytest -------------------------------------------------------
 

@@ -119,7 +119,7 @@ jobs:
           make sync
 
       - name: Install Node dependencies
-        if: matrix.variant.primary_language != 'python'
+        if: matrix.variant.primary_language == 'typescript'
         run: |
           cd rendered-project
           npm install

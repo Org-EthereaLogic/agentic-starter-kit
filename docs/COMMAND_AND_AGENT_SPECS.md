@@ -13,9 +13,65 @@
 
 ---
 
-## Command: `/sync`
+## Command namespacing: `/gov.*` ↔ `/speckit.*`
 
-**File:** `{{cookiecutter.project_slug}}/.claude/commands/sync.md`
+The 16 slash commands shipped with this template all live under the
+`/gov.*` namespace (file naming `.claude/commands/gov.<verb>.md`).
+The dotted prefix is intentional: it lets these commands coexist
+with [GitHub Spec Kit](https://github.com/github/spec-kit), whose
+commands ship under `/speckit.*` (e.g., `/speckit.specify`,
+`/speckit.plan`, `/speckit.implement`). A project that adopts both
+gets both namespaces side-by-side with no collision.
+
+The two surfaces overlap on the SDLC verbs but differ in scope:
+Spec Kit is a *spec-driven development* workflow that converts a
+prompt into a spec, plan, and task list, then drives an agent
+through implementation. The `/gov.*` surface is a *governance and
+SDLC contract* layered on top of any project shape — its commands
+also enforce traceability, evidence appendage, hook-protected
+branching, marker-scan discipline, and append-only `report/`
+records.
+
+When the verbs overlap, the `/gov.*` command should be invoked
+when the project's controlling artifact is a spec under
+`specs/deep_specs/` or an entry in `specs/traceability.json`. The
+`/speckit.*` command should be invoked when the project is being
+driven through the Spec Kit prompt → spec → plan → tasks flow.
+
+| `/gov.*` (this template) | `/speckit.*` (Spec Kit) | Notes |
+|---|---|---|
+| `/gov.prime` | — | Orient to repo; no Spec Kit equivalent |
+| `/gov.start` | — | Local environment bring-up via `make sync` + `make validate` |
+| `/gov.status` | — | Lightweight repo health snapshot |
+| `/gov.plan` | `/speckit.plan` | Both produce a structured plan; `/gov.plan` writes under `specs/deep_specs/` and updates traceability |
+| `/gov.implement` | `/speckit.implement` | Both execute scoped work; `/gov.implement` enforces branch precondition, traceability update, and `make validate` |
+| `/gov.test` | — | Runs the project's `make validate` gate sequence |
+| `/gov.review` | `/speckit.analyze` (closest) | Both review against canonical artifacts; `/gov.review` is JSON-structured and gate-aware |
+| `/gov.verify` | — | Independent claim-vs-evidence verification |
+| `/gov.audit` | — | Full governance + sync-recency + traceability-validity audit |
+| `/gov.commit` | — | Conventional commit with scope and hook-protected branch precondition |
+| `/gov.pull-request` | — | Gate-passing PR creation via `gh pr create` |
+| `/gov.session-log` | — | Append-only session record under `report/` |
+| `/gov.sync` | — | Post-merge workspace + living-doc drift sync |
+| `/gov.spec-bump` | — | Version-bump a canonical spec and append revision history |
+| `/gov.threat-model` | — | STRIDE walk for new attack surface; updates `docs/THREAT_MODEL.md` |
+| `/gov.check-traceability` | — | Wraps `make check-traceability` for ad-hoc invocation |
+| — | `/speckit.specify` | Spec Kit's prompt-to-spec step; `/gov.plan` is the closest analog but writes under `specs/deep_specs/` |
+| — | `/speckit.tasks` | Spec Kit's plan-to-tasks decomposition; intentionally not duplicated by `/gov.*` |
+| — | `/speckit.constitution` | Spec Kit's project-constitution helper; `{{ cookiecutter.project_slug }}/CONSTITUTION.md` is shipped pre-authored by this template |
+| — | `/speckit.clarify` | Spec Kit's clarification step; not duplicated |
+| — | `/speckit.checklist` | Spec Kit's checklist generator; not duplicated |
+
+**Rule of thumb:** never re-prefix a command file. The `/gov.*`
+prefix is a contract — renaming `gov.implement.md` to
+`implement.md` collides with Spec Kit's `/implement` (predecessor
+of `/speckit.implement`) and breaks the coexistence guarantee.
+
+---
+
+## Command: `/gov.sync`
+
+**File:** `{{cookiecutter.project_slug}}/.claude/commands/gov.sync.md`
 
 **Source:** new in this template; addresses GAP-035, the
 living-documentation drift gap from the SWEBOK v4 §6 Operations
@@ -35,8 +91,8 @@ Refreshes local state, prunes stale branches, verifies living
 documentation hasn't drifted, and writes an append-only sync record
 per IMP-001.
 
-This command is the operational counterpart to `/session-log`.
-`/session-log` captures what happened *during* a session; `/sync`
+This command is the operational counterpart to `/gov.session-log`.
+`/gov.session-log` captures what happened *during* a session; `/gov.sync`
 captures workspace state *between* sessions and prevents staleness
 from accumulating commit-to-commit. It also closes the living-doc
 drift gap identified in the SWEBOK v4 §6 Operations Control review.
@@ -99,7 +155,7 @@ For each living document, verify it still reflects current reality:
    `make check-traceability` and surface deltas.
 
 For each drift finding, do not auto-fix — surface it with a
-recommendation. Drift remediation is `/implement` work.
+recommendation. Drift remediation is `/gov.implement` work.
 
 ### 4. Documentation ownership refresh
 
@@ -120,7 +176,7 @@ Write an append-only sync record under `report/`:
   - **Living-doc drift findings** — each finding with file path
     and suggested follow-up
   - **Traceability deltas** — added / removed / orphaned
-  - **Open items** — what needs `/implement` follow-up
+  - **Open items** — what needs `/gov.implement` follow-up
 
 Never edit a prior sync record. If a finding is wrong, write a new
 record correcting it; the audit trail is the asset (P2, IMP-001).
@@ -133,12 +189,12 @@ Output a short summary:
 - Drift count and severity
 - Sync record path
 
-Mark anything requiring follow-up clearly so the next `/implement`
+Mark anything requiring follow-up clearly so the next `/gov.implement`
 session can pick it up.
 
 ## Forbidden
 
-- Auto-fixing drift findings — `/sync` reports, `/implement` fixes.
+- Auto-fixing drift findings — `/gov.sync` reports, `/gov.implement` fixes.
 - Editing prior sync records (IMP-001).
 - Running on a dirty working tree.
 - Force-deleting branches with unmerged local commits.
@@ -146,9 +202,9 @@ session can pick it up.
 
 ---
 
-## Command: `/threat-model`
+## Command: `/gov.threat-model`
 
-**File:** `{{cookiecutter.project_slug}}/.claude/commands/threat-model.md`
+**File:** `{{cookiecutter.project_slug}}/.claude/commands/gov.threat-model.md`
 
 **Source:** new in this template; addresses GAP-013/014 by giving
 the operator a fast path to refresh the threat model when a PR
@@ -169,6 +225,7 @@ plan and Ch 13 §3.1):
 
 - New external input is added (HTTP route, file ingestion, queue
   consumer, scheduled fetch).
+
 - New authentication or authorization path is added.
 - New third-party runtime dependency is introduced.
 - New ML/LLM-driven decision surface is added.
@@ -230,14 +287,14 @@ change: $ARGUMENTS
 
 Diff summary of THREAT_MODEL.md, list of new mitigations needing
 implementation, and any open threats with no proposed mitigation
-(these become candidates for the next `/plan`).
+(these become candidates for the next `/gov.plan`).
 ```
 
 ---
 
-## Command: `/check-traceability`
+## Command: `/gov.check-traceability`
 
-**File:** `{{cookiecutter.project_slug}}/.claude/commands/check-traceability.md`
+**File:** `{{cookiecutter.project_slug}}/.claude/commands/gov.check-traceability.md`
 
 **Source:** new in this template; addresses GAP-031/032 by
 providing an ergonomic wrapper for the traceability validator.
@@ -260,7 +317,7 @@ for ad-hoc invocation outside CI.
    criteria.
 3. If dirty: surface every finding with the criterion ID, the
    missing/orphaned artifact, and the suggested remediation
-   (which `/implement` will need to perform).
+   (which `/gov.implement` will need to perform).
 
 ## Report
 
@@ -270,9 +327,9 @@ Pass/fail. On fail: a table with columns
 
 ---
 
-## Command: `/audit` extensions (steps 10 and 11)
+## Command: `/gov.audit` extensions (steps 10 and 11)
 
-**File:** `{{cookiecutter.project_slug}}/.claude/commands/audit.md`
+**File:** `{{cookiecutter.project_slug}}/.claude/commands/gov.audit.md`
 (port from govforge, then add)
 
 When porting from govforge's `/audit`, append two new steps:
@@ -281,7 +338,7 @@ When porting from govforge's `/audit`, append two new steps:
 10. **Sync recency** — most recent
     `report/*-sync-post-merge.md` is no older than the most recent
     merge to `{{ cookiecutter.default_branch_name }}`. If staler,
-    surface the gap and recommend running `/sync`.
+    surface the gap and recommend running `/gov.sync`.
 
 11. **Traceability validity** — `make check-traceability` is clean
     over the current state. Surface any orphaned criteria or missing
@@ -323,7 +380,7 @@ You are the Security Reviewer for {{ cookiecutter.project_name }}.
   flag drift.
 - Review every change that introduces new attack surface (new
   endpoint, new auth path, new third-party dep, new ML decision)
-  before it merges. Trigger: `/threat-model` invocation.
+  before it merges. Trigger: `/gov.threat-model` invocation.
 - Maintain `specs/security-requirements/` and ensure each accepted
   security requirement is reflected in either source or tests.
 - Verify secrets policy: no literal secrets in tracked files,

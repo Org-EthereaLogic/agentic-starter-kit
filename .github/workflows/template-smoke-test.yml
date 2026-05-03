@@ -70,6 +70,14 @@ jobs:
             include_codacy: 'yes'
             include_snyk: 'yes'
 
+          - name: 'Polyglot (MIT, all options, mypy)'
+            primary_language: 'polyglot'
+            python_typechecker: 'mypy'
+            license: 'MIT'
+            include_sbom: 'yes'
+            include_codacy: 'yes'
+            include_snyk: 'yes'
+
     steps:
       - name: Checkout template source
         uses: actions/checkout@v4

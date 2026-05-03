@@ -26,8 +26,8 @@ governance prose, hooks, or CI workflows in
 ## What `make validate` runs
 
 `make validate` aggregates these gates in order
-(`Makefile.fragments/checks.mk` is authoritative; this list is a
-quick reference):
+(`Makefile` is authoritative; the fragment files define the
+underlying targets):
 
 1. `make marker-scan` — `CRIT-001`. Forbidden stub markers in
    canonical surfaces.
@@ -39,8 +39,12 @@ quick reference):
    exist in the repo.
 5. `make hooks-test` — `CRIT-008`. Protected-branch hook
    regression suite.
-6. `make lint`, `make typecheck`, `make test` — language-specific
-   build hygiene.
+6. `make lint` — language-specific linting.
+7. `make typecheck` — language-specific type checking.
+8. `make test` — language-specific test execution.
+
+Coverage is separate. Run `make coverage` explicitly when the
+operator needs coverage evidence.
 
 ## How to invoke
 
@@ -64,12 +68,12 @@ failing gate by default (Make's `-k` is not used).
   Use the individual targets (`make marker-scan`, `make hooks-test`,
   …) rather than re-running `make validate`.
 - **Coverage stays `unverified` unless `make coverage` was run
-  explicitly.** `make validate` does not include coverage by design.
+  explicitly.** `make validate` does not invoke coverage.
 
 ## Report format
 
-Always report results as a checklist of the six gates above with one
-of three verdicts each:
+Always report results as a checklist of the eight validate gates
+above with one of three verdicts each:
 
 - `passed` — the gate completed cleanly.
 - `failed` — the gate exited non-zero. Include the first relevant
@@ -87,7 +91,9 @@ Append the path to any new evidence file written under `report/`.
   blocked by `.claude/hooks/pre-tool-use.js` per `CRIT-008`).
 - All language toolchains for the rendered project are installed.
   The Python path needs `uv` and the configured typechecker; the
-  TypeScript path needs Node ≥ 20 and the package-lock'd deps.
+  TypeScript path needs Node ≥ 20 and dependencies installed via
+  `npm install` (`package-lock.json` exists only when the rendered
+  project has one).
 
 ## See also
 

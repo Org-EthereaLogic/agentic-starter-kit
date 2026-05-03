@@ -36,7 +36,7 @@ hook that produced it.
 
 ```sh
 # Last 20 events, pretty-printed
-tail -n 20 report/audit.jsonl | jq -c .
+tail -n 20 report/audit.jsonl | jq .
 
 # All tool failures in the current session
 jq -c 'select(.type == "tool-result" and .success == false)' \

@@ -163,12 +163,15 @@ the following local checks before commit:
   exist in the repo.
 - `make hooks-test` — protected-branch hook regression suite is
   green (`CRIT-008`).
-- `make lint`, `make typecheck`, `make test`, `make coverage` —
-  language-specific build hygiene.
+- `make lint`, `make typecheck`, `make test` — language-specific
+  build hygiene.
+- `make coverage` — language-specific coverage evidence when the
+  change or delivery contract requires it.
 
-`make validate` aggregates the above. Until that aggregate target
-is in place, run each check individually or rely on reviewer
-attention.
+`make validate` aggregates every check above except
+`make coverage`. Run coverage separately when the operator or CI
+contract requires it. Until that aggregate target is in place, run
+each check individually or rely on reviewer attention.
 
 ## Communication style
 

@@ -14,8 +14,8 @@ paths:
 Loads when the agent is about to add, rename, or retire an entry
 in `specs/traceability.json`. The matrix is the contract between
 canonical specs (`specs/deep_specs/`) and their evidence
-(`src/`, `tests/`, `report/`); a stale matrix is a `check-doc-drift`
-failure waiting to happen.
+(`src/`, `tests/`, `report/`); a stale matrix is a
+`check-traceability` failure waiting to happen.
 
 ## Matrix shape
 

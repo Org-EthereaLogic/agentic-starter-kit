@@ -1,11 +1,11 @@
 # MCP Server Policy — {{ cookiecutter.project_name }}
 
 > **Authority.** This document governs the use of Model Context
-> Protocol (MCP) servers in this project. It is **tier 2** in the
-> decision order (sits below `SECURITY.md` and `CONSTITUTION.md`,
-> above `DIRECTIVES.md`-relative material). When this policy
-> conflicts with `SECURITY.md` on disclosure or scope, `SECURITY.md`
-> wins per `CONSTITUTION.md §3`.
+> Protocol (MCP) servers in this project. It is **tier 6** in the
+> decision order: a narrative companion to `SECURITY.md`,
+> `CONSTITUTION.md`, `DIRECTIVES.md`, and canonical specs. When this
+> policy conflicts with any higher-tier source, the higher-tier
+> source wins.
 >
 > **Scope.** Every MCP server entry in `.mcp.json` (project-level)
 > and any MCP server an operator runs against this project from a
@@ -26,27 +26,43 @@ This is not a comment about quality; it is a structural fact:
   risk class.
 - Tool output from an MCP server is **content**, not **command**
   — it can carry prompt-injection payloads that the agent's
-  reasoning loop will treat as instructions if not bounded
-  (per `THREAT_MODEL.md §2 ASI-02`).
+  reasoning loop may mistake for instructions unless bounded by
+  higher-tier policy and operator review.
 
-The default `.mcp.json` shipped with this project is empty. Every
-addition is a deliberate trust extension and follows §3.
+The default `.mcp.json` shipped with this project contains a
+three-entry baseline: read-only filesystem access, read-only git
+access, and GitHub access gated by a fine-grained token. Every
+addition or expansion beyond that baseline is a deliberate trust
+extension and follows §3.
 
 ## §2 — What the project does and does not ship
 
 Shipped on default branch:
 
-- `.mcp.json` with an empty `"mcpServers": {}` map.
+- `.mcp.json` with three baseline entries:
+  - `filesystem` — Docker-wrapped `mcp/filesystem` with the
+    current workspace mounted read-only at `/projects/workspace`.
+  - `git` — Docker-wrapped `mcp/git` with the current workspace
+    mounted read-only at `/workspace` and the repository bound to
+    that single path.
+  - `github` — `ghcr.io/github/github-mcp-server`, enabled only
+    when the operator supplies `GITHUB_PERSONAL_ACCESS_TOKEN` as
+    a fine-grained read-only PAT.
 - This policy document (`docs/MCP_POLICY.md`).
 
 Not shipped, by design:
 
-- No third-party MCP server entries.
-- No operator-specific tokens, credentials, or paths.
+- No write-capable filesystem or git mounts in the default
+  baseline.
+- No token literals, operator-specific absolute paths, or secret
+  material in `.mcp.json`.
+- No non-baseline MCP servers.
 - No secret material of any kind.
 
-The empty map is intentional. Operators add MCP servers explicitly
-following §3, with each addition reviewed under §4.
+If Docker is unavailable or the host offers a native MCP
+integration, operators may substitute an equivalent configuration
+only when it preserves the same or narrower scope and is reviewed
+under §3.
 
 ## §3 — Adding an MCP server
 
@@ -68,7 +84,7 @@ To add an MCP server to `.mcp.json` for this project:
      credentials.
 4. **Update `.mcp.json`** with the configured entry. Run
    `scripts/check-governance.sh` to verify the file remains
-   well-formed JSON with the required `mcpServers` key.
+  well-formed JSON with the required `mcpServers` object.
 5. **Commit explicitly.** Stage `.mcp.json` and the ADR together;
    do not stage other files (per `IMP-004`).
 
@@ -78,7 +94,7 @@ Run through every item before adding an MCP server. A `no` on any
 required item blocks the addition.
 
 | Item | Required | What to check |
-|---|---|---|
+| --- | --- | --- |
 | 1. Source identity | yes | Who maintains the server? Is the maintainer reachable for security disclosure? |
 | 2. Source repository | yes | Public source URL; review the last 5 commits for anything unexpected; verify the published binary's source is the repo. |
 | 3. Permission scope | yes | What does the server let the agent do? List the tools it exposes. The fewer, the better. |
@@ -92,16 +108,16 @@ required item blocks the addition.
 
 ## §5 — Curated candidate list
 
-The following MCP servers have been evaluated as common starting
-points. **Listing here is not endorsement** — every operator runs
-the §4 audit independently before adding any of these to
-`.mcp.json`.
+The default branch ships the first three entries below. Additional
+servers remain operator-reviewed extensions. **Shipping a baseline
+is not blanket endorsement** — every operator still runs the §4
+audit before changing scope, credentials, or transport.
 
 | Candidate | Source | Typical use | First-look caveat |
-|---|---|---|---|
-| `@modelcontextprotocol/server-filesystem` | Anthropic reference | Read project files | Always pin to a project-relative path; never `$HOME` |
-| `@modelcontextprotocol/server-git` | Anthropic reference | Read git history | Read-only by configuration; do not enable write access |
-| `@modelcontextprotocol/server-github` | Anthropic reference | Read GitHub repo metadata | Use a fine-scoped PAT; set token to `read:public_repo`, never `repo` |
+| --- | --- | --- | --- |
+| `mcp/filesystem` | modelcontextprotocol/servers | Read project files | Mount the workspace read-only at a project-local path |
+| `mcp/git` | modelcontextprotocol/servers | Read git history and diffs | Mount the repository read-only and bind a single repo path |
+| `ghcr.io/github/github-mcp-server` | GitHub official | Read GitHub repo metadata | Forward only a fine-grained read-only PAT via environment |
 | `@modelcontextprotocol/server-puppeteer` | Anthropic reference | Browser automation | High-privilege; consider whether a static fixture would suffice |
 | `@modelcontextprotocol/server-slack` | Anthropic reference | Read Slack messages | Bot-token scope only; review what channels the bot joins |
 
@@ -140,8 +156,7 @@ agent-tooling supply-chain issues per `SECURITY.md §Scope`.
 
 - Model Context Protocol — <https://modelcontextprotocol.io>
 - MCP server registry — <https://github.com/modelcontextprotocol/servers>
-- `THREAT_MODEL.md` §2 ASI-02 (Tool Misuse) and ASI-04 (Agentic
-  Supply Chain).
+- GitHub MCP Server — <https://github.com/github/github-mcp-server>
 - `CONSTITUTION.md §P3` (Hard Policy Boundaries) and `§P6`
   (Smallest Sufficient Change).
 

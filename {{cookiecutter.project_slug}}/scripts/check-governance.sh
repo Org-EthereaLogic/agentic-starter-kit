@@ -34,7 +34,9 @@ done
 # --- .mcp.json structural check ---
 
 if [[ -f ".mcp.json" ]]; then
-  if ! python3 -c "import json,sys; d=json.load(open('.mcp.json')); sys.exit(0 if 'mcpServers' in d else 1)" 2>/dev/null; then
+  if ! command -v node >/dev/null 2>&1; then
+    log_error "node is required to validate .mcp.json (see docs/MCP_POLICY.md)"
+  elif ! node -e 'const fs = require("fs"); const parsed = JSON.parse(fs.readFileSync(".mcp.json", "utf8")); const servers = parsed && parsed.mcpServers; const isObject = typeof servers === "object" && servers !== null && !Array.isArray(servers); process.exit(isObject ? 0 : 1);' 2>/dev/null; then
     log_error ".mcp.json must contain a top-level \"mcpServers\" object (see docs/MCP_POLICY.md)"
   fi
 fi

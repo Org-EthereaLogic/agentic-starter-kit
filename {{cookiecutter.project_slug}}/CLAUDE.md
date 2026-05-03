@@ -21,13 +21,15 @@ they conflict.
 5. The relevant canonical spec under `specs/deep_specs/`.
 6. The `README.md` in the directory you are about to modify, when
    one exists.
+7. `docs/MCP_POLICY.md` — required reading before changing
+  `.mcp.json`.
 
 ## Risk-class autonomy
 
 `CONSTITUTION.md §P8` makes autonomy a function of risk class.
 
 | Risk class | Trigger | Autonomy mode |
-|---|---|---|
+| --- | --- | --- |
 | Low | Docs, tests, refactors with green CI | YOLO |
 | Medium | Production-path code, schema changes | Auto |
 | High | Security policies, runtime hook, release engineering | Ask |
@@ -78,12 +80,12 @@ Detailed in `AGENTS.md`. Compressed:
 ## Slash commands and agents
 
 | Path | Purpose |
-|---|---|
+| --- | --- |
 | `.claude/commands/` *(when scaffolded)* | Slash-command definitions. Each is a Markdown file with YAML frontmatter declaring `description`, `argument-hint`, and `allowed-tools`. |
 | `.claude/agents/` *(when scaffolded)* | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
 | `.claude/hooks/pre-tool-use.js` *(when scaffolded)* | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
 | `.claude/settings.json` *(when scaffolded)* | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
-| `.mcp.json` | MCP server registration for this project. Empty by default; see `docs/MCP_POLICY.md` before adding any entry. |
+| `.mcp.json` | MCP server registration for this project. Ships a read-only filesystem/git baseline plus a token-scoped GitHub entry; see `docs/MCP_POLICY.md` before changing any entry. |
 
 These `.claude/...` paths are part of the intended contract surface
 for the build, but they may not exist in a freshly rendered Phase 2
@@ -109,7 +111,7 @@ reviewer attention enforces.
 ## File map
 
 | Path | Purpose |
-|---|---|
+| --- | --- |
 | `CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md` | Layer 2 — constitutional foundation |
 | `CLAUDE.md`, `AGENTS.md`, `GEMINI.md` | Layer 1 — navigation |
 | `.claude/` | Layer 3 — agent specialization (commands, agents, hooks) and Layer 4 — runtime enforcement (hooks, settings) |

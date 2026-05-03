@@ -1,3 +1,25 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "filesystem": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "command -v docker >/dev/null 2>&1 || { echo \"docker is required for the filesystem MCP baseline\" >&2; exit 1; }; exec docker run --rm -i --mount type=bind,src=\"$PWD\",dst=/projects/workspace,ro mcp/filesystem /projects/workspace"
+      ]
+    },
+    "git": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "command -v docker >/dev/null 2>&1 || { echo \"docker is required for the git MCP baseline\" >&2; exit 1; }; exec docker run --rm -i --mount type=bind,src=\"$PWD\",dst=/workspace,ro mcp/git --repository /workspace"
+      ]
+    },
+    "github": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "command -v docker >/dev/null 2>&1 || { echo \"docker is required for the github MCP baseline\" >&2; exit 1; }; test -n \"$GITHUB_PERSONAL_ACCESS_TOKEN\" || { echo \"set GITHUB_PERSONAL_ACCESS_TOKEN to a fine-grained read-only GitHub PAT before enabling the github MCP baseline\" >&2; exit 1; }; exec docker run --rm -i -e GITHUB_PERSONAL_ACCESS_TOKEN ghcr.io/github/github-mcp-server"
+      ]
+    }
+  }
 }

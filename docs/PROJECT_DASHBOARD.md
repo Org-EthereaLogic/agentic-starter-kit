@@ -6,7 +6,7 @@
 > sync.
 
 | Surface | Link |
-|---|---|
+| --- | --- |
 | GitHub Project (board) | <https://github.com/orgs/Org-EthereaLogic/projects/6> |
 | Issues (filtered to roadmap) | <https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aissue+label%3Aphase-a%2Cphase-b%2Cphase-c%2Cphase-d> |
 | Milestones | <https://github.com/Org-EthereaLogic/agentic-starter-kit/milestones> |
@@ -20,7 +20,7 @@ publishable release. **Phase A → v0.2; Phase B → v0.3; Phase C →
 v0.4.** Phase D is deferred polish.
 
 | Phase | Name | Target | Issues | Total effort (days) |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | A | Hardening | v0.2, due 2026-05-16 | 5 | 9 |
 | B | Specialization | v0.3, due 2026-06-06 | 4 | 9 |
 | C | Distribution | v0.4, due 2026-06-27 | 5 | 10 |
@@ -33,7 +33,7 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 ## Phase A — Hardening (v0.2, due 2026-05-16)
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | A1 | [#10](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/10) | OWASP Agentic Top 10 (2026) coverage matrix | G1 | High | 2 | ✅ |
 | A2 | [#11](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/11) | Astral toolchain default (uv + ruff + ty) | G3 | Medium | 1 | 📋 |
 | A3 | [#12](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/12) | Supply-chain hardening (SLSA + OSSF + audit + Macaron) | G4 | High | 3 | 📋 |
@@ -45,7 +45,7 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 ## Phase B — Specialization (v0.3, due 2026-06-06)
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | B1 | [#15](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/15) | Author 8 specialized Claude Code agents | G10 | High | 3 | 📋 |
 | B2 | [#16](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/16) | Author 16 slash commands with `/gov.*` prefix | G2, G10 | High | 3 | 📋 |
 | B3 | [#17](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/17) | Add `.claude/skills/` with starter skills | G6 | Medium | 1 | 📋 |
@@ -56,7 +56,7 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 ## Phase C — Distribution (v0.4, due 2026-06-27)
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | C1 | [#19](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/19) | Add `copier.yml` dual-mode template | G9 | High | 4 | 📋 |
 | C2 | [#20](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/20) | `governance-review` CLI validator | G11 | Medium | 3 | 📋 |
 | C3 | [#21](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/21) | Devcontainer + Dockerfile | G8 | Medium | 1 | 📋 |
@@ -68,7 +68,7 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 ## Phase D — Polish (deferred)
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
-|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- |
 | D1 | [#24](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/24) | Examples gallery / vignettes | — | Low | 2 | ⏸ |
 
 ---

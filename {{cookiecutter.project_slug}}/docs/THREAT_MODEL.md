@@ -29,7 +29,7 @@ in Phase 6 of the build plan; this section sketches the surface so
 ### Primary assets
 
 | Asset | Type | Trust class |
-|---|---|---|
+| --- | --- | --- |
 | Source code on the default branch | Integrity-critical | High |
 | Governance contracts (`CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md`) | Authority | Highest |
 | Layer 4 hooks (`.claude/hooks/*.js`) | Enforcement | Highest |
@@ -43,13 +43,15 @@ in Phase 6 of the build plan; this section sketches the surface so
 1. **Operator ↔ agent.** The operator's prompt is trusted; the
    agent's reasoning trace is not.
 2. **Agent ↔ tool.** Tool invocations are subject to
-   `pre-tool-use.js`. Tool output is untrusted (see ASI-02).
+  `.claude/hooks/pre-tool-use.js`. Tool output is untrusted (see
+  ASI-02).
 3. **Project ↔ third-party code.** Third-party dependencies cross
    the boundary at install time; SBOM, audit, and SHA-pinning
    policies apply.
-4. **Project ↔ MCP servers.** When `.mcp.json` is shipped (Phase A4
-   of the roadmap), MCP servers are an explicit untrusted boundary
-   per `docs/MCP_POLICY.md`.
+4. **Project ↔ MCP servers.** When the project later ships an MCP
+  configuration file and the accompanying MCP policy document
+  (Phase A4 of the roadmap), MCP servers become an explicit
+  untrusted boundary.
 
 The full boundary diagram lands in Phase 6.
 
@@ -72,17 +74,17 @@ Each row maps an Agentic Security Issue (`ASI-NN`) to:
   current template posture.
 
 | ASI | Risk | Directives | Enforcement | Status |
-|---|---|---|---|---|
-| ASI-01 | Agent Goal Hijack — redirected goals via injected instructions or poisoned content | `CRIT-001`, `CRIT-002`, `CRIT-007`, `CRIT-008`; `P1`, `P3` | `.claude/hooks/pre-tool-use.js` (forbidden-action gate); `scripts/marker-scan.sh` (canonical-surface integrity); `scripts/check-governance.sh` (required-artifact integrity) | Covered |
-| ASI-02 | Tool Misuse and Exploitation — chained subcommands, manipulated tool outputs | `CRIT-008`, `IMP-004` | `.claude/hooks/pre-tool-use.js` (detects `&&`, `;`, `\|\|`, backticks, `$()` chains containing banned actions); curated `allowed-tools` per slash command | Covered |
-| ASI-03 | Identity and Privilege Abuse — exploiting delegated trust or inherited credentials | `CRIT-007`, `CRIT-008`, `IMP-006` | `.claude/hooks/pre-tool-use.js` (protected-branch push and refspec push gates); `scripts/check-action-pins.sh` (SHA-pinned action enforcement) | Covered |
+| --- | --- | --- | --- | --- |
+| ASI-01 | Agent Goal Hijack — redirected goals via injected instructions or poisoned content | `CRIT-001`, `CRIT-002`, `CRIT-008`; `P1`, `P3` | `scripts/marker-scan.sh` (canonical-surface integrity); `scripts/check-governance.sh` (required-artifact integrity); `.claude/hooks/pre-tool-use.js` (blocks protected-branch git actions, including chained and nested-shell variants) | Partial — canonical-surface and protected-branch guardrails landed; richer prompt-injection-specific controls expand in Phase 6 |
+| ASI-02 | Tool Misuse and Exploitation — chained subcommands, manipulated tool outputs | `CRIT-008`, `IMP-004` | `.claude/hooks/pre-tool-use.js` (re-evaluates chained and nested-shell git commands against the protected-branch policy). Broader tool allowlists land in Phase B | Partial — protected-branch chain analysis landed; broader tool-policy enforcement lands in Phase B |
+| ASI-03 | Identity and Privilege Abuse — exploiting delegated trust or inherited credentials | `CRIT-008`, `IMP-006` | `.claude/hooks/pre-tool-use.js` (protected-branch push, refspec, broad-push, and commit-producing action gates). SHA-pinned action verification lands in Phase A3 | Partial — branch-protection hook landed; SHA pin verification pending Phase A3 |
 | ASI-04 | Agentic Supply Chain — compromised third-party agents, tools, plugins, registries | `IMP-006`; `SECURITY.md` §Scope (agent-tooling supply chain) | `scripts/generate-sbom.sh` (CycloneDX); `.github/workflows/ci.yml` (Snyk, Codacy jobs when enabled); Dependabot. SLSA L3 provenance and `pip-audit`/`npm audit` land in Phase A3 of the roadmap | Partial — SLSA provenance + language-native audit pending Phase A3 |
 | ASI-05 | Runtime Environment Vulnerabilities — leaked secrets, untrusted MCP, container misconfig | `CRIT-002`; `GAP-023` (secrets), `GAP-015` (container) | `.pre-commit-config.yaml` (secret-shape detection); `.gitignore` (env-file exclusion); `.env.example` (no real values). MCP policy lands in Phase A4; full secrets policy and container posture in Phase 6 | Partial — MCP policy + secrets policy + container posture pending |
-| ASI-06 | Poisoned Data and Malicious RAG — corrupted fixtures, prompt injection via retrieved content | `CRIT-006`; `GAP-014`, `GAP-036` | `CRIT-006` fixture-source-or-seed rule; ML-specific threat section (this file §4, expanded in Phase 6); prompt versioning policy `docs/prompt-versioning-policy.md` (planned, `GAP-036`) | Partial — ML §4 expansion + prompt-versioning policy pending |
+| ASI-06 | Poisoned Data and Malicious RAG — corrupted fixtures, prompt injection via retrieved content | `CRIT-006`; `GAP-014`, `GAP-036` | No dedicated runtime hook or CI gate yet. Current posture relies on fixture-provenance review under `CRIT-006`; ML-specific threat modeling and prompt versioning expand in Phase 6 | Partial — no mechanical verifier yet; Phase 6 expansion pending |
 | ASI-07 | Insecure Inter-Agent Communication — spoofed messages between agents | (out of scope under current single-agent posture) | When the project introduces multi-agent orchestration, this row gains controls for authenticated channels and trust gates between agents. Until then the risk is structurally absent | Deferred — single-agent posture |
-| ASI-08 | Cascading Failures — false signals propagated through automated pipelines | `CRIT-005`, `CRIT-008`, `IMP-001` | `.claude/hooks/pre-tool-use.js` (breaks the chain at the first forbidden action); `/verify` dual-evidence rule prevents agents from chain-claiming success; append-only `report/` (`IMP-001`) preserves forensic state | Covered |
-| ASI-09 | Human-Agent Trust Exploitation — confident explanations mislead operators into approving harmful actions | `P1`, `P4`, `P8`; `CRIT-005`; `GAP-037` | Risk-class autonomy demotion in `CLAUDE.md` (high-risk → ask-mode); `/verify` dual-evidence; LLM output verification rubric `docs/llm-output-verification-rubric.md` (planned, `GAP-037`) | Partial — verification rubric pending |
-| ASI-10 | Rogue Agents — misalignment, concealment, self-directed action | `CRIT-007`, `CRIT-008`; `P8` | `.claude/hooks/pre-tool-use.js` as a kill switch on forbidden actions; `report/audit.jsonl` reconstruction trail (lands in Phase A5 of the roadmap); risk-class autonomy ceiling in `CONSTITUTION.md §P8` | Partial — audit trail pending Phase A5 |
+| ASI-08 | Cascading Failures — false signals propagated through automated pipelines | `CRIT-005`, `CRIT-008`, `IMP-001` | `.claude/hooks/pre-tool-use.js` blocks forbidden protected-branch actions before they chain into git history. A dedicated verification workflow and append-only audit trail land in later phases | Partial — hook guardrail landed; explicit verification and audit-trail controls pending |
+| ASI-09 | Human-Agent Trust Exploitation — confident explanations mislead operators into approving harmful actions | `P1`, `P4`, `P8`; `CRIT-005`; `GAP-037` | No dedicated runtime hook or CI gate yet. Current posture relies on risk-class autonomy demotion in `CLAUDE.md`; the LLM output verification rubric lands later | Partial — rubric and measurable verifier pending |
+| ASI-10 | Rogue Agents — misalignment, concealment, self-directed action | `CRIT-008`; `P8` | `.claude/hooks/pre-tool-use.js` as a kill switch on forbidden protected-branch actions; the append-only audit trail in report/audit.jsonl lands in Phase A5; risk-class autonomy ceiling in `CONSTITUTION.md §P8` | Partial — audit trail pending Phase A5 |
 
 ### Reading the table
 
@@ -90,8 +92,8 @@ Each row maps an Agentic Security Issue (`ASI-NN`) to:
   on the default branch today.
 - **Partial** rows have at least one control in place plus a named
   pending control. The named phase (e.g., `Phase A3`) corresponds
-  to the roadmap phase in `docs/PROJECT_DASHBOARD.md` (template
-  repo) and to a tracking issue in the template repo.
+  to the matching roadmap issue and to the template repository's
+  project dashboard.
 - **Deferred** rows are structurally absent under current
   architecture. They become live when the named precondition is
   introduced.
@@ -101,7 +103,8 @@ Each row maps an Agentic Security Issue (`ASI-NN`) to:
 When a control listed here lands or changes:
 
 1. Update the affected row's `Status` column.
-2. Cross-reference the change in `docs/SWEBOK_GAP_REGISTER.md`.
+2. Cross-reference the change in the template repository's SWEBOK
+  gap register.
 3. If the change is decision-content (a new mitigation strategy,
    not a wording fix), add an ADR under
    `specs/deep_specs/ADR/`.
@@ -166,7 +169,7 @@ addition of a new asset class) require an ADR under
 - SWEBOK Guide v4.0a (September 2025) — Chapter 13, Software Security
 - ISO/IEC/IEEE 32675:2022 — DevOps and continuous risk management
 - IEEE 2675 — Continuous risk for DevOps
-- CERT Top 10 secure coding rules — `docs/cert-top-10-compliance.md` (planned)
+- CERT Top 10 secure coding rules — CERT Top 10 compliance doc (planned)
 
 ---
 

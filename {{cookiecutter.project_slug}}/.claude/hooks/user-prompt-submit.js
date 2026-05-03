@@ -9,13 +9,15 @@
 //
 // Always exits 0; advisory hook.
 
-"use strict";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const fs = require("node:fs");
-const path = require("node:path");
-const crypto = require("node:crypto");
-
-const REPORT_DIR = path.join(process.cwd(), "report");
+const HOOK_DIR = fileURLToPath(new URL(".", import.meta.url));
+const PROJECT_ROOT =
+  process.env.CLAUDE_PROJECT_ROOT || path.resolve(HOOK_DIR, "..", "..");
+const REPORT_DIR = path.join(PROJECT_ROOT, "report");
 const AUDIT_LOG = path.join(REPORT_DIR, "audit.jsonl");
 
 function readStdin() {

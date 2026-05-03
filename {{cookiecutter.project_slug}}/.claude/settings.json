@@ -36,7 +36,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/post-tool-use.js"
+            "command": "CLAUDE_HOOK_EVENT=PostToolUse node .claude/hooks/post-tool-use.js"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CLAUDE_HOOK_EVENT=PostToolUseFailure node .claude/hooks/post-tool-use.js"
           }
         ]
       }

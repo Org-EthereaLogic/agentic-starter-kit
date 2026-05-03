@@ -11,13 +11,15 @@
 // its own write failures gracefully — a broken audit trail must
 // not break the agent runtime.
 
-"use strict";
+import fs from "node:fs";
+import path from "node:path";
+import { execSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
-const fs = require("node:fs");
-const path = require("node:path");
-const { execSync } = require("node:child_process");
-
-const REPORT_DIR = path.join(process.cwd(), "report");
+const HOOK_DIR = fileURLToPath(new URL(".", import.meta.url));
+const PROJECT_ROOT =
+  process.env.CLAUDE_PROJECT_ROOT || path.resolve(HOOK_DIR, "..", "..");
+const REPORT_DIR = path.join(PROJECT_ROOT, "report");
 const AUDIT_LOG = path.join(REPORT_DIR, "audit.jsonl");
 
 function readStdin() {
@@ -40,6 +42,7 @@ function getGitHead() {
   try {
     return execSync("git rev-parse HEAD", {
       encoding: "utf8",
+      cwd: PROJECT_ROOT,
       stdio: ["ignore", "pipe", "ignore"],
     }).trim();
   } catch (_err) {

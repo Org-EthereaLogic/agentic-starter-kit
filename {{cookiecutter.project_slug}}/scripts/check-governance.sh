@@ -56,9 +56,8 @@ fi
 # --- Layer 3 agent inventory (Phase B1) ---
 #
 # Six agents are always required regardless of primary_language.
-# Exactly one of python-pro / typescript-pro must remain after
-# post_gen_project.py prunes the unselected language; the polyglot
-# path keeps both.
+# At least one of python-pro / typescript-pro must be present; the
+# polyglot path keeps both, single-language paths keep one.
 
 required_agents=(
   ".claude/agents/lead-software-engineer.md"

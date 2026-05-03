@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
 
-set -e +o pipefail
+set -eo pipefail
+
+fatal() {
+    echo "$1" >&2
+    exit 1
+}
 
 # Set up paths first
 bin_name="codacy-cli-v2"
@@ -37,7 +42,8 @@ version_file="$CODACY_CLI_V2_TMP_FOLDER/version.yaml"
 
 get_version_from_yaml() {
     if [ -f "$version_file" ]; then
-        local version=$(grep -o 'version: *"[^"]*"' "$version_file" | cut -d'"' -f2)
+        local version
+        version=$(grep -o 'version: *"[^"]*"' "$version_file" | cut -d'"' -f2)
         if [ -n "$version" ]; then
             echo "$version"
             return 0
@@ -55,7 +61,8 @@ get_latest_version() {
     fi
 
     handle_rate_limit "$response"
-    local version=$(echo "$response" | grep -m 1 tag_name | cut -d'"' -f4)
+    local version
+    version=$(echo "$response" | grep -m 1 tag_name | cut -d'"' -f4)
     echo "$version"
 }
 
@@ -138,12 +145,12 @@ download_cli "$bin_folder" "$bin_path" "$version"
 chmod +x "$bin_path"
 
 run_command="$bin_path"
-if [ -z "$run_command" ]; then
+if [ ! -x "$run_command" ]; then
     fatal "Codacy cli v2 binary could not be found."
 fi
 
 if [ "$#" -eq 1 ] && [ "$1" = "download" ]; then
     echo "Codacy cli v2 download succeeded"
 else
-    eval "$run_command $*"
+    "$run_command" "$@"
 fi

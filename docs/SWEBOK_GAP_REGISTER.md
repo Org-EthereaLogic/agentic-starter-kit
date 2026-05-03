@@ -221,13 +221,14 @@ The full canonical text for new commands lives in
 
 | ID | Agent | Source | Status |
 |---|---|---|---|
-| AGENT-001 | `lead-software-engineer` | port from govforge | planned |
-| AGENT-002 | `sdlc-technical-writer` | port from govforge | planned |
-| AGENT-003 | `test-automator` | port from govforge | planned |
-| AGENT-004 | `ux-delight-specialist` | port from govforge | planned |
-| AGENT-005 | `python-pro` | port from govforge (Python path) | planned (conditional) |
-| AGENT-006 | `typescript-pro` | NEW — TypeScript counterpart | planned (conditional) |
-| AGENT-007 | `security-reviewer` | NEW — owns threat-model maintenance, SBOM review, vulnerability triage | planned |
+| AGENT-001 | `lead-software-engineer` | port from govforge | landed |
+| AGENT-002 | `sdlc-technical-writer` | port from govforge | landed |
+| AGENT-003 | `test-automator` | port from govforge | landed |
+| AGENT-004 | `ux-delight-specialist` | port from govforge | landed |
+| AGENT-005 | `python-pro` | port from govforge (Python path) | landed (conditional) |
+| AGENT-006 | `typescript-pro` | NEW — TypeScript counterpart | landed (conditional) |
+| AGENT-007 | `security-reviewer` | NEW — owns threat-model maintenance, SBOM review, vulnerability triage | landed |
+| AGENT-008 | `governance-auditor` | NEW — read-only audit of the five-layer scaffold; drives Phase C2 `governance-review` CLI | landed |
 
 ---
 

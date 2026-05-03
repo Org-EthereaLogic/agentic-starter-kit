@@ -23,11 +23,21 @@ required_files=(
   "GEMINI.md"
   ".claude/settings.json"
   ".claude/hooks/pre-tool-use.js"
+  ".mcp.json"
+  "docs/MCP_POLICY.md"
 )
 
 for f in "${required_files[@]}"; do
   check_file_exists "$f" || true
 done
+
+# --- .mcp.json structural check ---
+
+if [[ -f ".mcp.json" ]]; then
+  if ! python3 -c "import json,sys; d=json.load(open('.mcp.json')); sys.exit(0 if 'mcpServers' in d else 1)" 2>/dev/null; then
+    log_error ".mcp.json must contain a top-level \"mcpServers\" object (see docs/MCP_POLICY.md)"
+  fi
+fi
 
 # --- Hook content checks (CRIT-008) ---
 

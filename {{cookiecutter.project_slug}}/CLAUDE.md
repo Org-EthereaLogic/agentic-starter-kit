@@ -83,6 +83,7 @@ Detailed in `AGENTS.md`. Compressed:
 | `.claude/agents/` *(when scaffolded)* | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
 | `.claude/hooks/pre-tool-use.js` *(when scaffolded)* | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
 | `.claude/settings.json` *(when scaffolded)* | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
+| `.mcp.json` | MCP server registration for this project. Empty by default; see `docs/MCP_POLICY.md` before adding any entry. |
 
 These `.claude/...` paths are part of the intended contract surface
 for the build, but they may not exist in a freshly rendered Phase 2

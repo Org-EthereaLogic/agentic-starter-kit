@@ -14,7 +14,7 @@ hooks-test:
 	@if [ -f tests/test_pre_tool_use_hook.js ]; then \
 		node --test tests/test_pre_tool_use_hook.js; \
 	fi
-	@if [ -f tests/test_audit_hooks.js ]; then \
-		node --test tests/test_audit_hooks.js; \
+	@if [ -f tests/test_audit_hooks.cjs ]; then \
+		node --test tests/test_audit_hooks.cjs; \
 	fi
 {% endif %}

@@ -1,29 +1,28 @@
 // Regression suite for the Layer-4 advisory hooks that build the
 // session audit trail. TypeScript-path twin of test_audit_hooks.py.
 //
-// Run via:  node --test tests/test_audit_hooks.js
+// Run via:  node --test tests/test_audit_hooks.cjs
 //
 // Each hook reads a JSON payload from stdin, appends a JSON Lines
 // event to `report/audit.jsonl`, and exits 0. The tests verify
 // exit code, file creation, event shape, and append-only behavior
 // across multiple invocations.
 
-import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import {
+"use strict";
+
+const assert = require("node:assert/strict");
+const { spawnSync } = require("node:child_process");
+const {
   existsSync,
   mkdtempSync,
   mkdirSync,
   readFileSync,
   rmSync,
   writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
-import path from "node:path";
-import test from "node:test";
-import { fileURLToPath } from "node:url";
-
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
+} = require("node:fs");
+const { tmpdir } = require("node:os");
+const path = require("node:path");
+const test = require("node:test");
 
 const REPO_ROOT = path.resolve(__dirname, "..");
 const HOOKS_DIR = path.join(REPO_ROOT, ".claude", "hooks");
@@ -46,8 +45,8 @@ function readAuditLines(projectRoot) {
   if (!existsSync(audit)) return [];
   return readFileSync(audit, "utf8")
     .split("\n")
-    .filter((l) => l.trim().length > 0)
-    .map((l) => JSON.parse(l));
+    .filter((line) => line.trim().length > 0)
+    .map((line) => JSON.parse(line));
 }
 
 function withTempDir(fn) {
@@ -63,13 +62,13 @@ test("session-start anchors audit log to project root", () => {
   withTempDir((projectRoot) => {
     const cwd = path.join(projectRoot, "nested", "workspace");
     mkdirSync(cwd, { recursive: true });
-    const r = runHook(
-      "session-start.js",
+    const result = runHook(
+      "session-start.cjs",
       { session_id: "test-session-1" },
       cwd,
       { projectRoot },
     );
-    assert.equal(r.status, 0, r.stderr);
+    assert.equal(result.status, 0, result.stderr);
     const events = readAuditLines(projectRoot);
     assert.equal(events.length, 1);
     assert.equal(events[0].type, "session-start");
@@ -83,13 +82,13 @@ test("session-start anchors audit log to project root", () => {
 test("user-prompt-submit hashes the prompt and never logs the text", () => {
   withTempDir((projectRoot) => {
     const secret = "this should not appear in the audit log";
-    const r = runHook(
-      "user-prompt-submit.js",
+    const result = runHook(
+      "user-prompt-submit.cjs",
       { session_id: "abc", prompt: secret },
       projectRoot,
       { projectRoot },
     );
-    assert.equal(r.status, 0, r.stderr);
+    assert.equal(result.status, 0, result.stderr);
     const audit = readFileSync(
       path.join(projectRoot, "report", "audit.jsonl"),
       "utf8",
@@ -104,8 +103,8 @@ test("user-prompt-submit hashes the prompt and never logs the text", () => {
 
 test("post-tool-use records tool name, success, exit, and duration", () => {
   withTempDir((projectRoot) => {
-    const r = runHook(
-      "post-tool-use.js",
+    const result = runHook(
+      "post-tool-use.cjs",
       {
         session_id: "s1",
         tool_name: "Bash",
@@ -114,7 +113,7 @@ test("post-tool-use records tool name, success, exit, and duration", () => {
       projectRoot,
       { projectRoot, env: { CLAUDE_HOOK_EVENT: "PostToolUse" } },
     );
-    assert.equal(r.status, 0, r.stderr);
+    assert.equal(result.status, 0, result.stderr);
     const events = readAuditLines(projectRoot);
     assert.equal(events[0].type, "tool-result");
     assert.equal(events[0].tool_name, "Bash");
@@ -126,8 +125,8 @@ test("post-tool-use records tool name, success, exit, and duration", () => {
 
 test("post-tool-use records failed tool calls from failure hook", () => {
   withTempDir((projectRoot) => {
-    const r = runHook(
-      "post-tool-use.js",
+    const result = runHook(
+      "post-tool-use.cjs",
       {
         session_id: "s1",
         tool_name: "Bash",
@@ -136,7 +135,7 @@ test("post-tool-use records failed tool calls from failure hook", () => {
       projectRoot,
       { projectRoot, env: { CLAUDE_HOOK_EVENT: "PostToolUseFailure" } },
     );
-    assert.equal(r.status, 0, r.stderr);
+    assert.equal(result.status, 0, result.stderr);
     const events = readAuditLines(projectRoot);
     assert.equal(events[0].success, false);
     assert.equal(events[0].exit, 64);
@@ -146,15 +145,15 @@ test("post-tool-use records failed tool calls from failure hook", () => {
 
 test("audit log is append-only across multiple invocations", () => {
   withTempDir((projectRoot) => {
-    runHook("session-start.js", { session_id: "1" }, projectRoot, { projectRoot });
+    runHook("session-start.cjs", { session_id: "1" }, projectRoot, { projectRoot });
     runHook(
-      "user-prompt-submit.js",
+      "user-prompt-submit.cjs",
       { session_id: "1", prompt: "first" },
       projectRoot,
       { projectRoot },
     );
     runHook(
-      "post-tool-use.js",
+      "post-tool-use.cjs",
       { session_id: "1", tool_name: "Bash", tool_response: { success: true } },
       projectRoot,
       { projectRoot, env: { CLAUDE_HOOK_EVENT: "PostToolUse" } },
@@ -162,8 +161,8 @@ test("audit log is append-only across multiple invocations", () => {
     const events = readAuditLines(projectRoot);
     assert.equal(events.length, 3);
     assert.deepEqual(
-      events.map((e) => e.type),
-      ["session-start", "prompt", "tool-result"]
+      events.map((event) => event.type),
+      ["session-start", "prompt", "tool-result"],
     );
   });
 });
@@ -171,8 +170,8 @@ test("audit log is append-only across multiple invocations", () => {
 test("write failure to report/ does not block the agent runtime", () => {
   withTempDir((projectRoot) => {
     writeFileSync(path.join(projectRoot, "report"), "not a directory");
-    const r = runHook("session-start.js", {}, projectRoot, { projectRoot });
-    assert.equal(r.status, 0);
-    assert.match(r.stderr, /audit-trail write failed/);
+    const result = runHook("session-start.cjs", {}, projectRoot, { projectRoot });
+    assert.equal(result.status, 0);
+    assert.match(result.stderr, /audit-trail write failed/);
   });
 });

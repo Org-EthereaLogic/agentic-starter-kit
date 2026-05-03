@@ -1,21 +1,22 @@
 #!/usr/bin/env node
-// post-tool-use.js — Layer 4 advisory hook for {{ cookiecutter.project_name }}
+// post-tool-use.cjs — Layer 4 advisory hook for {{ cookiecutter.project_name }}
 //
-// Invoked by Claude Code on `PostToolUse`. Records a per-tool-call
-// summary in `report/audit.jsonl` so the session timeline includes
-// what the agent ran and whether it succeeded. The summary records
-// the tool name and exit status; it does NOT record tool inputs or
-// outputs, which can be large and may contain sensitive data.
+// Invoked by Claude Code on `PostToolUse` / `PostToolUseFailure`.
+// Records a per-tool-call summary in `report/audit.jsonl` so the
+// session timeline includes what the agent ran, whether it
+// succeeded, its exit code, and any reported duration. The summary
+// does NOT record tool inputs or outputs, which can be large and may
+// contain sensitive data.
 //
 // Always exits 0; advisory hook.
 
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+"use strict";
 
-const HOOK_DIR = fileURLToPath(new URL(".", import.meta.url));
+const fs = require("node:fs");
+const path = require("node:path");
+
 const PROJECT_ROOT =
-  process.env.CLAUDE_PROJECT_ROOT || path.resolve(HOOK_DIR, "..", "..");
+  process.env.CLAUDE_PROJECT_ROOT || path.resolve(__dirname, "..", "..");
 const REPORT_DIR = path.join(PROJECT_ROOT, "report");
 const AUDIT_LOG = path.join(REPORT_DIR, "audit.jsonl");
 const HOOK_EVENT = process.env.CLAUDE_HOOK_EVENT || null;
@@ -45,8 +46,8 @@ function appendAudit(line) {
   }
 }
 
-function firstDefined(...values) {
-  for (const value of values) {
+function firstDefined() {
+  for (const value of arguments) {
     if (value !== undefined && value !== null) {
       return value;
     }
@@ -54,8 +55,8 @@ function firstDefined(...values) {
   return null;
 }
 
-function firstFiniteNumber(...values) {
-  for (const value of values) {
+function firstFiniteNumber() {
+  for (const value of arguments) {
     if (typeof value === "number" && Number.isFinite(value)) {
       return value;
     }
@@ -131,10 +132,6 @@ function inferDurationMs(payload, response) {
 
 function main() {
   const payload = safeJsonParse(readStdin());
-  // Claude Code's PostToolUse / PostToolUseFailure payload may
-  // include tool_name, tool_response, session_id, exit, and
-  // duration_ms. We log only the audit fields needed to reconstruct
-  // the session timeline and avoid storing full tool inputs/outputs.
   const response = payload.tool_response || {};
   const success = inferSuccess(payload, response);
 

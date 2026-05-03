@@ -3,9 +3,9 @@ session audit trail.
 
 Three hooks are exercised:
 
-- `.claude/hooks/session-start.js`  → emits `type: "session-start"`
-- `.claude/hooks/user-prompt-submit.js` → emits `type: "prompt"`
-- `.claude/hooks/post-tool-use.js` → emits `type: "tool-result"`
+- `.claude/hooks/session-start.cjs`  → emits `type: "session-start"`
+- `.claude/hooks/user-prompt-submit.cjs` → emits `type: "prompt"`
+- `.claude/hooks/post-tool-use.cjs` → emits `type: "tool-result"`
 
 Each hook reads a JSON payload from stdin per the Claude Code
 hook protocol, appends a JSON line to `report/audit.jsonl`, and
@@ -63,7 +63,7 @@ class SessionStartHookTests(unittest.TestCase):
             cwd = project_root / "nested" / "workspace"
             cwd.mkdir(parents=True)
             result = _run_hook(
-                "session-start.js",
+                "session-start.cjs",
                 {"session_id": "test-session-1"},
                 cwd,
                 project_root=project_root,
@@ -85,7 +85,7 @@ class SessionStartHookTests(unittest.TestCase):
             env = os.environ.copy()
             env["CLAUDE_PROJECT_ROOT"] = str(cwd)
             result = subprocess.run(
-                ["node", str(HOOKS_DIR / "session-start.js")],
+                ["node", str(HOOKS_DIR / "session-start.cjs")],
                 input=b"",
                 capture_output=True,
                 cwd=cwd,
@@ -103,7 +103,7 @@ class UserPromptSubmitHookTests(unittest.TestCase):
             project_root = Path(tmp)
             secret_prompt = "this should not appear in the audit log"
             result = _run_hook(
-                "user-prompt-submit.js",
+                "user-prompt-submit.cjs",
                 {"session_id": "abc", "prompt": secret_prompt},
                 project_root,
                 project_root=project_root,
@@ -125,7 +125,7 @@ class PostToolUseHookTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
             result = _run_hook(
-                "post-tool-use.js",
+                "post-tool-use.cjs",
                 {
                     "session_id": "s1",
                     "tool_name": "Bash",
@@ -148,7 +148,7 @@ class PostToolUseHookTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
             result = _run_hook(
-                "post-tool-use.js",
+                "post-tool-use.cjs",
                 {
                     "session_id": "s1",
                     "tool_name": "Bash",
@@ -169,15 +169,15 @@ class AuditTrailAppendOnlyTests(unittest.TestCase):
     def test_multiple_invocations_append(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
-            _run_hook("session-start.js", {"session_id": "1"}, project_root, project_root=project_root)
+            _run_hook("session-start.cjs", {"session_id": "1"}, project_root, project_root=project_root)
             _run_hook(
-                "user-prompt-submit.js",
+                "user-prompt-submit.cjs",
                 {"session_id": "1", "prompt": "first"},
                 project_root,
                 project_root=project_root,
             )
             _run_hook(
-                "post-tool-use.js",
+                "post-tool-use.cjs",
                 {
                     "session_id": "1",
                     "tool_name": "Bash",
@@ -202,7 +202,7 @@ class AuditTrailAppendOnlyTests(unittest.TestCase):
             # (advisory) but the audit line is lost — that is the
             # documented behavior for write failures.
             (cwd / "report").write_text("not a directory")
-            result = _run_hook("session-start.js", {}, cwd)
+            result = _run_hook("session-start.cjs", {}, cwd)
             self.assertEqual(result.returncode, 0)
             self.assertIn(b"audit-trail write failed", result.stderr)
 

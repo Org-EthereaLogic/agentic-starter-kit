@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// user-prompt-submit.js — Layer 4 advisory hook for {{ cookiecutter.project_name }}
+// user-prompt-submit.cjs — Layer 4 advisory hook for {{ cookiecutter.project_name }}
 //
 // Invoked by Claude Code on `UserPromptSubmit`. Records a SHA-256
 // hash of the operator's prompt (NOT the prompt text) in
@@ -9,14 +9,14 @@
 //
 // Always exits 0; advisory hook.
 
-import crypto from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+"use strict";
 
-const HOOK_DIR = fileURLToPath(new URL(".", import.meta.url));
+const crypto = require("node:crypto");
+const fs = require("node:fs");
+const path = require("node:path");
+
 const PROJECT_ROOT =
-  process.env.CLAUDE_PROJECT_ROOT || path.resolve(HOOK_DIR, "..", "..");
+  process.env.CLAUDE_PROJECT_ROOT || path.resolve(__dirname, "..", "..");
 const REPORT_DIR = path.join(PROJECT_ROOT, "report");
 const AUDIT_LOG = path.join(REPORT_DIR, "audit.jsonl");
 

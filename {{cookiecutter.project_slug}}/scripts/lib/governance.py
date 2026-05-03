@@ -111,6 +111,73 @@ class GovernanceRules:
 
         return "\n".join(lines)
 
+    def get_for_enforcement_gate(self, gate_name: str) -> list[dict[str, Any]]:
+        """Get directives enforced by a specific validation gate.
+
+        Supports: marker_scan, governance_check, hooks_test, etc.
+        """
+        validation_gates = self.data.get("validation_gates", {})
+        gate_info = validation_gates.get(gate_name, {})
+
+        if not gate_info:
+            return []
+
+        rule_ids = gate_info.get("rule", "").split(", ") if gate_info.get("rule") else []
+        return [self.directives[rid] for rid in rule_ids if rid in self.directives]
+
+    def get_for_ci_integration(self) -> dict[str, list[dict[str, Any]]]:
+        """Get directives organized for CI/CD integration.
+
+        Returns dict mapping enforcement types to lists of directives:
+        {
+            'script': [...],
+            'hook': [...],
+            'ci': [...],
+        }
+        """
+        enforcement_by_type = self.data.get("enforcement_by_type", {})
+        result = {}
+
+        for enforcement_type, items in enforcement_by_type.items():
+            result[enforcement_type] = [
+                self.directives[item["id"]]
+                for item in items
+                if item.get("id") in self.directives
+            ]
+
+        return result
+
+    def get_blocking_rules(self) -> list[dict[str, Any]]:
+        """Get all rules that should block builds (Critical directives)."""
+        critical = self.get_all_critical()
+        return [d for d in critical if d.get("enabled", True)]
+
+    def export_for_ci(self, format: str = "json") -> str:
+        """Export directives in CI-friendly format.
+
+        Supports: json, csv, github-actions-env
+        """
+        if format == "json":
+            return json.dumps(self.get_enabled_directives(), indent=2)
+
+        if format == "csv":
+            lines = ["id,class,title,enforcement_type"]
+            for d in self.get_enabled_directives():
+                enforcement = "mixed" if "enforcement" in d and isinstance(d["enforcement"], dict) else "script"
+                lines.append(f'{d["id"]},{d["class"]},{d["title"]},{enforcement}')
+            return "\n".join(lines)
+
+        if format == "github-actions-env":
+            # Export as GitHub Actions env format
+            ci_directives = self.get_for_ci_integration()
+            lines = []
+            for enforcement_type, directives in ci_directives.items():
+                ids = ",".join(d["id"] for d in directives)
+                lines.append(f"GOVERNANCE_RULES_{enforcement_type.upper()}={ids}")
+            return "\n".join(lines)
+
+        raise ValueError(f"Unsupported export format: {format}")
+
 
 def main():
     """CLI for governance rules queries."""
@@ -126,6 +193,13 @@ def main():
     parser.add_argument("--json", action="store_true", help="Output as JSON")
     parser.add_argument("--validate", action="store_true", help="Validate the rules file")
     parser.add_argument("--summary", action="store_true", help="Show summary")
+    parser.add_argument(
+        "--ci-export",
+        choices=["json", "csv", "github-actions-env"],
+        help="Export directives for CI/CD integration",
+    )
+    parser.add_argument("--blocking", action="store_true", help="Show only blocking (Critical) rules")
+    parser.add_argument("--gate", help="Show rules for a specific validation gate (e.g., hooks_test)")
 
     args = parser.parse_args()
 
@@ -144,6 +218,31 @@ def main():
 
     if args.summary:
         print(rules.summary())
+        sys.exit(0)
+
+    if args.ci_export:
+        print(rules.export_for_ci(format=args.ci_export))
+        sys.exit(0)
+
+    if args.blocking:
+        blocking = rules.get_blocking_rules()
+        if args.json:
+            print(json.dumps(blocking, indent=2))
+        else:
+            for d in blocking:
+                print(f"✗ {d['id']:8} {d['title']}")
+        sys.exit(0)
+
+    if args.gate:
+        gate_rules = rules.get_for_enforcement_gate(args.gate)
+        if not gate_rules:
+            print(f"ERROR: Unknown gate: {args.gate}", file=sys.stderr)
+            sys.exit(1)
+        if args.json:
+            print(json.dumps(gate_rules, indent=2))
+        else:
+            for d in gate_rules:
+                print(f"✓ {d['id']:8} {d['title']}")
         sys.exit(0)
 
     if args.id:

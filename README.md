@@ -105,6 +105,7 @@ shown):
 | `include_codecov` | `yes` | `yes`, `no` | Adds `codecov.yaml` plus a CI upload job |
 | `include_snyk` | `yes` | `yes`, `no` | Adds `.snyk` plus a CI job |
 | `include_sbom` | `yes` | `yes`, `no` | Adds `scripts/generate-sbom.sh` plus a CI job |
+| `include_macaron` | `no` | `no`, `yes` | Adds an Oracle Macaron supply-chain analysis job to `supply-chain.yml`. Off by default — Macaron is optional and adds workflow runtime |
 | `default_branch_name` | `main` | free text | Protected branch the runtime hook guards |
 
 The post-generation hook in `hooks/post_gen_project.py` removes

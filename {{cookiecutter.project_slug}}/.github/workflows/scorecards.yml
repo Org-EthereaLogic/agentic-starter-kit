@@ -1,0 +1,56 @@
+# OSSF Scorecards — supply-chain security posture for {{ cookiecutter.project_name }}
+#
+# Runs the OpenSSF Scorecards analysis weekly and on every push to
+# the default branch. Uploads the SARIF result to GitHub
+# code-scanning so Scorecards findings appear inline with other
+# security alerts. Per IMP-006, action pins use semver tags with a
+# trailing comment; the SHA-pinning lift tracked in
+# scripts/check-action-pins.sh applies here too.
+{% raw %}
+name: OSSF Scorecards
+
+on:
+  push:
+    branches:
+      - {% endraw %}{{ cookiecutter.default_branch_name }}{% raw %}
+  schedule:
+    - cron: "0 6 * * 1"  # Mondays at 06:00 UTC
+  workflow_dispatch: {}
+
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecards analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      id-token: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # v4
+        with:
+          persist-credentials: false
+
+      - name: Run Scorecards
+        uses: ossf/scorecard-action@v2 # v2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@v4 # v4
+        with:
+          name: SARIF
+          path: results.sarif
+          retention-days: 7
+
+      - name: Upload SARIF to code-scanning
+        uses: github/codeql-action/upload-sarif@v3 # v3
+        with:
+          sarif_file: results.sarif
+{% endraw %}

@@ -22,6 +22,7 @@ INCLUDE_CODACY = "{{ cookiecutter.include_codacy }}"
 INCLUDE_CODECOV = "{{ cookiecutter.include_codecov }}"
 INCLUDE_SNYK = "{{ cookiecutter.include_snyk }}"
 INCLUDE_SBOM = "{{ cookiecutter.include_sbom }}"
+INCLUDE_MACARON = "{{ cookiecutter.include_macaron }}"
 LICENSE_CHOICE = "{{ cookiecutter.license }}"
 
 PROJECT_ROOT = Path.cwd()
@@ -103,6 +104,7 @@ def write_summary() -> None:
     print(f"  codecov          : {INCLUDE_CODECOV}")
     print(f"  snyk             : {INCLUDE_SNYK}")
     print(f"  sbom             : {INCLUDE_SBOM}")
+    print(f"  macaron          : {INCLUDE_MACARON}")
     print()
     print("Next steps:")
     print("  cd <project>")

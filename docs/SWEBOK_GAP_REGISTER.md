@@ -87,7 +87,7 @@ Anchored to IEEE 42010.
 
 | ID | SWEBOK Ref | Gap | Deliverable | CI Verifier | Status |
 |---|---|---|---|---|---|
-| GAP-036 | §4.16 | Prompt versioning policy — slash-command and agent-prompt changes are contract changes | `docs/prompt-versioning-policy.md`, `prompts/`, `evals/promptfooconfig.yaml`, `Makefile.fragments/eval.mk` | `eval` job in `.github/workflows/ci.yml` | landed |
+| GAP-036 | §4.16 | Prompt versioning policy — slash-command and agent-prompt changes are contract changes | `docs/prompt-versioning-policy.md` | n/a | planned |
 | GAP-037 | §4.17 | LLM output verification rubric — explicit checks for fabricated metrics, hallucinated paths, unsupported external state, missing citations | `docs/llm-output-verification-rubric.md` | n/a | planned |
 | GAP-038 | §4.17, P8 | Risk-class human-in-the-loop policy — when does autonomy demote to ask-mode | `docs/llm-output-verification-rubric.md §3` + `CONSTITUTION.md P8` (extended) | n/a | planned |
 | GAP-039 | §5.1 | IDE / cloud-IDE integration notes — Claude Code, Cursor, Copilot configuration | `docs/agent-runtimes.md` | n/a | planned |

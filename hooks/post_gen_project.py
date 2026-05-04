@@ -23,7 +23,6 @@ INCLUDE_CODECOV = "{{ cookiecutter.include_codecov }}"
 INCLUDE_SNYK = "{{ cookiecutter.include_snyk }}"
 INCLUDE_SBOM = "{{ cookiecutter.include_sbom }}"
 INCLUDE_MACARON = "{{ cookiecutter.include_macaron }}"
-INCLUDE_PROMPTFOO = "{{ cookiecutter.include_promptfoo }}"
 LICENSE_CHOICE = "{{ cookiecutter.license }}"
 
 PROJECT_ROOT = Path.cwd()
@@ -62,20 +61,15 @@ def prune_language_files() -> None:
 
 def prune_integration_files() -> None:
     """Remove integration configs the user opted out of."""
-    if INCLUDE_CODACY.lower() == "no":
+    if INCLUDE_CODACY == "no":
         remove(".codacy.yml")
-    if INCLUDE_CODECOV.lower() == "no":
+    if INCLUDE_CODECOV == "no":
         remove("codecov.yaml")
-    if INCLUDE_SNYK.lower() == "no":
+    if INCLUDE_SNYK == "no":
         remove(".snyk")
-    if INCLUDE_SBOM.lower() == "no":
+    if INCLUDE_SBOM == "no":
         remove("scripts/generate-sbom.sh")
         remove("docs/sbom-policy.md")
-    if INCLUDE_PROMPTFOO.lower() == "no":
-        remove("prompts")
-        remove("evals")
-        remove("docs/prompt-versioning-policy.md")
-        remove("Makefile.fragments/eval.mk")
 
 
 def prune_databricks_files() -> None:
@@ -111,7 +105,6 @@ def write_summary() -> None:
     print(f"  snyk             : {INCLUDE_SNYK}")
     print(f"  sbom             : {INCLUDE_SBOM}")
     print(f"  macaron          : {INCLUDE_MACARON}")
-    print(f"  promptfoo        : {INCLUDE_PROMPTFOO}")
     print()
     print("Next steps:")
     print("  cd <project>")

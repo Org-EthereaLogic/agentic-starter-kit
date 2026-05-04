@@ -56,10 +56,5 @@ logs/
 # SBOM artifacts (generated; uploaded as CI artifact, not committed)
 sbom/
 
-# promptfoo eval cache and per-run output (regenerated on every `make eval`)
-.promptfoo/
-evals/output/
-evals/cache/
-
 # Local agent memory (PostToolUse trace etc. — Phase 15)
 .claude/agent-memory/

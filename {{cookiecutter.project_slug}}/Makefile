@@ -16,8 +16,7 @@ include Makefile.fragments/python.mk
 include Makefile.fragments/typescript.mk
 include Makefile.fragments/hooks.mk
 include Makefile.fragments/quality.mk
-{% if cookiecutter.include_promptfoo == "yes" %}include Makefile.fragments/eval.mk
-{% endif %}include Makefile.fragments/clean.mk
+include Makefile.fragments/clean.mk
 
 # Aggregate language-specific targets
 .PHONY: lint typecheck test coverage validate help
@@ -35,7 +34,6 @@ coverage: coverage-python coverage-typescript
 	@echo "coverage: complete"
 
 validate: marker-scan governance-check check-traceability check-doc-drift hooks-test lint typecheck test
-	@if [ -d evals ]; then $(MAKE) eval; fi
 	@echo "validate: all gates passed"
 
 help:
@@ -51,8 +49,7 @@ help:
 	@echo "  test                 Run the test suite"
 	@echo "  coverage             Run tests with coverage"
 	@echo "  validate             Aggregate gate (the canonical pre-merge check)"
-{% if cookiecutter.include_promptfoo == "yes" %}	@echo "  eval                 Run promptfoo against evals/promptfooconfig.yaml"
-{% endif %}{% if cookiecutter.include_sbom == "yes" %}	@echo "  sbom                 Generate CycloneDX SBOM under sbom/"
+{% if cookiecutter.include_sbom == "yes" %}	@echo "  sbom                 Generate CycloneDX SBOM under sbom/"
 {% endif %}{% if cookiecutter.include_codacy == "yes" %}	@echo "  codacy-local         Run Codacy locally (requires codacy-cli)"
 {% endif %}{% if cookiecutter.include_snyk == "yes" %}	@echo "  snyk-local           Run Snyk locally (requires snyk CLI)"
 {% endif %}	@echo "  clean                Remove caches and build artifacts"

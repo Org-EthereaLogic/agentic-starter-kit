@@ -106,6 +106,7 @@ shown):
 | `include_snyk` | `yes` | `yes`, `no` | Adds `.snyk` plus a CI job |
 | `include_sbom` | `yes` | `yes`, `no` | Adds `scripts/generate-sbom.sh` plus a CI job |
 | `include_macaron` | `no` | `no`, `yes` | Adds an Oracle Macaron supply-chain analysis job to `supply-chain.yml`. Off by default — Macaron is optional and adds workflow runtime |
+| `include_promptfoo` | `yes` for `python`/`polyglot`, `no` for `typescript` | `yes`, `no` | Adds `prompts/`, `evals/promptfooconfig.yaml`, `Makefile.fragments/eval.mk`, `docs/prompt-versioning-policy.md`, and the CI `eval` job. Default uses promptfoo's hermetic `echo` provider so the gate runs without API keys |
 | `default_branch_name` | `main` | free text | Protected branch the runtime hook guards |
 
 The post-generation hook in `hooks/post_gen_project.py` removes

@@ -1,0 +1,52 @@
+# promptfooconfig.yaml — prompt evaluation gate for {{ cookiecutter.project_name }}
+#
+# Default config uses promptfoo's built-in `echo` provider so
+# `make eval` is hermetic — no API keys required for the baseline,
+# CI can run without secrets, and contributors can verify the gate
+# locally without burning tokens.
+#
+# Echo returns the rendered prompt verbatim. The shipped assertions
+# below verify only that the eval pipeline works end-to-end (prompt
+# file resolves, variables interpolate, threshold enforces). When
+# you are ready to evaluate against a real LLM, swap the providers
+# block for your model of choice and tighten the assertions.
+#
+# References:
+#   docs/prompt-versioning-policy.md — policy this config enforces.
+#   prompts/README.md — versioning convention for prompt folders.
+#   evals/README.md — how to add tests for new prompts.
+#   https://promptfoo.dev/docs/configuration/reference/
+
+description: '{{ cookiecutter.project_name }} — prompt evaluation gate'
+
+providers:
+  - id: echo
+
+prompts:
+  - file://../prompts/example-summarizer/v1.md
+
+# Every test must pass at threshold 1.0. A single failed assertion
+# below the threshold returns non-zero from `promptfoo eval`, which
+# `make eval` propagates to its caller.
+defaultTest:
+  options:
+    threshold: 1.0
+
+tests:
+  - description: 'summarizer-keeps-key-noun'
+    vars:
+      input_text: 'Cookiecutter is a tool for project scaffolding.'
+    assert:
+      - type: contains
+        value: 'Cookiecutter'
+      - type: javascript
+        value: 'output && output.length > 0'
+
+  - description: 'summarizer-keeps-acronym'
+    vars:
+      input_text: 'OWASP publishes the Top 10 web application security risks each year.'
+    assert:
+      - type: contains
+        value: 'OWASP'
+      - type: javascript
+        value: 'output && output.length > 0'

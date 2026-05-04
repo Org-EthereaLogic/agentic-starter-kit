@@ -64,3 +64,10 @@ sbom/
 
 # Reports generated locally during template development
 report/
+
+# Claude Code session artifacts at the template-repo root only.
+# The rendered template's own .claude/ subtree under
+# {{cookiecutter.project_slug}}/ is part of the shipped contract and
+# must remain tracked; this anchored pattern excludes only the
+# root-level dev artifact (e.g. scheduled_tasks.lock).
+/.claude/

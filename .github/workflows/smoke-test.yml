@@ -177,15 +177,8 @@ jobs:
           test -f CONSTITUTION.md || exit 1
           test -f DIRECTIVES.md || exit 1
 
-          # Verify no unrendered cookiecutter variables. Match only
-          # the `{{cookiecutter.…}}` pattern — bare `{{var}}` tokens
-          # are legitimate in promptfoo prompts (prompts/, evals/)
-          # and in the prompt-versioning policy doc.
-          if grep -rn "{{cookiecutter\." . --include="*.md" --include="*.py" --include="*.json" --include="*.yaml" --include="*.yml" --include="*.toml"; then
-            echo "ERROR: unrendered cookiecutter variables found"
-            exit 1
-          fi
-          echo "✓ No unrendered cookiecutter variables"
+          # Verify no unrendered variables
+          ! grep -r "{{.*}}" . --include="*.md" --include="*.py" --include="*.json" && echo "✓ No unrendered variables"
 
   summary:
     name: Smoke Test Summary

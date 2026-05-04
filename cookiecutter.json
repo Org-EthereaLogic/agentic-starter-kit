@@ -15,7 +15,6 @@
   "include_snyk": ["yes", "no"],
   "include_sbom": ["yes", "no"],
   "include_macaron": ["no", "yes"],
-  "include_promptfoo": "{% if cookiecutter.primary_language in ['python', 'polyglot'] %}yes{% else %}no{% endif %}",
   "default_branch_name": "main",
   "_copy_without_render": [
     "scripts/*.sh"

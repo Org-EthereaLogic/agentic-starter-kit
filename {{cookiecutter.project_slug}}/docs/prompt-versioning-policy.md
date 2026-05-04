@@ -188,7 +188,7 @@ acceptance-criterion sources).
 - `prompts/README.md` — the storage convention.
 - `evals/README.md` — how the evaluation harness works.
 - `docs/llm-output-verification-rubric.md` *(when scaffolded in
-  Phase 7)* — what counts as evidence that a prompt change was safe.
+  Phase C)* — what counts as evidence that a prompt change was safe.
 - `DIRECTIVES.md` — `CRIT-001` (no stub markers), `IMP-001`
   (append-only), `IMP-002` (conventional commits).
 - SWEBOK Guide v4.0a §4.16 — AI-assisted development construction

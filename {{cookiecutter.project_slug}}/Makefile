@@ -16,8 +16,8 @@ include Makefile.fragments/python.mk
 include Makefile.fragments/typescript.mk
 include Makefile.fragments/hooks.mk
 include Makefile.fragments/quality.mk
-include Makefile.fragments/eval.mk
-include Makefile.fragments/clean.mk
+{% if cookiecutter.include_promptfoo == "yes" %}include Makefile.fragments/eval.mk
+{% endif %}include Makefile.fragments/clean.mk
 
 # Aggregate language-specific targets
 .PHONY: lint typecheck test coverage validate help

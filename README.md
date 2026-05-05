@@ -63,6 +63,48 @@ mechanically detected."
 
 ### Generate a new project
 
+The template is **dual-mode**: render with either
+[cookiecutter](https://cookiecutter.readthedocs.io) (one-shot
+scaffold) or [copier](https://copier.readthedocs.io) (scaffold
+plus an upgrade flow). Both produce structurally identical project
+trees from the same variable answers — pick based on whether you
+want `copier update` later. See [`docs/UPDATING.md`](./docs/UPDATING.md)
+for the upgrade workflow.
+
+#### Option A: copier (recommended — supports `copier update`)
+
+```bash
+pipx run copier copy --trust gh:Org-EthereaLogic/agentic-starter-kit ./my-project
+```
+
+Or with `pip`:
+
+```bash
+pip install --user copier
+copier copy --trust gh:Org-EthereaLogic/agentic-starter-kit ./my-project
+```
+
+Because this template defines `_tasks` in `copier.yml`, copier asks
+you to trust the template before it runs post-render pruning. Pass
+`--trust` for unattended runs.
+
+Pulling in later template releases:
+
+```bash
+cd ./my-project
+copier update --trust --skip-answered
+```
+
+If you used `pipx run` for the initial copy and do not want a
+persistent install, run the update the same way:
+
+```bash
+cd ./my-project
+pipx run copier update --trust --skip-answered
+```
+
+#### Option B: cookiecutter (one-shot, no upgrade path)
+
 Using `pipx` (recommended — keeps `cookiecutter` isolated):
 
 ```bash
@@ -85,7 +127,9 @@ cookiecutter ./agentic-starter-kit
 
 ### Variable surface
 
-The template prompts for the following variables (sensible defaults
+Both render modes share the same variable schema — copier's
+`copier.yml` mirrors `cookiecutter.json` field-for-field. The
+template prompts for the following variables (sensible defaults
 shown):
 
 | Variable | Default | Choices | Notes |
@@ -108,11 +152,12 @@ shown):
 | `include_macaron` | `no` | `no`, `yes` | Adds an Oracle Macaron supply-chain analysis job to `supply-chain.yml`. Off by default — Macaron is optional and adds workflow runtime |
 | `default_branch_name` | `main` | free text | Protected branch the runtime hook guards |
 
-The post-generation hook in `hooks/post_gen_project.py` removes
+The post-generation hook (`hooks/post_gen_project.py` for
+cookiecutter, `_tasks` in `copier.yml` for copier) removes
 language-specific or integration-specific files based on these
 answers — for example, `pyproject.toml` is dropped when
 `primary_language == typescript` and `.codacy.yml` is dropped when
-`include_codacy == no`.
+`include_codacy == no`. Both modes apply the same pruning rules.
 
 ### After generation
 
@@ -147,17 +192,19 @@ file or pattern needing attention.
 agentic-starter-kit/
 ├── AGENTS.md                       # Agent guidance for this template repo
 ├── CLAUDE.md                       # Claude Code quick reference
-├── cookiecutter.json               # Variable schema for the prompts
+├── cookiecutter.json               # Variable schema (cookiecutter mode)
+├── copier.yml                      # Variable schema + upgrade flow (copier mode)
 ├── docs/                           # Planning, research, and gap registers
 │   ├── METHODOLOGY.md              # The standalone essay
 │   ├── BRIEFING.md                 # Build governance for the template
 │   ├── BUILD_PLAN.md               # Phased build inventory
 │   ├── COMMAND_AND_AGENT_SPECS.md  # New-command/new-agent canonical text
-│   └── SWEBOK_GAP_REGISTER.md      # Source-of-truth gap register
+│   ├── SWEBOK_GAP_REGISTER.md      # Source-of-truth gap register
+│   └── UPDATING.md                 # `copier update` workflow + locked-file policy
 ├── .github/
 │   └── CODEOWNERS                  # Review ownership routing
 ├── hooks/
-│   └── post_gen_project.py         # Conditional file pruning
+│   └── post_gen_project.py         # Conditional pruning (cookiecutter mode)
 ├── {{cookiecutter.project_slug}}/  # The templated project tree
 │   ├── CLAUDE.md
 │   ├── AGENTS.md

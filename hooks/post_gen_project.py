@@ -46,6 +46,15 @@ def remove_gitkeep_files() -> None:
         keep.unlink()
 
 
+def remove_copier_only_files() -> None:
+    """Drop copier-only artifacts that only matter for `copier update`.
+
+    cookiecutter has no upgrade flow, so the answers-file template ships
+    in the tree (for copier) but is irrelevant once cookiecutter renders.
+    """
+    remove(".copier-answers.yml")
+
+
 def prune_language_files() -> None:
     """Remove files belonging to the unselected language path."""
     if PRIMARY_LANGUAGE == "python":
@@ -121,6 +130,7 @@ def main() -> int:
     prune_integration_files()
     prune_databricks_files()
     prune_license_files()
+    remove_copier_only_files()
     remove_gitkeep_files()
     write_summary()
     return 0

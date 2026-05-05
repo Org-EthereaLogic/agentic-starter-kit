@@ -95,6 +95,14 @@ cd ./my-project
 copier update --trust --skip-answered
 ```
 
+If you used `pipx run` for the initial copy and do not want a
+persistent install, run the update the same way:
+
+```bash
+cd ./my-project
+pipx run copier update --trust --skip-answered
+```
+
 #### Option B: cookiecutter (one-shot, no upgrade path)
 
 Using `pipx` (recommended — keeps `cookiecutter` isolated):

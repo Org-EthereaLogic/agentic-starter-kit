@@ -65,6 +65,7 @@ def prune_language_files() -> None:
     elif PRIMARY_LANGUAGE == "typescript":
         remove("pyproject.toml")
         remove("tests/test_pre_tool_use_hook.py")
+        remove("tests/test_governance_review.py")
         remove(".claude/agents/python-pro.md")
 
 

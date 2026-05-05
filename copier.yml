@@ -207,7 +207,7 @@ _tasks:
     when: "{{ primary_language == 'python' }}"
 
   # TypeScript path keeps Node build files.
-  - command: "rm -f pyproject.toml tests/test_pre_tool_use_hook.py .claude/agents/python-pro.md"
+  - command: "rm -f pyproject.toml tests/test_pre_tool_use_hook.py tests/test_governance_review.py .claude/agents/python-pro.md"
     when: "{{ primary_language == 'typescript' }}"
 
   # Integration pruning — drop configs the user opted out of.

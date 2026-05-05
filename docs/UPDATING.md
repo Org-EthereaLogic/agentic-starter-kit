@@ -43,8 +43,13 @@ no in-place migration path from cookiecutter to copier.
 ## Standard upgrade
 
 ```sh
-copier update --skip-answered
+copier update --trust --skip-answered
 ```
+
+Because this template defines `_tasks` in `copier.yml`, copier asks
+for trust before it executes the post-update pruning commands. Pass
+`--trust` for unattended runs; otherwise the update can stop at the
+trust prompt.
 
 What this does:
 
@@ -95,7 +100,7 @@ Negotiable files (project-owned, merge as you would any conflict):
 
 ```sh
 git switch -c chore/template-update
-copier update --skip-answered
+copier update --trust --skip-answered
 git status                     # review what changed
 make validate                  # verify gates still green
 
@@ -121,7 +126,7 @@ Copier walks each release in order, applying its `_migrations`. To
 skip a release, pass an explicit version:
 
 ```sh
-copier update --vcs-ref vX.Y.Z
+copier update --trust --vcs-ref vX.Y.Z
 ```
 
 This is rarely the right answer — migrations are cumulative.

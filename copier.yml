@@ -36,6 +36,11 @@ _answers_file: ".copier-answers.yml"
 # shared template tree.
 _templates_suffix: ""
 
+# Shell scripts stay in the rendered project; excluding `scripts/**`
+# would remove required governance commands. The template keeps Jinja
+# markers out of `scripts/`, and CI verifies the rendered `.sh` files
+# stay byte-identical to the template source.
+
 # Reconfigure the Jinja2 environment to keep bash array syntax
 # (`${#arr[@]}`) from being parsed as the start of a Jinja comment.
 # The template tree contains zero legitimate `{# ... #}` comments,
@@ -190,9 +195,11 @@ cookiecutter:
     default_branch_name: "{{ default_branch_name }}"
 
 # Post-render pruning. Mirrors hooks/post_gen_project.py for the
-# cookiecutter mode. Each task removes files belonging to an
-# unselected language path or opted-out integration. Tasks run after
-# `copier copy` and `copier update`.
+# cookiecutter mode. Keep the removal list aligned with that hook;
+# the smoke workflow renders both tools and diffs their outputs on
+# every PR. Each task removes files belonging to an unselected
+# language path or opted-out integration. Tasks run after `copier
+# copy` and `copier update`.
 _tasks:
   # Language pruning — Python path keeps Python build files.
   # Mirrors `prune_language_files` in hooks/post_gen_project.py.

@@ -74,21 +74,25 @@ for the upgrade workflow.
 #### Option A: copier (recommended — supports `copier update`)
 
 ```bash
-pipx run copier copy gh:Org-EthereaLogic/agentic-starter-kit ./my-project
+pipx run copier copy --trust gh:Org-EthereaLogic/agentic-starter-kit ./my-project
 ```
 
 Or with `pip`:
 
 ```bash
 pip install --user copier
-copier copy gh:Org-EthereaLogic/agentic-starter-kit ./my-project
+copier copy --trust gh:Org-EthereaLogic/agentic-starter-kit ./my-project
 ```
+
+Because this template defines `_tasks` in `copier.yml`, copier asks
+you to trust the template before it runs post-render pruning. Pass
+`--trust` for unattended runs.
 
 Pulling in later template releases:
 
 ```bash
 cd ./my-project
-copier update --skip-answered
+copier update --trust --skip-answered
 ```
 
 #### Option B: cookiecutter (one-shot, no upgrade path)

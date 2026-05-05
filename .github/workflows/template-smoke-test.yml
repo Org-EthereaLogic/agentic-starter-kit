@@ -167,6 +167,15 @@ jobs:
           fi
           echo "✓ No unrendered variables found"
 
+      - name: Verify rendered shell scripts stay byte-identical
+        run: |
+          find rendered-project/scripts -type f -name '*.sh' | sort | \
+            while IFS= read -r script; do
+              template_path="{{cookiecutter.project_slug}}/${script#rendered-project/}"
+              diff -u "$template_path" "$script"
+            done
+          echo "✓ Rendered shell scripts match template source"
+
       - name: Validate new supply-chain workflows are well-formed YAML
         run: |
           for wf in scorecards release supply-chain; do
@@ -234,16 +243,8 @@ jobs:
           copier copy --trust --defaults --vcs-ref HEAD . /tmp/co
       - name: Diff renders (only `.copier-answers.yml` should differ)
         run: |
-          diff -rq /tmp/cc/my-agentic-project /tmp/co > /tmp/diff.txt || true
-          cat /tmp/diff.txt
-          # The only expected difference is the copier-only answers
-          # file; anything else is a render-equivalence regression.
-          unexpected=$(grep -v '.copier-answers.yml' /tmp/diff.txt || true)
-          if [ -n "$unexpected" ]; then
-            echo "ERROR: cookiecutter and copier renders diverge:"
-            echo "$unexpected"
-            exit 1
-          fi
+          diff -rq --exclude='.copier-answers.yml' \
+            /tmp/cc/my-agentic-project /tmp/co
           echo "✓ Renders are equivalent"
 
   smoke-test-summary:

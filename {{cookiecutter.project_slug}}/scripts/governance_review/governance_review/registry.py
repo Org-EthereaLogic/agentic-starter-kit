@@ -123,12 +123,14 @@ CHECKS: list[CheckSpec] = [
     ),
     CheckSpec(
         id="GOV-010",
-        title="Traceability matrix parses as JSON",
+        title="Traceability matrix parses as JSON and matches schema",
         severity=Severity.ERROR,
         anchor="gov-010-traceability-json",
         description=(
             "When specs/traceability.json exists it must be valid JSON. "
-            "Skipped before Phase 8 ships the matrix."
+            "When specs/traceability.schema.json and ajv are available, "
+            "the matrix must also conform to the schema. Skipped before "
+            "Phase 8 ships the matrix."
         ),
     ),
     CheckSpec(

@@ -73,8 +73,17 @@ paths on every commit:
   `.mcp.json`
 - Reference docs: `docs/MCP_POLICY.md`
 
-**Fix:** restore the missing file from the template, or run
-`copier update` to pull the latest scaffold.
+The legacy governance check also emits non-blocking warnings when the
+later-phase directories are still absent (`specs/deep_specs/`,
+`specs/security-requirements/`, `report/`) or when `specs/deep_specs/`
+exists but does not yet contain any Markdown specs. The Python port
+preserves those warnings so downstream automation does not lose the
+audit surface during cutover.
+
+**Fix:** restore the missing file from the template source. Projects
+generated with copier can run `copier update`; projects generated with
+cookiecutter copy the missing file from the template or regenerate the
+scaffold intentionally.
 
 ---
 
@@ -194,7 +203,9 @@ the filename stem. Mismatches break path-based skill discovery.
 **Severity:** error · **Replaces:** `scripts/check-traceability.sh` (json well-formedness)
 
 When `specs/traceability.json` is present (Phase 8 onwards) it
-must parse as JSON. Earlier phases skip this check.
+must parse as JSON. If `specs/traceability.schema.json` is present and
+`ajv` is available, the matrix must also conform to that schema.
+Earlier phases skip this check.
 
 ---
 

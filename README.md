@@ -168,15 +168,15 @@ git checkout -b feat/initial
 make sync                  # install Python and/or Node deps via pre-commit + pip / npm
 make validate              # run all five layers' verification — marker scan,
                            # governance check, traceability, doc drift, hooks test
-make governance-review     # run only the GOV-NNN validator (text/JSON/SARIF)
+make governance-review     # run only the GOV-NNN validator (text output)
 make hooks-test            # exercise the protected-branch runtime hook test suite
 ```
 
 `governance-review` (Phase C2, issue #20) emits stable `GOV-NNN`
 identifiers anchored to `docs/STANDARDS.md`. Run
 `governance-review --list-checks` for the full inventory or
-`governance-review --format sarif` to integrate with GitHub
-code-scanning. The validator is also installable standalone:
+`governance-review --format json` / `--format sarif` for machine-
+readable output. The validator is also installable standalone:
 `uv tool install ./scripts/governance_review`.
 
 If `make validate` is clean, the scaffold is healthy. If not, every

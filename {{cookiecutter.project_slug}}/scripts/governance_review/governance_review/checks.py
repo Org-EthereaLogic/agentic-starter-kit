@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
+import subprocess
 from collections.abc import Callable, Iterator
 from pathlib import Path
 
@@ -71,7 +73,7 @@ def _frontmatter(text: str) -> dict[str, str]:
     for raw in lines[1:]:
         if raw.strip() == "---":
             break
-        match = re.match(r"^([A-Za-z0-9_-]+)\s*:\s*(.*)$", raw)
+        match = re.match(r"^\s*([A-Za-z0-9_-]+)\s*:\s*(.*)$", raw)
         if not match:
             continue
         key, value = match.group(1), match.group(2).strip()
@@ -127,7 +129,7 @@ def _walk_text_files(root: Path) -> Iterator[Path]:
     for path in root.rglob("*"):
         if not path.is_file():
             continue
-        if any(part in _MARKER_SKIP_DIRS for part in path.parts):
+        if any(part in _MARKER_SKIP_DIRS for part in path.relative_to(root).parts):
             continue
         yield path
 
@@ -173,6 +175,13 @@ _REQUIRED_FILES = (
     "docs/MCP_POLICY.md",
 )
 
+_OPTIONAL_DIRS = (
+    "docs",
+    "specs/deep_specs",
+    "specs/security-requirements",
+    "report",
+)
+
 
 def check_gov_002(root: Path) -> list[Finding]:
     findings: list[Finding] = []
@@ -181,6 +190,33 @@ def check_gov_002(root: Path) -> list[Finding]:
             findings.append(
                 _make("GOV-002", f"required file missing: {rel}", location=rel)
             )
+
+    for rel in _OPTIONAL_DIRS:
+        if not (root / rel).is_dir():
+            findings.append(
+                _make(
+                    "GOV-002",
+                    f"optional directory not yet present: {rel}",
+                    severity=Severity.WARNING,
+                    location=rel,
+                )
+            )
+
+    deep_specs = root / "specs" / "deep_specs"
+    if deep_specs.is_dir() and not any(
+        path.is_file()
+        and path.suffix == ".md"
+        and len(path.relative_to(deep_specs).parts) <= 2
+        for path in deep_specs.rglob("*.md")
+    ):
+        findings.append(
+            _make(
+                "GOV-002",
+                "specs/deep_specs contains no .md files yet",
+                severity=Severity.WARNING,
+                location="specs/deep_specs",
+            )
+        )
     return findings
 
 
@@ -259,6 +295,15 @@ _REQUIRED_AGENTS = (
 _AGENT_KEYS = ("name", "description", "model", "memory")
 
 
+def _iter_frontmatter_files(base: Path) -> Iterator[tuple[Path, dict[str, str]]]:
+    if not base.is_dir():
+        return
+    for path in sorted(base.glob("*.md")):
+        if path.name == "README.md":
+            continue
+        yield path, _frontmatter(_read_text(path))
+
+
 def check_gov_005(root: Path) -> list[Finding]:
     base = root / ".claude" / "agents"
     findings: list[Finding] = []
@@ -276,13 +321,8 @@ def check_gov_005(root: Path) -> list[Finding]:
 
 def check_gov_006(root: Path) -> list[Finding]:
     base = root / ".claude" / "agents"
-    if not base.is_dir():
-        return []
     findings: list[Finding] = []
-    for path in sorted(base.glob("*.md")):
-        if path.name == "README.md":
-            continue
-        front = _frontmatter(_read_text(path))
+    for path, front in _iter_frontmatter_files(base):
         missing = [k for k in _AGENT_KEYS if k not in front]
         if missing:
             findings.append(
@@ -339,13 +379,8 @@ def check_gov_008(root: Path) -> list[Finding]:
 
 def check_gov_009(root: Path) -> list[Finding]:
     base = root / ".claude" / "skills"
-    if not base.is_dir():
-        return []
     findings: list[Finding] = []
-    for path in sorted(base.glob("*.md")):
-        if path.name == "README.md":
-            continue
-        front = _frontmatter(_read_text(path))
+    for path, front in _iter_frontmatter_files(base):
         missing = [k for k in _SKILL_KEYS if k not in front]
         if missing:
             findings.append(
@@ -388,7 +423,39 @@ def check_gov_010(root: Path) -> list[Finding]:
                 line=exc.lineno,
             )
         ]
+
+    schema_error = _validate_traceability_schema(root)
+    if schema_error is not None:
+        return [
+            _make(
+                "GOV-010",
+                schema_error,
+                location="specs/traceability.json",
+            )
+        ]
     return []
+
+
+def _validate_traceability_schema(root: Path) -> str | None:
+    schema = root / "specs" / "traceability.schema.json"
+    matrix = root / "specs" / "traceability.json"
+    if not schema.is_file():
+        return None
+    ajv = shutil.which("ajv")
+    if ajv is None:
+        return None
+    try:
+        result = subprocess.run(
+            [ajv, "validate", "-s", str(schema), "-d", str(matrix), "--quiet"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return None
+    if result.returncode == 0:
+        return None
+    return "specs/traceability.json does not conform to specs/traceability.schema.json"
 
 
 def check_gov_011(root: Path) -> list[Finding]:
@@ -399,8 +466,17 @@ def check_gov_011(root: Path) -> list[Finding]:
         data = json.loads(_read_text(matrix))
     except json.JSONDecodeError:
         return []  # GOV-010 already reported it
+    if not isinstance(data, dict):
+        return []
+
+    criteria = data.get("criteria", [])
+    if not isinstance(criteria, list):
+        return []
+
     findings: list[Finding] = []
-    for criterion in data.get("criteria", []):
+    for criterion in criteria:
+        if not isinstance(criterion, dict):
+            continue
         cid = criterion.get("id", "<unknown>")
         for glob in criterion.get("source", []):
             if not _glob_resolves(root, glob):
@@ -465,7 +541,7 @@ def check_gov_012(root: Path) -> list[Finding]:
                     key = (rel, path)
                     if key in seen:
                         continue
-                    if not (root / path).exists():
+                    if not (root / path).exists() and not (md.parent / path).exists():
                         seen.add(key)
                         findings.append(
                             _make(

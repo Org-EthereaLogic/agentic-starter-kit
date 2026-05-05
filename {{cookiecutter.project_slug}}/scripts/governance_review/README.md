@@ -20,8 +20,10 @@ the package can be run from a checkout via `python -m governance_review`
 ## Run
 
 ```sh
-governance-review                    # text output, exit 1 on any finding
-governance-review --format json      # JSON array of findings
+governance-review                    # text output, exit 1 on errors only
+governance-review --warnings-as-errors
+									 # promote warnings to exit 1
+governance-review --format json      # JSON object with tool metadata + findings
 governance-review --format sarif     # SARIF 2.1.0 log for CI/code-scanning
 governance-review --list-checks      # show every GOV-NNN, title, anchor
 governance-review --root <path>      # scan a different project directory

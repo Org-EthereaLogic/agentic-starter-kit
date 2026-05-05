@@ -64,6 +64,43 @@ def _print_check_inventory() -> int:
     return 0
 
 
+def _selected_checks(select: list[str] | None) -> set[str] | None:
+    if not select:
+        return None
+    selected = set(select)
+    known = {spec.id for spec in CHECKS}
+    unknown = selected - known
+    if unknown:
+        joined = ", ".join(sorted(unknown))
+        print(
+            f"governance-review: unknown check id(s): {joined}",
+            file=sys.stderr,
+        )
+        return set()
+    return selected
+
+
+def _write_output(fmt: str, findings: list[object]) -> None:
+    if fmt == "text":
+        sys.stdout.write(format_text(findings))
+    elif fmt == "json":
+        sys.stdout.write(format_json(findings))
+    else:
+        sys.stdout.write(format_sarif(findings))
+
+
+def _exit_code(
+    findings: list[object], *, warnings_as_errors: bool
+) -> int:
+    has_error = any(f.severity is Severity.ERROR for f in findings)
+    has_warning = any(f.severity is Severity.WARNING for f in findings)
+    if has_error:
+        return 1
+    if warnings_as_errors and has_warning:
+        return 1
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
 
@@ -75,36 +112,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"governance-review: --root is not a directory: {root}", file=sys.stderr)
         return 2
 
-    selected = set(args.select) if args.select else None
-    if selected:
-        known = {spec.id for spec in CHECKS}
-        unknown = selected - known
-        if unknown:
-            print(
-                "governance-review: unknown check id(s): " + ", ".join(sorted(unknown)),
-                file=sys.stderr,
-            )
-            return 2
+    selected = _selected_checks(args.select)
+    if args.select and selected == set():
+        return 2
 
     findings = run_all(root, only=selected)
 
     if args.no_warnings:
         findings = [f for f in findings if f.severity is not Severity.WARNING]
 
-    if args.format == "text":
-        sys.stdout.write(format_text(findings))
-    elif args.format == "json":
-        sys.stdout.write(format_json(findings))
-    elif args.format == "sarif":
-        sys.stdout.write(format_sarif(findings))
-
-    has_error = any(f.severity is Severity.ERROR for f in findings)
-    has_warning = any(f.severity is Severity.WARNING for f in findings)
-    if has_error:
-        return 1
-    if args.warnings_as_errors and has_warning:
-        return 1
-    return 0
+    _write_output(args.format, findings)
+    return _exit_code(findings, warnings_as_errors=args.warnings_as_errors)
 
 
 if __name__ == "__main__":

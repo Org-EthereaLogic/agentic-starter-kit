@@ -14,7 +14,7 @@ SARIF_VERSION = "2.1.0"
 SARIF_SCHEMA = (
     "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/Schemata/sarif-schema-2.1.0.json"
 )
-TOOL_INFO_URI = "https://github.com/Org-EthereaLogic/agentic-starter-kit"
+TOOL_INFO_URI = "docs/STANDARDS.md"
 
 
 def _isatty() -> bool:
@@ -72,7 +72,7 @@ def format_sarif(findings: Iterable[Finding]) -> str:
             "shortDescription": {"text": spec.title},
             "fullDescription": {"text": spec.description},
             "defaultConfiguration": {"level": _sarif_level(spec.severity)},
-            "helpUri": f"{TOOL_INFO_URI}/blob/main/docs/STANDARDS.md#{spec.anchor}",
+            "helpUri": f"{TOOL_INFO_URI}#{spec.anchor}",
         }
         for spec in CHECKS
     ]

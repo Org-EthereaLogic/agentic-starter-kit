@@ -8,17 +8,24 @@
 
 .PHONY: marker-scan governance-check check-traceability check-doc-drift governance-review
 
-# Resolve the validator: prefer an installed `governance-review` (e.g.
-# `uv tool install ./scripts/governance_review`); otherwise fall back
-# to the in-tree package via `python3 -m governance_review` with
-# `PYTHONPATH` pointing at the package source.
-GOVERNANCE_REVIEW ?= $(shell command -v governance-review 2>/dev/null)
-ifeq ($(GOVERNANCE_REVIEW),)
-GOVERNANCE_REVIEW := PYTHONPATH=scripts/governance_review python3 -m governance_review
+# Resolve the validator deterministically from the checked-in source.
+# A caller may still override `GOVERNANCE_REVIEW=...`, but the default
+# uses the in-tree package when Python is available so validation runs
+# against the committed rule set.
+GOVERNANCE_REVIEW_PYTHON ?= $(shell command -v python3 2>/dev/null || command -v python 2>/dev/null)
+ifeq ($(strip $(GOVERNANCE_REVIEW)),)
+ifneq ($(strip $(GOVERNANCE_REVIEW_PYTHON)),)
+GOVERNANCE_REVIEW := PYTHONPATH=scripts/governance_review $(GOVERNANCE_REVIEW_PYTHON) -m governance_review
+endif
 endif
 
 governance-review:
+
+ifeq ($(strip $(GOVERNANCE_REVIEW)),)
+	@echo "governance-review: skipped (no Python interpreter found; legacy bash checks still run)"
+else
 	@$(GOVERNANCE_REVIEW)
+endif
 
 marker-scan:
 	@bash scripts/marker-scan.sh

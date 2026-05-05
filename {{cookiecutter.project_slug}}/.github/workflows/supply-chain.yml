@@ -46,7 +46,7 @@ jobs:
         run: make sync
 
       - name: pip-audit
-        uses: pypa/gh-action-pip-audit@v1 # v1
+        uses: pypa/gh-action-pip-audit@v1.1.0 # v1.1.0 (no bare v1 tag is published)
         with:
           inputs: pyproject.toml
           # Set vulnerability-service to OSV (default) plus PyPA's

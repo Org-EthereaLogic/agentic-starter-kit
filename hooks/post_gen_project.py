@@ -23,6 +23,7 @@ INCLUDE_CODECOV = "{{ cookiecutter.include_codecov }}"
 INCLUDE_SNYK = "{{ cookiecutter.include_snyk }}"
 INCLUDE_SBOM = "{{ cookiecutter.include_sbom }}"
 INCLUDE_MACARON = "{{ cookiecutter.include_macaron }}"
+INCLUDE_DEVCONTAINER = "{{ cookiecutter.include_devcontainer }}"
 LICENSE_CHOICE = "{{ cookiecutter.license }}"
 
 PROJECT_ROOT = Path.cwd()
@@ -80,6 +81,10 @@ def prune_integration_files() -> None:
     if INCLUDE_SBOM == "no":
         remove("scripts/generate-sbom.sh")
         remove("docs/sbom-policy.md")
+    if INCLUDE_DEVCONTAINER == "no":
+        remove(".devcontainer")
+        remove("Dockerfile")
+        remove(".dockerignore")
 
 
 def prune_databricks_files() -> None:
@@ -115,6 +120,7 @@ def write_summary() -> None:
     print(f"  snyk             : {INCLUDE_SNYK}")
     print(f"  sbom             : {INCLUDE_SBOM}")
     print(f"  macaron          : {INCLUDE_MACARON}")
+    print(f"  devcontainer     : {INCLUDE_DEVCONTAINER}")
     print()
     print("Next steps:")
     print("  cd <project>")

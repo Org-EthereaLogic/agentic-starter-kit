@@ -19,6 +19,24 @@ make hooks-test   # exercise the protected-branch runtime hook
 - `make sync` installs dev tools (ruff, {{ cookiecutter.python_typechecker }}, pytest, etc.) and must run first
 - `make validate` aggregates all governance checks and is the canonical pre-merge gate
 - If `make validate` is clean, the scaffold is healthy. Each gate's failure surfaces a specific file or pattern needing attention
+{% if cookiecutter.include_devcontainer == 'yes' -%}
+
+### Container workflows
+
+A reproducible dev environment ships in `.devcontainer/devcontainer.json`
+(VS Code / GitHub Codespaces). The post-create script installs `uv`,
+`jq`, and `ripgrep` on top of the Microsoft devcontainer base image.
+
+A production-grade `Dockerfile` ships at the repo root. It is multi-stage,
+runs as a non-root user, and pins its base image by digest. Build it with:
+
+```sh
+docker build -t {{ cookiecutter.project_slug }} .
+```
+
+Refresh base-image digests via Dependabot's `docker` ecosystem (configured
+in `.github/dependabot.yml`).
+{% endif -%}
 
 ## Governance layers
 

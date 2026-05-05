@@ -161,6 +161,14 @@ include_macaron:
     - "no"
     - "yes"
 
+include_devcontainer:
+  type: str
+  help: "Add `.devcontainer/devcontainer.json` and a SHA-pinned `Dockerfile`."
+  default: "yes"
+  choices:
+    - "yes"
+    - "no"
+
 default_branch_name:
   type: str
   help: "Protected branch the runtime hook guards."
@@ -192,6 +200,7 @@ cookiecutter:
     include_snyk: "{{ include_snyk }}"
     include_sbom: "{{ include_sbom }}"
     include_macaron: "{{ include_macaron }}"
+    include_devcontainer: "{{ include_devcontainer }}"
     default_branch_name: "{{ default_branch_name }}"
 
 # Post-render pruning. Mirrors hooks/post_gen_project.py for the
@@ -219,6 +228,8 @@ _tasks:
     when: "{{ include_snyk == 'no' }}"
   - command: "rm -f scripts/generate-sbom.sh docs/sbom-policy.md"
     when: "{{ include_sbom == 'no' }}"
+  - command: "rm -rf .devcontainer Dockerfile .dockerignore"
+    when: "{{ include_devcontainer == 'no' }}"
 
   # Strip placeholder .gitkeep files left from the template scaffold.
   - command: "find . -name .gitkeep -type f -delete"

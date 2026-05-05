@@ -1,0 +1,55 @@
+# Anything not needed inside the production image. The devcontainer
+# uses `mcr.microsoft.com/devcontainers/base` and does not consume
+# this Dockerfile, so this file targets the production build only.
+
+.git/
+.github/
+.devcontainer/
+.claude/
+.vscode/
+.idea/
+
+# Python build artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ty_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Node build artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test, build, and CI scratch
+build/
+dist/
+report/
+sbom/
+.tox/
+*.log
+
+# Editor / OS
+.DS_Store
+*.swp
+*~
+
+# Project governance/spec sources — keep them on disk for the host
+# but they are not needed at runtime.
+docs/
+specs/
+tests/
+
+# Environment files (never bake into image)
+.env
+.env.*
+!.env.example

@@ -5,12 +5,16 @@ on:
     branches: [main]
     paths:
       - 'cookiecutter.json'
+      - 'copier.yml'
+      - 'hooks/**'
       - '{{cookiecutter.project_slug}}/**'
       - '.github/workflows/template-smoke-test.yml'
   pull_request:
     branches: [main]
     paths:
       - 'cookiecutter.json'
+      - 'copier.yml'
+      - 'hooks/**'
       - '{{cookiecutter.project_slug}}/**'
       - '.github/workflows/template-smoke-test.yml'
 
@@ -24,6 +28,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Render every variant under both render tools to satisfy
+        # the Phase C1 acceptance criterion: "CI smoke test renders
+        # both modes (cookiecutter and copier) on every PR."
+        tool: [cookiecutter, copier]
         variant:
           - name: 'Python (MIT, no extras, ty)'
             primary_language: 'python'
@@ -96,10 +104,11 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install cookiecutter
-        run: pip install cookiecutter --quiet
+      - name: Install render tool
+        run: pip install ${{ matrix.tool }} --quiet
 
-      - name: Render template variant
+      - name: Render template variant (cookiecutter)
+        if: matrix.tool == 'cookiecutter'
         env:
           PRIMARY_LANGUAGE: ${{ matrix.variant.primary_language }}
           PYTHON_TYPECHECKER: ${{ matrix.variant.python_typechecker }}
@@ -121,13 +130,39 @@ jobs:
             include_snyk="$INCLUDE_SNYK" \
             include_macaron="$INCLUDE_MACARON"
 
-          # Move rendered project to working directory
           mv /tmp/rendered/my-agentic-project rendered-project
+
+      - name: Render template variant (copier)
+        if: matrix.tool == 'copier'
+        env:
+          PRIMARY_LANGUAGE: ${{ matrix.variant.primary_language }}
+          PYTHON_TYPECHECKER: ${{ matrix.variant.python_typechecker }}
+          LICENSE: ${{ matrix.variant.license }}
+          INCLUDE_SBOM: ${{ matrix.variant.include_sbom }}
+          INCLUDE_CODACY: ${{ matrix.variant.include_codacy }}
+          INCLUDE_SNYK: ${{ matrix.variant.include_snyk }}
+          INCLUDE_MACARON: ${{ matrix.variant.include_macaron || 'no' }}
+        run: |
+          mkdir -p rendered-project
+          copier copy --trust --defaults --vcs-ref HEAD \
+            -d primary_language="$PRIMARY_LANGUAGE" \
+            -d python_typechecker="$PYTHON_TYPECHECKER" \
+            -d license="$LICENSE" \
+            -d include_sbom="$INCLUDE_SBOM" \
+            -d include_codacy="$INCLUDE_CODACY" \
+            -d include_snyk="$INCLUDE_SNYK" \
+            -d include_macaron="$INCLUDE_MACARON" \
+            . rendered-project
 
       - name: Verify no unrendered variables
         run: |
-          if grep -r "{{cookiecutter\." rendered-project/; then
+          if grep -rn "{{[[:space:]]*cookiecutter\." rendered-project/; then
             echo "ERROR: Found unrendered cookiecutter variables"
+            exit 1
+          fi
+          if grep -rn "{{[[:space:]]*_copier" rendered-project/ \
+              --exclude=".copier-answers.yml"; then
+            echo "ERROR: Found unrendered copier-only variables"
             exit 1
           fi
           echo "✓ No unrendered variables found"
@@ -171,7 +206,7 @@ jobs:
 
       - name: Report variant success
         run: |
-          echo "✅ Variant: ${{ matrix.variant.name }}"
+          echo "✅ Tool: ${{ matrix.tool }} | Variant: ${{ matrix.variant.name }}"
           echo "   Primary Language: ${{ matrix.variant.primary_language }}"
           echo "   Type-checker:    ${{ matrix.variant.python_typechecker }}"
           echo "   License: ${{ matrix.variant.license }}"
@@ -179,16 +214,49 @@ jobs:
           echo "   Codacy: ${{ matrix.variant.include_codacy }}"
           echo "   Snyk: ${{ matrix.variant.include_snyk }}"
 
+  render-equivalence:
+    name: Cookiecutter ↔ Copier render equivalence
+    runs-on: ubuntu-latest
+    needs: smoke-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install both render tools
+        run: pip install cookiecutter copier --quiet
+      - name: Render with cookiecutter
+        run: |
+          cookiecutter . --no-input -f --output-dir /tmp/cc
+      - name: Render with copier
+        run: |
+          mkdir -p /tmp/co
+          copier copy --trust --defaults --vcs-ref HEAD . /tmp/co
+      - name: Diff renders (only `.copier-answers.yml` should differ)
+        run: |
+          diff -rq /tmp/cc/my-agentic-project /tmp/co > /tmp/diff.txt || true
+          cat /tmp/diff.txt
+          # The only expected difference is the copier-only answers
+          # file; anything else is a render-equivalence regression.
+          unexpected=$(grep -v '.copier-answers.yml' /tmp/diff.txt || true)
+          if [ -n "$unexpected" ]; then
+            echo "ERROR: cookiecutter and copier renders diverge:"
+            echo "$unexpected"
+            exit 1
+          fi
+          echo "✓ Renders are equivalent"
+
   smoke-test-summary:
     name: Smoke Test Summary
     if: always()
-    needs: smoke-test
+    needs: [smoke-test, render-equivalence]
     runs-on: ubuntu-latest
     steps:
       - name: Check smoke test results
         run: |
-          if [ "${{ needs.smoke-test.result }}" = "success" ]; then
-            echo "✅ All template variants passed smoke test"
+          if [ "${{ needs.smoke-test.result }}" = "success" ] \
+              && [ "${{ needs.render-equivalence.result }}" = "success" ]; then
+            echo "✅ All template variants and render-equivalence passed"
             exit 0
           else
             echo "❌ One or more variants failed smoke test"

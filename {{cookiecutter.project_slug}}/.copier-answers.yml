@@ -1,0 +1,4 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY.
+# Tracks the template version and answers so `copier update` can
+# bring this project up to a newer template release.
+{{ _copier_answers|to_nice_yaml -}}

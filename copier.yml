@@ -1,0 +1,217 @@
+# copier.yml — agentic-starter-kit
+#
+# Dual-mode template configuration. The repository ships both a
+# cookiecutter.json (one-shot scaffold) and this copier.yml (scaffold
+# plus `copier update` upgrade flow). Both render the same template
+# tree under `{{cookiecutter.project_slug}}/`. See `docs/UPDATING.md`
+# for the upgrade workflow.
+#
+# Variables mirror cookiecutter.json so a project rendered with one
+# tool can re-render with the other without losing answers.
+
+# Render the same source tree as cookiecutter. The directory name
+# `{{cookiecutter.project_slug}}` is matched literally; the curly
+# braces are escaped via {% raw %} so copier doesn't interpret them
+# as a Jinja expression.
+_subdirectory: "{% raw %}{{cookiecutter.project_slug}}{% endraw %}"
+
+# With `_subdirectory` set, copier starts inside the template tree
+# and the repo-root config files (cookiecutter.json, copier.yml,
+# hooks/) are already out of scope. The defaults below are restored
+# explicitly because copier zeroes its built-ins when a subdirectory
+# is configured.
+_exclude:
+  - "~*"
+  - "*.py[co]"
+  - "__pycache__"
+  - ".git"
+  - ".DS_Store"
+
+# Where copier records the answers. Required for `copier update`.
+_answers_file: ".copier-answers.yml"
+
+# Cookiecutter renders every file as a Jinja2 template by default;
+# copier renders only files ending in `.jinja`. Setting the suffix to
+# empty string makes copier render every file too — required for the
+# shared template tree.
+_templates_suffix: ""
+
+# Reconfigure the Jinja2 environment to keep bash array syntax
+# (`${#arr[@]}`) from being parsed as the start of a Jinja comment.
+# The template tree contains zero legitimate `{# ... #}` comments,
+# so swapping the delimiters is safe.
+_envops:
+  comment_start_string: "[#"
+  comment_end_string: "#]"
+  keep_trailing_newline: true
+
+# Variable schema — mirrors cookiecutter.json field-for-field.
+
+project_name:
+  type: str
+  help: "Display name of the project."
+  default: "My Agentic Project"
+
+project_slug:
+  type: str
+  help: "URL/path-safe project identifier."
+  default: "{{ project_name | lower | replace(' ', '-') | replace('_', '-') }}"
+
+project_description:
+  type: str
+  help: "One-line description used in pyproject.toml, package.json, README."
+  default: "An agentic application"
+
+python_package_name:
+  type: str
+  help: "Importable Python package name (underscores, no dashes)."
+  default: "{{ project_slug | replace('-', '_') }}"
+
+author_name:
+  type: str
+  help: "Author or maintainer name."
+  default: "Author Name"
+
+author_email:
+  type: str
+  help: "Author email; baseline for the security disclosure address."
+  default: "author@example.com"
+
+year:
+  type: str
+  help: "Year used in LICENSE and copyright headers."
+  default: "2026"
+
+license:
+  type: str
+  help: "License shipped with the rendered project."
+  default: "MIT"
+  choices:
+    - "MIT"
+    - "Apache-2.0"
+    - "Proprietary"
+
+primary_language:
+  type: str
+  help: "Primary language path. Drives which build files survive post-render pruning."
+  default: "python"
+  choices:
+    - "python"
+    - "typescript"
+    - "polyglot"
+
+python_typechecker:
+  type: str
+  help: "Python type-checker. Astral `ty` is the 2026 default; `mypy` is the opt-in fallback."
+  default: "ty"
+  choices:
+    - "ty"
+    - "mypy"
+
+include_databricks:
+  type: str
+  help: "Reserve Databricks bundle scaffolding (lands in a later release)."
+  default: "no"
+  choices:
+    - "no"
+    - "yes"
+
+include_codacy:
+  type: str
+  help: "Add `.codacy.yml` plus a CI job."
+  default: "yes"
+  choices:
+    - "yes"
+    - "no"
+
+include_codecov:
+  type: str
+  help: "Add `codecov.yaml` plus a CI upload job."
+  default: "yes"
+  choices:
+    - "yes"
+    - "no"
+
+include_snyk:
+  type: str
+  help: "Add `.snyk` plus a CI job."
+  default: "yes"
+  choices:
+    - "yes"
+    - "no"
+
+include_sbom:
+  type: str
+  help: "Add `scripts/generate-sbom.sh` plus a CI job."
+  default: "yes"
+  choices:
+    - "yes"
+    - "no"
+
+include_macaron:
+  type: str
+  help: "Add an Oracle Macaron supply-chain analysis job to supply-chain.yml."
+  default: "no"
+  choices:
+    - "no"
+    - "yes"
+
+default_branch_name:
+  type: str
+  help: "Protected branch the runtime hook guards."
+  default: "main"
+
+# Backward-compatibility alias.
+# The template tree references variables as `{{ cookiecutter.X }}` so
+# the same files render under cookiecutter. This computed dict makes
+# the same references resolve under copier. The question is skipped
+# (`when: false`) but its templated default is computed and exposed
+# in the render scope.
+cookiecutter:
+  type: yaml
+  when: false
+  default: |
+    project_name: "{{ project_name }}"
+    project_slug: "{{ project_slug }}"
+    project_description: "{{ project_description }}"
+    python_package_name: "{{ python_package_name }}"
+    author_name: "{{ author_name }}"
+    author_email: "{{ author_email }}"
+    year: "{{ year }}"
+    license: "{{ license }}"
+    primary_language: "{{ primary_language }}"
+    python_typechecker: "{{ python_typechecker }}"
+    include_databricks: "{{ include_databricks }}"
+    include_codacy: "{{ include_codacy }}"
+    include_codecov: "{{ include_codecov }}"
+    include_snyk: "{{ include_snyk }}"
+    include_sbom: "{{ include_sbom }}"
+    include_macaron: "{{ include_macaron }}"
+    default_branch_name: "{{ default_branch_name }}"
+
+# Post-render pruning. Mirrors hooks/post_gen_project.py for the
+# cookiecutter mode. Each task removes files belonging to an
+# unselected language path or opted-out integration. Tasks run after
+# `copier copy` and `copier update`.
+_tasks:
+  # Language pruning — Python path keeps Python build files.
+  # Mirrors `prune_language_files` in hooks/post_gen_project.py.
+  - command: "rm -f package.json tsconfig.json tests/test_pre_tool_use_hook.js .claude/agents/typescript-pro.md"
+    when: "{{ primary_language == 'python' }}"
+
+  # TypeScript path keeps Node build files.
+  - command: "rm -f pyproject.toml tests/test_pre_tool_use_hook.py .claude/agents/python-pro.md"
+    when: "{{ primary_language == 'typescript' }}"
+
+  # Integration pruning — drop configs the user opted out of.
+  - command: "rm -f .codacy.yml"
+    when: "{{ include_codacy == 'no' }}"
+  - command: "rm -f codecov.yaml"
+    when: "{{ include_codecov == 'no' }}"
+  - command: "rm -f .snyk"
+    when: "{{ include_snyk == 'no' }}"
+  - command: "rm -f scripts/generate-sbom.sh docs/sbom-policy.md"
+    when: "{{ include_sbom == 'no' }}"
+
+  # Strip placeholder .gitkeep files left from the template scaffold.
+  - command: "find . -name .gitkeep -type f -delete"

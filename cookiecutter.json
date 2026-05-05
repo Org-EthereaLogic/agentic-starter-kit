@@ -17,6 +17,7 @@
   "include_macaron": ["no", "yes"],
   "default_branch_name": "main",
   "_copy_without_render": [
-    "scripts/*.sh"
+    "scripts/*.sh",
+    ".copier-answers.yml"
   ]
 }

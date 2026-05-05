@@ -19,13 +19,13 @@ For the construction blueprint, read [`docs/BUILD_PLAN.md`](./docs/BUILD_PLAN.md
 
 Every project the template scaffolds carries five layers:
 
-| # | Layer                | Purpose                                             | Key files                                                                                       |
-|---|----------------------|-----------------------------------------------------|-------------------------------------------------------------------------------------------------|
-| 1 | Navigation           | Tells agents where to look first                    | `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`                                                           |
-| 2 | Constitutional       | The decision-making contract                        | `CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md`                                               |
-| 3 | Agent specialization | Curated subagents and slash commands                | `.claude/agents/*.md`, `.claude/commands/*.md`                                                  |
-| 4 | Runtime enforcement  | Hooks that block bad actions before they happen     | `.claude/hooks/pre-tool-use.js`, `.claude/settings.json`, `tests/test_pre_tool_use_hook.{py,js}`|
-| 5 | External validation  | CI gates that audit independently                   | `.github/workflows/ci.yml`, `Makefile`, `scripts/*.sh`                                          |
+| # | Layer | Purpose | Key files |
+| --- | --- | --- | --- |
+| 1 | Navigation | Tells agents where to look first | `CLAUDE.md`, `AGENTS.md`, `GEMINI.md` |
+| 2 | Constitutional | The decision-making contract | `CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md` |
+| 3 | Agent specialization | Curated subagents and slash commands | `.claude/agents/*.md`, `.claude/commands/*.md` |
+| 4 | Runtime enforcement | Hooks that block bad actions before they happen | `.claude/hooks/pre-tool-use.js`, `.claude/settings.json`, `tests/test_pre_tool_use_hook.{py,js}` |
+| 5 | External validation | CI gates that audit independently | `.github/workflows/ci.yml`, `Makefile`, `scripts/*.sh` |
 
 Planned later phases add a complete documentation set anchored to
 SWEBOK v4:
@@ -133,7 +133,7 @@ template prompts for the following variables (sensible defaults
 shown):
 
 | Variable | Default | Choices | Notes |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `project_name` | `My Agentic Project` | free text | Display name used in narrative documents |
 | `project_slug` | derived from `project_name` | derived | Lowercased; dashes replace spaces and underscores |
 | `project_description` | `<one-line project description>` | free text | One-line summary used in `pyproject.toml`, `package.json`, README |
@@ -165,11 +165,19 @@ answers — for example, `pyproject.toml` is dropped when
 cd <project_slug>
 git init
 git checkout -b feat/initial
-make sync          # install Python and/or Node deps via pre-commit + pip / npm
-make validate      # run all five layers' verification — marker scan,
-                   # governance check, traceability, doc drift, hooks test
-make hooks-test    # exercise the protected-branch runtime hook test suite
+make sync                  # install Python and/or Node deps via pre-commit + pip / npm
+make validate              # run all five layers' verification — marker scan,
+                           # governance check, traceability, doc drift, hooks test
+make governance-review     # run only the GOV-NNN validator (text/JSON/SARIF)
+make hooks-test            # exercise the protected-branch runtime hook test suite
 ```
+
+`governance-review` (Phase C2, issue #20) emits stable `GOV-NNN`
+identifiers anchored to `docs/STANDARDS.md`. Run
+`governance-review --list-checks` for the full inventory or
+`governance-review --format sarif` to integrate with GitHub
+code-scanning. The validator is also installable standalone:
+`uv tool install ./scripts/governance_review`.
 
 If `make validate` is clean, the scaffold is healthy. If not, every
 failure has a fix — the gates are designed to point at the specific

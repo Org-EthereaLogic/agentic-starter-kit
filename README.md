@@ -12,6 +12,8 @@ agentic coding workflows who want governance to be *infrastructure*
 
 For the full philosophy, read [`docs/METHODOLOGY.md`](./docs/METHODOLOGY.md).
 For the construction blueprint, read [`docs/BUILD_PLAN.md`](./docs/BUILD_PLAN.md).
+For worked examples of what the template produces, read
+[`docs/EXAMPLES.md`](./docs/EXAMPLES.md).
 
 ---
 

@@ -90,7 +90,7 @@ For both Python and TS path, the test suite runs with at least
 | `{{cookiecutter.project_slug}}/scripts/check-traceability.sh` | Bash + jq. Reads `specs/traceability.json`. For each acceptance criterion: confirm referenced source globs match at least one file; confirm referenced test globs match at least one file; confirm referenced evidence artifact exists. Surface unmapped criteria and orphaned tests. |
 | `{{cookiecutter.project_slug}}/scripts/check-doc-drift.sh` | Bash. Greps every relative path-like token in `docs/*.md` and `specs/**/*.md` and verifies it exists. Initial mode: warn (exit 0 with output). After stabilization: block. |
 | `{{cookiecutter.project_slug}}/scripts/generate-sbom.sh` | Bash. Conditional on `include_sbom`. CycloneDX for Python (`cyclonedx-py`) or for Node (`@cyclonedx/cyclonedx-npm`), polyglot path runs both. Output to `sbom/` directory. |
-| `{{cookiecutter.project_slug}}/.github/workflows/ci.yml` | Single workflow with multiple jobs: `validate` (runs `make validate`), `hooks-test`, `codacy` (conditional), `snyk` (conditional), `codecov-upload` (conditional), `sbom` (conditional), `secret-scan` (always-on, e.g., gitleaks). Every action SHA-pinned per IMP-006. |
+| `{{cookiecutter.project_slug}}/.github/workflows/ci.yml` | Single workflow with multiple jobs: `validate` (runs `make validate`), `hooks-test`, `codacy` (conditional), `snyk` (conditional), `codecov-upload` (conditional), `sbom` (conditional), `secret-scan` (always-on, TruffleHog OSS by default). Every action SHA-pinned per IMP-006. |
 
 **Phase 4 gate:** instantiate template, run `make sync && make validate`
 inside the instantiated project. All gates pass on the empty (but

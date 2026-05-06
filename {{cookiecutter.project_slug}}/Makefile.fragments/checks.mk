@@ -6,7 +6,7 @@
 # alongside it for now so failures are visible in both formats; remove
 # them once downstream automation has migrated to the GOV-NNN IDs.
 
-.PHONY: marker-scan governance-check check-traceability check-doc-drift governance-review
+.PHONY: marker-scan governance-check check-traceability check-doc-drift check-action-pins governance-review
 
 # Resolve the validator deterministically from the checked-in source.
 # A caller may still override `GOVERNANCE_REVIEW=...`, but the default
@@ -38,3 +38,9 @@ check-traceability:
 
 check-doc-drift:
 	@bash scripts/check-doc-drift.sh
+
+# IMP-006 — float-pinned `uses:` references in workflow files. Soft
+# by default (warn-only) so this can land without churning every
+# workflow at once; pass `STRICT=1` to fail the gate on any finding.
+check-action-pins:
+	@bash scripts/check-action-pins.sh

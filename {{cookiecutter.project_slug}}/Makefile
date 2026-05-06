@@ -33,7 +33,7 @@ test: test-python test-typescript
 coverage: coverage-python coverage-typescript
 	@echo "coverage: complete"
 
-validate: governance-review marker-scan governance-check check-traceability check-doc-drift hooks-test lint typecheck test
+validate: governance-review marker-scan governance-check check-traceability check-doc-drift check-action-pins hooks-test lint typecheck test
 	@echo "validate: all gates passed"
 
 help:
@@ -44,6 +44,7 @@ help:
 	@echo "  governance-check     Verify required files and folders (CRIT-002 / GOV-002..009)"
 	@echo "  check-traceability   Validate specs/traceability.json (GOV-010, GOV-011)"
 	@echo "  check-doc-drift      Verify path references in docs/specs are real (GOV-012)"
+	@echo "  check-action-pins    Warn on float-pinned GitHub Actions \`uses:\` lines (IMP-006)"
 	@echo "  hooks-test           Run the runtime-hook regression suite (CRIT-008)"
 	@echo "  lint                 Run language linter(s)"
 	@echo "  typecheck            Run language type-checker(s)"

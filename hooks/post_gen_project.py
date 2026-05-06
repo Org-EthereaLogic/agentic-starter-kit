@@ -26,6 +26,7 @@ INCLUDE_MACARON = "{{ cookiecutter.include_macaron }}"
 INCLUDE_DEVCONTAINER = "{{ cookiecutter.include_devcontainer }}"
 INCLUDE_DOCS_SITE = "{{ cookiecutter.include_docs_site }}"
 INCLUDE_RELEASE_AUTOMATION = "{{ cookiecutter.include_release_automation }}"
+INCLUDE_PROMPTFOO = "{{ cookiecutter.include_promptfoo }}"
 LICENSE_CHOICE = "{{ cookiecutter.license }}"
 
 PROJECT_ROOT = Path.cwd()
@@ -96,6 +97,11 @@ def prune_integration_files() -> None:
         remove("release-please-config.json")
         remove("release-please-manifest.json")
         remove(".github/workflows/release-please.yml")
+    if INCLUDE_PROMPTFOO == "no":
+        remove("prompts")
+        remove("evals")
+        remove("docs/prompt-versioning-policy.md")
+        remove("Makefile.fragments/evals.mk")
 
 
 def prune_databricks_files() -> None:
@@ -134,6 +140,7 @@ def write_summary() -> None:
     print(f"  devcontainer     : {INCLUDE_DEVCONTAINER}")
     print(f"  docs site        : {INCLUDE_DOCS_SITE}")
     print(f"  release autom.   : {INCLUDE_RELEASE_AUTOMATION}")
+    print(f"  promptfoo evals  : {INCLUDE_PROMPTFOO}")
     print()
     print("Next steps:")
     print("  cd <project>")

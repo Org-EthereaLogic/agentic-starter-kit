@@ -18,6 +18,7 @@
   "include_devcontainer": ["yes", "no"],
   "include_docs_site": ["no", "yes"],
   "include_release_automation": ["yes", "no"],
+  "include_promptfoo": ["yes", "no"],
   "default_branch_name": "main",
   "__prompts__": {
     "project_name": "Display name of the project.",
@@ -88,6 +89,11 @@
       "__prompt__": "Add Commitizen helper plus release-please workflow/config for automated Release PRs and tags.",
       "yes": "include — .cz.toml, release-please config, and release workflow",
       "no": "skip — release manually"
+    },
+    "include_promptfoo": {
+      "__prompt__": "Add prompts/ + evals/ directories and a `make eval` gate via promptfoo.",
+      "yes": "include — prompts/, evals/promptfooconfig.yaml, make eval target",
+      "no": "skip — no prompt evaluation scaffolding"
     },
     "default_branch_name": "Protected branch the runtime hook guards."
   },

@@ -185,6 +185,14 @@ include_release_automation:
     - "yes"
     - "no"
 
+include_promptfoo:
+  type: str
+  help: "Add prompts/ + evals/ directories and a `make eval` gate via promptfoo."
+  default: "yes"
+  choices:
+    - "yes"
+    - "no"
+
 default_branch_name:
   type: str
   help: "Protected branch the runtime hook guards."
@@ -219,6 +227,7 @@ cookiecutter:
     include_devcontainer: "{{ include_devcontainer }}"
     include_docs_site: "{{ include_docs_site }}"
     include_release_automation: "{{ include_release_automation }}"
+    include_promptfoo: "{{ include_promptfoo }}"
     default_branch_name: "{{ default_branch_name }}"
 
 # Post-render pruning. Mirrors hooks/post_gen_project.py for the
@@ -252,6 +261,8 @@ _tasks:
     when: "{{ include_docs_site == 'no' }}"
   - command: "rm -f .cz.toml release-please-config.json release-please-manifest.json .github/workflows/release-please.yml"
     when: "{{ include_release_automation == 'no' }}"
+  - command: "rm -rf prompts evals docs/prompt-versioning-policy.md Makefile.fragments/evals.mk"
+    when: "{{ include_promptfoo == 'no' }}"
 
   # Strip placeholder .gitkeep files left from the template scaffold.
   - command: "find . -name .gitkeep -type f -delete"

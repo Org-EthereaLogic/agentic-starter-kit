@@ -1,0 +1,88 @@
+# promptfoo evaluation configuration
+# Docs: https://promptfoo.dev/docs/configuration/guide
+#
+# Run with: make eval
+# Threshold: 80% pass rate required (see `threshold` below).
+#
+# Add one test case per prompt in prompts/. Each test should verify
+# the output structure your application relies on — not style or
+# phrasing — so evals catch regressions, not model variation.
+
+description: "{{ cookiecutter.project_name }} prompt evaluations"
+
+# ---------------------------------------------------------------------------
+# Providers
+# ---------------------------------------------------------------------------
+providers:
+  - id: anthropic:messages:claude-haiku-4-5-20251001
+    config:
+      # ANTHROPIC_API_KEY must be set in the environment.
+      # In CI this comes from the Actions secret; locally from .env.
+      max_tokens: 1024
+
+# ---------------------------------------------------------------------------
+# Prompts
+# ---------------------------------------------------------------------------
+# Define prompts here and reference them by label in each test case.
+# To load a versioned prompt file use: file://prompts/my-prompt-v1.0.md
+# See https://promptfoo.dev/docs/configuration/parameters#prompts
+prompts:
+  - label: smoke
+    raw: "Reply with exactly the word READY and nothing else."
+  - label: json-format
+    raw: |
+      Return a JSON object with a single key "status" set to "ok".
+      Return only the JSON object, no explanation.
+
+# ---------------------------------------------------------------------------
+# Test cases
+# ---------------------------------------------------------------------------
+# Each test case references a prompt by its label and declares assertions.
+#
+# Assertion types:
+#   contains        — output includes the string (case-insensitive)
+#   not-contains    — output does not include the string
+#   regex           — output matches the regex
+#   llm-rubric      — model grades the output against a criterion (slow)
+#   javascript      — custom JS assertion function
+#
+# See https://promptfoo.dev/docs/configuration/expected-outputs
+
+tests:
+  # -------------------------------------------------------------------------
+  # Smoke test — model responds at all
+  # Replace or extend this with tests targeting your actual prompts.
+  # -------------------------------------------------------------------------
+  - description: "smoke — model responds to a basic instruction"
+    prompt: smoke
+    assert:
+      - type: contains
+        value: "READY"
+
+  # -------------------------------------------------------------------------
+  # Output format check
+  # -------------------------------------------------------------------------
+  - description: "format — JSON output is well-formed"
+    prompt: json-format
+    assert:
+      - type: javascript
+        value: |
+          try {
+            const cleaned = output.replace(/^```(?:json)?\n?|\n?```$/g, '').trim();
+            const parsed = JSON.parse(cleaned);
+            return parsed.status === "ok";
+          } catch {
+            return false;
+          }
+
+# ---------------------------------------------------------------------------
+# Pass threshold
+# ---------------------------------------------------------------------------
+# Merge is blocked when pass rate drops below this value.
+# Raise the threshold as your eval coverage matures.
+threshold: 0.8
+
+# ---------------------------------------------------------------------------
+# Output
+# ---------------------------------------------------------------------------
+outputPath: report/eval-latest.json

@@ -23,7 +23,7 @@ repo root.
 
 ## Day 1 — Python project
 
-### Render command
+### Render command (Python)
 
 ```sh
 pipx run cookiecutter gh:Org-EthereaLogic/agentic-starter-kit \
@@ -208,7 +208,7 @@ my-agentic-project/
     └── test_skill_contracts.py
 ```
 
-### Canonical `make validate` output (Day 1)
+### Canonical `make validate` output (Python, Day 1)
 
 After `git init && git add -A && git commit -qm "scaffold"`:
 
@@ -259,7 +259,7 @@ and `report/` are ledger surfaces that fill up as features land.
 
 ## Day 1 — TypeScript project
 
-### Render command
+### Render command (TypeScript)
 
 ```sh
 pipx run cookiecutter gh:Org-EthereaLogic/agentic-starter-kit \
@@ -303,7 +303,7 @@ commands, the runtime hook tree, the seven hook fixtures, the
 `scripts/governance_review/` validator package — is identical.
 Layer 1 / 2 / 3 governance files are language-agnostic by design.
 
-### Canonical `make validate` output (Day 1)
+### Canonical `make validate` output (TypeScript, Day 1)
 
 The TypeScript scaffold lands at the same baseline:
 
@@ -346,7 +346,7 @@ roughly a week of normal use. This vignette is illustrative: it
 shows how the same governance surfaces evolve as a team writes
 specs, lands features, and accumulates evidence.
 
-### Render command
+### Render command (polyglot Day 7)
 
 ```sh
 pipx run cookiecutter gh:Org-EthereaLogic/agentic-starter-kit \

@@ -21,10 +21,7 @@
   "packages": {
     ".": {
       "package-name": "{{ cookiecutter.project_slug }}",
-      "changelog-path": "CHANGELOG.md"{% if cookiecutter.primary_language == 'polyglot' %},
-      "extra-files": [
-        { "type": "json", "path": "package.json", "jsonpath": "$.version" }
-      ]{% endif %}
+      "changelog-path": "CHANGELOG.md"
     }
   }
 }

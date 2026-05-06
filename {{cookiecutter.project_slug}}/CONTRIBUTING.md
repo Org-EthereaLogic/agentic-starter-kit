@@ -99,6 +99,25 @@ edit them by hand. release-please does **not** write to the
 `report/<UTC-timestamp>-*` evidence trail (`IMP-001`) is
 unaffected.
 
+> **Polyglot note.** When `primary_language=polyglot`, the
+> rendered `release-type` is `python`, so release-please bumps
+> the Python version files but leaves `package.json` alone. If
+> your polyglot project also publishes a Node artifact, add an
+> `extra-files` entry to `release-please-config.json` so the
+> Node version stays in lockstep:
+>
+> ```json
+> "packages": {
+>   ".": {
+>     "package-name": "{{ cookiecutter.project_slug }}",
+>     "changelog-path": "CHANGELOG.md",
+>     "extra-files": [
+>       { "type": "json", "path": "package.json", "jsonpath": "$.version" }
+>     ]
+>   }
+> }
+> ```
+
 To opt out of release automation, render the template with
 `include_release_automation=no`; `hooks/post_gen_project.py`
 removes the workflow, the config, and `.cz.toml` in that case.

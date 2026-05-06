@@ -49,6 +49,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      issues: write
     steps:
       - name: Run release-please
         uses: googleapis/release-please-action@v4 # v4

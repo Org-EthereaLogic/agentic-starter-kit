@@ -7,6 +7,7 @@ Getting started with the Python path of this scaffold.
 - Python 3.11+
 - `uv` package manager (recommended) or `pip`
 - `git` 2.40+
+- GitHub CLI (`gh`)
 
 ## Setup (2 minutes)
 
@@ -20,6 +21,65 @@ make validate
 # 3. Verify the hook regression suite passes (CRIT-008)
 make hooks-test
 ```
+
+## First commit and CI bring-up
+
+The scaffold is intended to land as a single initial commit, then
+push to GitHub for the first CI run. This is the one moment where
+`git add -A` is the right call — every file the template produced
+is intended.
+
+```bash
+# 1. Initialize git on the default branch the runtime hook protects
+git init -b {{ cookiecutter.default_branch_name }}
+
+# 2. Stage everything the template produced. After this commit,
+#    revert to staging files explicitly (see "Before Committing"
+#    below — IMP-005 forbids `git add -A` for normal work).
+git add -A
+
+# 3. Conventional-commit the scaffold. The pre-commit hooks ship
+#    pre-installed via `make sync`, so this commit will run the
+#    same validation gates as `make validate`.
+git commit -m "chore(scaffold): initial agentic-starter-kit render"
+
+# 4. Create the GitHub repo and push. `--private` is the safer
+#    default; flip to `--public` when you're ready to publish.
+gh repo create {{ cookiecutter.project_slug }} --private --source=. --push
+```
+
+### What to expect on the first CI run
+
+The push triggers `.github/workflows/ci.yml`. Five jobs run by
+default; three more run when their toggle was set during render.
+
+| Job | First-run state | Action needed |
+| --- | --- | --- |
+| `validate` (make validate) | ✅ green | none |
+| `hooks-test` (CRIT-008) | ✅ green | none |
+| `secret-scan` (TruffleHog OSS) | ✅ green | none — works without a token |
+| `scorecards` | ✅ green | none |
+| `sbom` *(if `include_sbom=yes`)* | ✅ green | artifact uploaded |
+| `codacy` *(if `include_codacy=yes`)* | ❌ fails | add `CODACY_PROJECT_TOKEN` repo secret |
+| `snyk` *(if `include_snyk=yes`)* | ❌ fails | add `SNYK_TOKEN` repo secret |
+| `coverage` *(if `include_codecov=yes`)* | ❌ upload fails | add `CODECOV_TOKEN` repo secret |
+
+Add the missing tokens at **Settings → Secrets and variables →
+Actions → New repository secret**:
+
+- `CODACY_PROJECT_TOKEN` — from your Codacy project's *Repositories
+  → Settings → Integrations → Project API*.
+- `SNYK_TOKEN` — from <https://app.snyk.io/account> (under "Auth
+  Token").
+- `CODECOV_TOKEN` — from your Codecov repo settings; required even
+  for public repos since 2024.
+
+After adding the tokens, re-run the workflow from the failed run's
+GitHub UI (`Re-run failed jobs`). All eight jobs should pass.
+
+If you opted out of one or more integrations during render, the
+corresponding job is absent from the workflow file — there is
+nothing to configure.
 
 ## Project Structure
 
@@ -91,27 +151,35 @@ make clean
 ## Before Committing
 
 1. **Run validation:**
+
    ```bash
    make validate
    ```
+
    All checks must pass before merging to the default branch.
 
 2. **Use conventional commits:**
+
    ```bash
    git commit -m "feat(auth): add login endpoint"
    ```
+
    Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `build`, `ci`, `perf`, `style`
 
 3. **Name your branch:**
+
    ```bash
    git checkout -b feat/your-feature
    ```
+
    Format: `<type>/<slug>` (e.g., `feat/auth`, `fix/crash-on-empty-input`)
 
 4. **Stage files explicitly:**
+
    ```bash
    git add src/auth.py tests/test_auth.py
    ```
+
    Never use `git add -A` or `git add .`
 
 ## Governance Directives
@@ -143,6 +211,7 @@ python3 -m unittest tests.test_pre_tool_use_hook.PreToolUseHookTests.test_refspe
 ```
 
 The test specification is in `tests/hook_test_spec.yaml`. When adding new test cases:
+
 1. Add to `hook_test_spec.yaml` (single source of truth)
 2. Update `tests/test_pre_tool_use_hook.py`
 3. Update `tests/test_pre_tool_use_hook.js` (TypeScript variant must stay in sync)
@@ -161,6 +230,7 @@ def test_example():
 ```
 
 Run with:
+
 ```bash
 make test-python
 ```
@@ -170,6 +240,7 @@ make test-python
 ### "WARN: ruff not installed"
 
 Ruff is installed as a dev dependency via `pyproject.toml`. Ensure you've run:
+
 ```bash
 make sync
 ```
@@ -184,11 +255,13 @@ type-checker is selected at template-generation time via the
 ### Tests fail but I haven't changed anything
 
 Check that the hook regression tests pass:
+
 ```bash
 make hooks-test
 ```
 
 If hook tests fail, the repository may have a stale `.git` state. Verify your branch name and commit setup:
+
 ```bash
 git status
 git log -1 --oneline

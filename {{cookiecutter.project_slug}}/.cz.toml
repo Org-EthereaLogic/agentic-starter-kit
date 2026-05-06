@@ -1,0 +1,26 @@
+# Commitizen — interactive helper for Conventional Commits.
+#
+# This file configures the `cz` CLI (https://commitizen-tools.github.io)
+# as a *commit-message authoring helper* only. Version bumping, tag
+# creation, and CHANGELOG generation are owned by release-please
+# (`.github/workflows/release-please.yml`); commitizen is intentionally
+# not used as a release driver here so the two tools cannot disagree.
+#
+# Usage (optional):
+#
+#   uv tool install commitizen   # or: pipx install commitizen
+#   cz commit                    # interactive Conventional Commits prompt
+#
+# IMP-002 (Conventional Commits) is the binding rule. Commitizen makes
+# compliance easier; commitlint (when wired in via pre-commit) is the
+# mechanical gate. See CONTRIBUTING.md for the full convention.
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+# Match the branch / commit type allowlist documented in CONTRIBUTING.md.
+# Keep this list in sync with that document; the two are the contract.
+# Types: feat, fix, chore, docs, refactor, test, build, ci, perf, style.
+tag_format = "v$version"
+# release-please owns version bumps; do not let `cz bump` rewrite files.
+update_changelog_on_bump = false
+annotated_tag = true

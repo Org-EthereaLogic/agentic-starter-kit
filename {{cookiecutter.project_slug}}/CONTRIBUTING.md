@@ -45,6 +45,8 @@ If `make validate` is clean, you are ready to contribute.
   ```
   Types match the branch types above. Scope is project-defined;
   pick a directory name or a directive ID when applicable.
+  Breaking changes go in the footer as `BREAKING CHANGE: …` (or
+  append `!` after the type, e.g. `feat!: drop python 3.10`).
 - **No commits to `{{ cookiecutter.default_branch_name }}` or
   `master`** (`CRIT-008`). The Layer 4 runtime hook
   (`.claude/hooks/pre-tool-use.js`) blocks this. Phase 11 of the
@@ -55,6 +57,50 @@ If `make validate` is clean, you are ready to contribute.
 - **Stage explicitly** (`IMP-004`). Never `git add -A` or
   `git add .`. Stage by file or narrow path glob and review the
   staged set before committing.
+{% if cookiecutter.include_release_automation == "yes" %}
+### Authoring helpers
+
+`.cz.toml` configures [Commitizen](https://commitizen-tools.github.io)
+as an optional interactive prompt for Conventional Commits. It is
+not required — any compliant commit message works — but if you
+want guidance:
+
+```sh
+uv tool install commitizen   # or: pipx install commitizen
+cz commit                    # interactive Conventional Commits prompt
+```
+
+Commitizen here is a *commit-message helper only*. Version bumps,
+tags, and `CHANGELOG.md` are owned by release-please (see below);
+the two tools are intentionally not both wired to drive releases.
+
+## Releases
+
+Releases are driven by
+[release-please](https://github.com/googleapis/release-please)
+(`.github/workflows/release-please.yml`). The flow:
+
+1. Conventional-commit messages land on
+   `{{ cookiecutter.default_branch_name }}` (via merged PRs).
+2. release-please opens (or updates) a single Release PR titled
+   `chore(release): <version>` summarising the pending changes
+   and the resulting `CHANGELOG.md` diff.
+3. When that Release PR is merged, release-please pushes a
+   `v<x.y.z>` tag and creates the GitHub Release.
+4. The tag push triggers `release.yml`, which builds artifacts
+   and attaches SLSA L3 provenance to the release.
+
+`release-please-config.json` and `release-please-manifest.json`
+are the source of truth for release-please's bookkeeping; do not
+edit them by hand. release-please does **not** write to the
+`report/` directory — the
+`report/<UTC-timestamp>-*` evidence trail (`IMP-001`) is
+unaffected.
+
+To opt out of release automation, render the template with
+`include_release_automation=no`; `hooks/post_gen_project.py`
+removes the workflow, the config, and `.cz.toml` in that case.
+{% endif %}
 
 ## The Plan / Act / Verify / Report loop
 

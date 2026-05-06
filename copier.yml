@@ -177,6 +177,14 @@ include_docs_site:
     - "no"
     - "yes"
 
+include_release_automation:
+  type: str
+  help: "Add Commitizen helper plus release-please workflow/config for automated Release PRs and tags."
+  default: "yes"
+  choices:
+    - "yes"
+    - "no"
+
 default_branch_name:
   type: str
   help: "Protected branch the runtime hook guards."
@@ -210,6 +218,7 @@ cookiecutter:
     include_macaron: "{{ include_macaron }}"
     include_devcontainer: "{{ include_devcontainer }}"
     include_docs_site: "{{ include_docs_site }}"
+    include_release_automation: "{{ include_release_automation }}"
     default_branch_name: "{{ default_branch_name }}"
 
 # Post-render pruning. Mirrors hooks/post_gen_project.py for the
@@ -241,6 +250,8 @@ _tasks:
     when: "{{ include_devcontainer == 'no' }}"
   - command: "rm -f mkdocs.yml docs/index.md .github/workflows/docs.yml"
     when: "{{ include_docs_site == 'no' }}"
+  - command: "rm -f .cz.toml release-please-config.json release-please-manifest.json .github/workflows/release-please.yml"
+    when: "{{ include_release_automation == 'no' }}"
 
   # Strip placeholder .gitkeep files left from the template scaffold.
   - command: "find . -name .gitkeep -type f -delete"

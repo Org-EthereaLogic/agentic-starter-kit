@@ -57,7 +57,9 @@ If `make validate` is clean, you are ready to contribute.
 - **Stage explicitly** (`IMP-004`). Never `git add -A` or
   `git add .`. Stage by file or narrow path glob and review the
   staged set before committing.
+
 {% if cookiecutter.include_release_automation == "yes" %}
+
 ### Authoring helpers
 
 `.cz.toml` configures [Commitizen](https://commitizen-tools.github.io)

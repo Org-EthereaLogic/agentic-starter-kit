@@ -150,6 +150,7 @@ shown):
 | `include_snyk` | `yes` | `yes`, `no` | Adds `.snyk` plus a CI job |
 | `include_sbom` | `yes` | `yes`, `no` | Adds `scripts/generate-sbom.sh` plus a CI job |
 | `include_macaron` | `no` | `no`, `yes` | Adds an Oracle Macaron supply-chain analysis job to `supply-chain.yml`. Off by default — Macaron is optional and adds workflow runtime |
+| `include_devcontainer` | `yes` | `yes`, `no` | Adds `.devcontainer/devcontainer.json` plus a SHA-pinned multi-stage `Dockerfile` for the rendered project |
 | `default_branch_name` | `main` | free text | Protected branch the runtime hook guards |
 
 The post-generation hook (`hooks/post_gen_project.py` for
@@ -240,7 +241,10 @@ agentic-starter-kit/
 │   │   ├── traceability.json
 │   │   └── traceability.schema.json
 │   ├── tests/
-│   └── report/
+│   ├── report/
+│   ├── .devcontainer/                  # Devcontainer (conditional)
+│   ├── Dockerfile                      # Production image (conditional)
+│   └── .dockerignore                   # Production-image ignores (conditional)
 ├── README.md                       # This file (template-repo manual)
 ├── LICENSE                         # MIT — for the template repo itself
 └── .gitignore

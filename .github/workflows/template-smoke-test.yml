@@ -247,17 +247,99 @@ jobs:
             /tmp/cc/my-agentic-project /tmp/co
           echo "✓ Renders are equivalent"
 
+  devcontainer-build:
+    name: Devcontainer build (${{ matrix.primary_language }})
+    runs-on: ubuntu-latest
+    needs: smoke-test
+    strategy:
+      fail-fast: false
+      matrix:
+        primary_language: [python, typescript, polyglot]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install cookiecutter
+        run: pip install cookiecutter --quiet
+      - name: Render variant
+        env:
+          PRIMARY_LANGUAGE: ${{ matrix.primary_language }}
+        run: |
+          cookiecutter . --no-input -f --output-dir /tmp/rendered \
+            primary_language="$PRIMARY_LANGUAGE" \
+            include_devcontainer=yes
+          mv /tmp/rendered/my-agentic-project rendered-project
+      - name: Verify devcontainer artifacts shipped
+        run: |
+          test -f rendered-project/.devcontainer/devcontainer.json
+          test -f rendered-project/.devcontainer/post-create.sh
+          test -x rendered-project/.devcontainer/post-create.sh
+          test -f rendered-project/Dockerfile
+          test -f rendered-project/.dockerignore
+      # Build only the devcontainer image. We do not run the project's
+      # `make sync` or full `postCreateCommand` here — that is exercised
+      # by the smoke-test job. This step proves the devcontainer.json
+      # references and the feature pins resolve.
+      - uses: devcontainers/ci@b63b30de439b47a52267f241112c5b453b673db5 # v0.3.1900000449
+        with:
+          subFolder: rendered-project
+          push: never
+          runCmd: echo "devcontainer up"
+      # Build the production Dockerfile so language-conditional stages
+      # and the lockfile fall-back paths are actually exercised. Just
+      # checking the file exists (above) leaves real syntax / build
+      # failures invisible until a user runs `docker build`.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build root Dockerfile
+        run: |
+          docker buildx build \
+            --file rendered-project/Dockerfile \
+            --tag rendered-project:smoke \
+            --load \
+            rendered-project
+          echo "✓ root Dockerfile built for ${{ matrix.primary_language }}"
+      - name: Verify pruning when include_devcontainer=no (cookiecutter)
+        env:
+          PRIMARY_LANGUAGE: ${{ matrix.primary_language }}
+        run: |
+          rm -rf /tmp/rendered-no
+          cookiecutter . --no-input -f --output-dir /tmp/rendered-no \
+            primary_language="$PRIMARY_LANGUAGE" \
+            include_devcontainer=no
+          test ! -e /tmp/rendered-no/my-agentic-project/.devcontainer
+          test ! -e /tmp/rendered-no/my-agentic-project/Dockerfile
+          test ! -e /tmp/rendered-no/my-agentic-project/.dockerignore
+          echo "✓ cookiecutter pruning works for $PRIMARY_LANGUAGE"
+      - name: Verify pruning when include_devcontainer=no (copier)
+        env:
+          PRIMARY_LANGUAGE: ${{ matrix.primary_language }}
+        run: |
+          pip install copier --quiet
+          rm -rf /tmp/rendered-no-copier
+          mkdir -p /tmp/rendered-no-copier
+          copier copy --trust --defaults \
+            --data primary_language="$PRIMARY_LANGUAGE" \
+            --data include_devcontainer=no \
+            --vcs-ref HEAD . /tmp/rendered-no-copier
+          test ! -e /tmp/rendered-no-copier/.devcontainer
+          test ! -e /tmp/rendered-no-copier/Dockerfile
+          test ! -e /tmp/rendered-no-copier/.dockerignore
+          echo "✓ copier pruning works for $PRIMARY_LANGUAGE"
+
   smoke-test-summary:
     name: Smoke Test Summary
     if: always()
-    needs: [smoke-test, render-equivalence]
+    needs: [smoke-test, render-equivalence, devcontainer-build]
     runs-on: ubuntu-latest
     steps:
       - name: Check smoke test results
         run: |
           if [ "${{ needs.smoke-test.result }}" = "success" ] \
-              && [ "${{ needs.render-equivalence.result }}" = "success" ]; then
-            echo "✅ All template variants and render-equivalence passed"
+              && [ "${{ needs.render-equivalence.result }}" = "success" ] \
+              && [ "${{ needs.devcontainer-build.result }}" = "success" ]; then
+            echo "✅ All template variants, render-equivalence, and devcontainer build passed"
             exit 0
           else
             echo "❌ One or more variants failed smoke test"

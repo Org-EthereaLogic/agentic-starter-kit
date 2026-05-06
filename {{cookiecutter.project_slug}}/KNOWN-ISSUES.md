@@ -19,7 +19,7 @@ workflow once the secrets are in place.
 | --- | --- | --- |
 | `codacy` | `CODACY_PROJECT_TOKEN` | Codacy → your repo → *Settings → Integrations → Project API* |
 | `snyk` | `SNYK_TOKEN` | <https://app.snyk.io/account> → *Auth Token* |
-| `codecov` | `CODECOV_TOKEN` | Codecov → repo settings (still required for **public** repos in 2026) |
+| `codecov` | `CODECOV_TOKEN` | Codecov → repo settings (still required for **public** repos since 2024) |
 
 Add at **GitHub → Settings → Secrets and variables → Actions →
 New repository secret**. Then *Re-run failed jobs* on the affected

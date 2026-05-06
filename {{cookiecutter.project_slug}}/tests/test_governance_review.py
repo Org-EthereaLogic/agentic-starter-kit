@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import json
 import sys
-from subprocess import CompletedProcess
 from pathlib import Path
+from subprocess import CompletedProcess
 from unittest.mock import patch
 
 import pytest

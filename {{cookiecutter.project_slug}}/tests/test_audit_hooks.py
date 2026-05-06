@@ -105,7 +105,7 @@ class UserPromptSubmitHookTests(unittest.TestCase):
     def test_records_prompt_hash_not_text(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
-            secret_prompt = "this should not appear in the audit log"
+            secret_prompt = "this should not appear in the audit log"  # noqa: S105
             result = _run_hook(
                 "user-prompt-submit.cjs",
                 {"session_id": "abc", "prompt": secret_prompt},

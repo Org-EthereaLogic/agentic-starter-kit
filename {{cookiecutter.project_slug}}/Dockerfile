@@ -40,12 +40,24 @@ COPY --from=ghcr.io/astral-sh/uv:0.5 /uv /uvx /usr/local/bin/
 
 WORKDIR /app
 COPY pyproject.toml uv.lock* ./
+# `--frozen` requires a committed `uv.lock`. Fall back to a regular
+# resolve when the lockfile is absent so a freshly-rendered project
+# still builds; the warning makes the slower path visible.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-install-project --no-dev
+    if [ -f uv.lock ]; then \
+        uv sync --frozen --no-install-project --no-dev; \
+    else \
+        echo "warning: no uv.lock — resolving dependencies on the fly"; \
+        uv sync --no-install-project --no-dev; \
+    fi
 
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    if [ -f uv.lock ]; then \
+        uv sync --frozen --no-dev; \
+    else \
+        uv sync --no-dev; \
+    fi
 
 # ----- runtime ------------------------------------------------------
 FROM ${PYTHON_IMAGE} AS runtime
@@ -76,10 +88,26 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --include=dev
+# `npm ci` requires a committed lockfile; fall back to `npm install`
+# when one is absent so a freshly-rendered project still builds.
+RUN if [ -f package-lock.json ]; then \
+        npm ci --include=dev; \
+    else \
+        echo "warning: no package-lock.json — running npm install"; \
+        npm install --include=dev; \
+    fi
 
 COPY . .
-RUN npm run build || echo "no build script"
+# Run `build` when (and only when) the project defines one; a missing
+# script is fine, but a real failure must abort the build.
+RUN if node -e "process.exit(require('./package.json').scripts && require('./package.json').scripts.build ? 0 : 1)"; then \
+        npm run build; \
+    else \
+        echo "no build script — skipping"; \
+    fi
+# `dist/` is the conventional output directory; ensure it exists even
+# when no build step ran so the runtime stage's COPY is unconditional.
+RUN mkdir -p dist
 RUN npm prune --omit=dev
 
 # ----- runtime ------------------------------------------------------
@@ -117,10 +145,19 @@ COPY --from=ghcr.io/astral-sh/uv:0.5 /uv /uvx /usr/local/bin/
 WORKDIR /app
 COPY pyproject.toml uv.lock* ./
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-install-project --no-dev
+    if [ -f uv.lock ]; then \
+        uv sync --frozen --no-install-project --no-dev; \
+    else \
+        echo "warning: no uv.lock — resolving dependencies on the fly"; \
+        uv sync --no-install-project --no-dev; \
+    fi
 COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    if [ -f uv.lock ]; then \
+        uv sync --frozen --no-dev; \
+    else \
+        uv sync --no-dev; \
+    fi
 
 # ----- node builder -------------------------------------------------
 FROM ${NODE_IMAGE} AS node-builder
@@ -131,9 +168,20 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci --include=dev
+RUN if [ -f package-lock.json ]; then \
+        npm ci --include=dev; \
+    else \
+        echo "warning: no package-lock.json — running npm install"; \
+        npm install --include=dev; \
+    fi
 COPY . .
-RUN npm run build || echo "no build script"
+RUN if node -e "process.exit(require('./package.json').scripts && require('./package.json').scripts.build ? 0 : 1)"; then \
+        npm run build; \
+    else \
+        echo "no build script — skipping"; \
+    fi
+# Ensure `dist/` always exists so the runtime COPY below is unconditional.
+RUN mkdir -p dist
 RUN npm prune --omit=dev
 
 # ----- runtime (python-based, with node bundled) --------------------
@@ -160,7 +208,7 @@ RUN groupadd --system --gid 1001 app \
 WORKDIR /app
 COPY --from=python-builder --chown=app:app /app /app
 COPY --from=node-builder --chown=app:app /app/node_modules /app/node_modules
-COPY --from=node-builder --chown=app:app /app/dist /app/dist 2>/dev/null || true
+COPY --from=node-builder --chown=app:app /app/dist /app/dist
 
 USER app
 

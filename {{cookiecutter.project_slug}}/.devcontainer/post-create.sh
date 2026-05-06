@@ -12,9 +12,16 @@ set -eu
 log() { printf '[devcontainer] %s\n' "$*"; }
 
 ensure_apt_packages() {
+  # Map (apt package name) -> (binary that proves it is installed).
+  # `ripgrep` ships the `rg` binary; the package and binary names differ.
+  local -A pkg_bin=(
+    [jq]=jq
+    [ripgrep]=rg
+    [make]=make
+  )
   local missing=()
-  for pkg in jq ripgrep make; do
-    if ! command -v "$pkg" >/dev/null 2>&1; then
+  for pkg in "${!pkg_bin[@]}"; do
+    if ! command -v "${pkg_bin[$pkg]}" >/dev/null 2>&1; then
       missing+=("$pkg")
     fi
   done
@@ -23,9 +30,16 @@ ensure_apt_packages() {
     return 0
   fi
   log "installing apt packages: ${missing[*]}"
-  sudo apt-get update -y
-  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${missing[@]}"
-  sudo rm -rf /var/lib/apt/lists/*
+  # Tolerate transient apt failures — the script's contract is to
+  # report and continue, not abort `postCreateCommand`.
+  if ! sudo apt-get update -y; then
+    log "apt-get update failed — skipping apt install (rerun this script manually)"
+    return 0
+  fi
+  if ! sudo DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${missing[@]}"; then
+    log "apt-get install failed for: ${missing[*]} (continuing)"
+  fi
+  sudo rm -rf /var/lib/apt/lists/* || true
 }
 
 ensure_uv() {
@@ -33,10 +47,14 @@ ensure_uv() {
     log "uv already installed: $(uv --version)"
     return 0
   fi
-  log "installing uv (Astral)"
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  # The installer drops uv in ~/.local/bin; make it visible for this shell.
-  export PATH="$HOME/.local/bin:$PATH"
+  log "installing uv (Astral) to /usr/local/bin"
+  # Drop the binary into a system-wide location so it survives across
+  # shells without relying on the user's ~/.local/bin being on PATH.
+  if ! curl -LsSf https://astral.sh/uv/install.sh \
+        | sudo env UV_INSTALL_DIR=/usr/local/bin UV_NO_MODIFY_PATH=1 sh; then
+    log "uv install failed (continuing — re-run this script manually)"
+    return 0
+  fi
   log "uv installed: $(uv --version)"
 }
 

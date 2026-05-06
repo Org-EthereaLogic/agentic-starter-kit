@@ -48,3 +48,15 @@ updates:
     labels:
       - dependencies
       - devcontainer
+
+  # Production Dockerfile at repo root. SHA-pinned base images get
+  # refreshed by Dependabot automatically. The entry is benign when
+  # no root Dockerfile is present (e.g. include_devcontainer=no).
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 2
+    labels:
+      - dependencies
+      - docker

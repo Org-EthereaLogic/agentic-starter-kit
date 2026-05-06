@@ -28,6 +28,10 @@ This project supports {% if cookiecutter.primary_language == "python" %}**Python
 - **TypeScript developers:** See `QUICKSTART-TYPESCRIPT.md`
 {% endif -%}
 
+Before your first push, also skim `KNOWN-ISSUES.md` — it covers
+the repo secrets the CI workflow expects, macOS local-dev quirks,
+and the kit's tooling defaults.
+
 ## Key Commands
 
 ### Development

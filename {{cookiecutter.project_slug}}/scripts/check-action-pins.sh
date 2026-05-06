@@ -5,7 +5,7 @@
 # `uses:` lines that are not SHA-pinned. A SHA-pinned `uses:` looks
 # like:
 #
-#   uses: owner/repo@<40-char-lowercase-hex> # v<semver>
+#   uses: owner/repo@<40-char-hex> # v<version>
 #
 # Anything else — `@v4`, `@main`, `@latest`, a 7-char short SHA — is
 # a float pin and counts as supply-chain attack surface per
@@ -20,7 +20,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=lib/common.sh
+# shellcheck source={{cookiecutter.project_slug}}/scripts/lib/common.sh
 source "$SCRIPT_DIR/lib/common.sh"
 
 WORKFLOW_DIR=".github/workflows"
@@ -52,25 +52,26 @@ fi
 # Discover workflow files. `.yaml` is rare but valid. `mapfile` is
 # Bash 4+ and macOS still ships 3.2, so collect via a portable loop.
 workflows=()
+workflow_count=0
 while IFS= read -r f; do
   workflows+=("$f")
+  workflow_count=$((workflow_count + 1))
 done < <(find "$WORKFLOW_DIR" -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) | sort)
 
-if [[ ${#workflows[@]} -eq 0 ]]; then
+if [[ $workflow_count -eq 0 ]]; then
   log_info "no workflow files under $WORKFLOW_DIR"
   exit 0
 fi
 
 # Match a SHA-pinned uses line:
-#   uses: owner/repo[/path]@<40-hex> [# comment]
-# The 40-char lowercase hex is the contract. Capture it loosely so
+#   uses: owner/repo[/path]@<40-hex> with an optional trailing comment
+# The 40-char hex is the contract. Capture it loosely so
 # we can identify the owner/action for reporting; the strict shape
 # check is the second regex.
-sha_pin='@[0-9a-f]{40}([[:space:]]|$|#)'
+sha_pin='@[0-9A-Fa-f]{40}([[:space:]]|$|#)'
 
-# Local actions (`./` or `docker://`) and reusable workflows
-# (`.github/workflows/foo.yml`) are not SHA-pinned in the same way
-# and are excluded from the check.
+# Local actions (`./`), Docker action refs (`docker://`), and absolute
+# paths are not third-party GitHub Action refs and are excluded.
 skip_prefix='^(./|docker://|/)'
 
 findings=0
@@ -78,16 +79,23 @@ for wf in "${workflows[@]}"; do
   # Extract `uses:` lines with their line numbers; trim leading
   # whitespace and the `uses:` keyword to leave just the reference.
   while IFS=: read -r lineno raw; do
-    # Strip leading whitespace and "uses:" prefix.
-    ref="${raw#"${raw%%[![:space:]]*}"}"
-    ref="${ref#uses:}"
+    # Strip everything through "uses:" so inline list items such as
+    # `- uses:` and mapping entries parse the same way.
+    ref="${raw#*uses:}"
     ref="${ref#"${ref%%[![:space:]]*}"}"
     # Drop trailing comment for the shape check (but we still want
     # the user to see the original line in the finding).
     bare="${ref%%#*}"
     bare="${bare%"${bare##*[![:space:]]}"}"
+    bare="${bare#"${bare%%[![:space:]]*}"}"
 
-    # Skip local / docker / reusable refs.
+    leading_quote="${bare:0:1}"
+    if [[ ( "$leading_quote" == '"' || "$leading_quote" == "'" ) && "${bare: -1}" == "$leading_quote" ]]; then
+      bare="${bare#?}"
+      bare="${bare%?}"
+    fi
+
+    # Skip local, Docker, and absolute-path refs.
     if [[ "$bare" =~ $skip_prefix ]]; then
       continue
     fi
@@ -99,18 +107,18 @@ for wf in "${workflows[@]}"; do
 
     findings=$((findings + 1))
     log_warn "$wf:$lineno  float-pinned action: $bare"
-  done < <(grep -nE '^[[:space:]]+uses:[[:space:]]+[^[:space:]]+' "$wf" || true)
+  done < <(grep -nE '^[[:space:]]*(-[[:space:]]*)?uses:[[:space:]]+[^[:space:]]+' "$wf" || true)
 done
 
 if [[ $findings -eq 0 ]]; then
-  log_ok "$SCRIPT_NAME (${#workflows[@]} workflow file(s) scanned)"
+  log_ok "$SCRIPT_NAME ($workflow_count workflow file(s) scanned)"
   exit 0
 fi
 
 echo
 echo "$SCRIPT_NAME: $findings float-pinned reference(s) found." >&2
-echo "Per IMP-006, every \`uses:\` line should pin to a 40-char" >&2
-echo "commit SHA with a trailing \`# v<x>.<y>\` comment." >&2
+echo "Per IMP-006, every third-party \`uses:\` line should pin" >&2
+echo "to a 40-char commit SHA." >&2
 echo "Run with --strict (or STRICT=1) to fail the gate on findings." >&2
 
 if [[ "$strict" == "1" ]]; then

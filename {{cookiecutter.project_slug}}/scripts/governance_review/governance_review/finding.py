@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Any
 
 
-class Severity(str, Enum):
+class Severity(str, Enum):  # noqa: UP042
     ERROR = "error"
     WARNING = "warning"
     NOTE = "note"

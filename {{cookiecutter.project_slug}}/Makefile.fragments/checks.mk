@@ -10,11 +10,14 @@
 
 # Resolve the validator deterministically from the checked-in source.
 # A caller may still override `GOVERNANCE_REVIEW=...`, but the default
-# uses the in-tree package when Python is available so validation runs
-# against the committed rule set.
+# routes through `uv run` when uv is available so the validator picks
+# up the project's pinned Python (the validator requires 3.11+) rather
+# than whatever `python3` happens to resolve to on the system PATH.
 GOVERNANCE_REVIEW_PYTHON ?= $(shell command -v python3 2>/dev/null || command -v python 2>/dev/null)
 ifeq ($(strip $(GOVERNANCE_REVIEW)),)
-ifneq ($(strip $(GOVERNANCE_REVIEW_PYTHON)),)
+ifeq ($(HAS_UV),yes)
+GOVERNANCE_REVIEW := PYTHONPATH=scripts/governance_review uv run --quiet python -m governance_review
+else ifneq ($(strip $(GOVERNANCE_REVIEW_PYTHON)),)
 GOVERNANCE_REVIEW := PYTHONPATH=scripts/governance_review $(GOVERNANCE_REVIEW_PYTHON) -m governance_review
 endif
 endif

@@ -179,7 +179,7 @@ class GovernanceRules:
         raise ValueError(f"Unsupported export format: {format}")
 
 
-def main():
+def main() -> None:
     """CLI for governance rules queries."""
     import argparse
 

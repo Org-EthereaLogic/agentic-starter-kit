@@ -8,12 +8,15 @@ eval:
 ifeq ($(HAS_PROMPTFOO),yes)
 	@promptfoo eval --config evals/promptfooconfig.yaml
 else
-	@echo "WARN: promptfoo not installed; run 'npm install -g promptfoo' to enable eval gate"
-	@if [ -n "$$CI" ]; then \
-		echo "ERROR: eval gate is required in CI — add 'npm install -g promptfoo' to your workflow"; \
+	@if [ -n "$$CI" ] && [ "$(HAS_NPX)" = "yes" ]; then \
+		npx --yes promptfoo eval --config evals/promptfooconfig.yaml; \
+	elif [ -n "$$CI" ]; then \
+		echo "ERROR: eval gate is required in CI — add Node/npm or promptfoo to your workflow"; \
 		exit 1; \
+	else \
+		echo "WARN: promptfoo not installed; install promptfoo to enable eval gate"; \
+		echo "WARN: eval gate skipped — CI still enforces promptfoo when include_promptfoo=yes"; \
 	fi
-	@echo "WARN: eval gate skipped — install promptfoo to enforce in CI"
 endif
 
 {% endif %}

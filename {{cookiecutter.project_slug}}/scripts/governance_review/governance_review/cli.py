@@ -7,7 +7,7 @@ import sys
 from pathlib import Path
 
 from .checks import run_all
-from .finding import Severity
+from .finding import Finding, Severity
 from .formatters import format_json, format_sarif, format_text
 from .registry import CHECKS
 
@@ -80,7 +80,7 @@ def _selected_checks(select: list[str] | None) -> set[str] | None:
     return selected
 
 
-def _write_output(fmt: str, findings: list[object]) -> None:
+def _write_output(fmt: str, findings: list[Finding]) -> None:
     if fmt == "text":
         sys.stdout.write(format_text(findings))
     elif fmt == "json":
@@ -90,7 +90,7 @@ def _write_output(fmt: str, findings: list[object]) -> None:
 
 
 def _exit_code(
-    findings: list[object], *, warnings_as_errors: bool
+    findings: list[Finding], *, warnings_as_errors: bool
 ) -> int:
     has_error = any(f.severity is Severity.ERROR for f in findings)
     has_warning = any(f.severity is Severity.WARNING for f in findings)

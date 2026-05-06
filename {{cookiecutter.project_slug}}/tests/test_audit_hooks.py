@@ -23,6 +23,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 HOOKS_DIR = REPO_ROOT / ".claude" / "hooks"
@@ -30,7 +31,7 @@ HOOKS_DIR = REPO_ROOT / ".claude" / "hooks"
 
 def _run_hook(
     hook_filename: str,
-    payload: dict,
+    payload: dict[str, Any],
     cwd: Path,
     *,
     project_root: Path | None = None,
@@ -49,7 +50,7 @@ def _run_hook(
     )
 
 
-def _read_audit_lines(project_root: Path) -> list[dict]:
+def _read_audit_lines(project_root: Path) -> list[dict[str, Any]]:
     audit = project_root / "report" / "audit.jsonl"
     if not audit.exists():
         return []
@@ -105,10 +106,10 @@ class UserPromptSubmitHookTests(unittest.TestCase):
     def test_records_prompt_hash_not_text(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project_root = Path(tmp)
-            secret_prompt = "this should not appear in the audit log"
+            prompt_text = "this should not appear in the audit log"
             result = _run_hook(
                 "user-prompt-submit.cjs",
-                {"session_id": "abc", "prompt": secret_prompt},
+                {"session_id": "abc", "prompt": prompt_text},
                 project_root,
                 project_root=project_root,
             )
@@ -118,10 +119,10 @@ class UserPromptSubmitHookTests(unittest.TestCase):
             self.assertEqual(events[0]["type"], "prompt")
             # Prompt text MUST NOT appear in the audit line.
             audit_raw = (project_root / "report" / "audit.jsonl").read_text()
-            self.assertNotIn(secret_prompt, audit_raw)
+            self.assertNotIn(prompt_text, audit_raw)
             # A SHA-256 hash MUST be present.
             self.assertTrue(events[0]["prompt_hash"].startswith("sha256:"))
-            self.assertEqual(events[0]["prompt_length"], len(secret_prompt))
+            self.assertEqual(events[0]["prompt_length"], len(prompt_text))
 
 
 class PostToolUseHookTests(unittest.TestCase):

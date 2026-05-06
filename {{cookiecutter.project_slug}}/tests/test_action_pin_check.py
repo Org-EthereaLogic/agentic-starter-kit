@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import shutil
-import subprocess
+import subprocess  # nosec B404  # nosemgrep
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +11,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = PROJECT_ROOT / "scripts" / "check-action-pins.sh"
 COMMON = PROJECT_ROOT / "scripts" / "lib" / "common.sh"
+BASH = shutil.which("bash") or "/bin/bash"
 
 
 def _write_text(path: Path, content: str) -> None:
@@ -32,8 +33,8 @@ def _run_checker(workflow: str, *args: str) -> subprocess.CompletedProcess[str]:
         root = Path(tmp)
         _copy_checker(root)
         _write_text(root / ".github" / "workflows" / "ci.yml", workflow)
-        return subprocess.run(
-            ["bash", "scripts/check-action-pins.sh", *args],
+        return subprocess.run(  # nosec B603  # nosemgrep
+            [BASH, "scripts/check-action-pins.sh", *args],
             cwd=root,
             capture_output=True,
             text=True,

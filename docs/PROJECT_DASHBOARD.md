@@ -69,7 +69,7 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| D1 | [#24](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/24) | Examples gallery / vignettes | — | Low | 2 | ⏸ |
+| D1 | [#24](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/24) | Examples gallery / vignettes | — | Low | 2 | ✅ |
 
 ---
 

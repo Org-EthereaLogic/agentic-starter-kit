@@ -203,6 +203,9 @@ jobs:
           cd rendered-project
           npm install
 
+      - name: Install promptfoo
+        run: npm install --global promptfoo
+
       - name: Run validation gate
         run: |
           cd rendered-project

@@ -1,0 +1,60 @@
+# release-please for {{ cookiecutter.project_name }}
+#
+# Watches conventional-commit messages on the default branch and
+# maintains a single open Release PR. Merging that PR bumps the
+# version, updates CHANGELOG.md, and pushes a `v<x.y.z>` tag — the
+# tag push then triggers `release.yml` (SLSA L3 build + provenance).
+#
+# release-please owns: version files, CHANGELOG.md, release tag,
+# GitHub Release object.
+# release-please does NOT touch: anything under `report/`, the
+# `report/<UTC-timestamp>-*` evidence trail (IMP-001), specs,
+# or governance surfaces.
+#
+# Action pinning policy (DIRECTIVES.md IMP-006):
+#   The `uses:` line below pins to a semver tag with a trailing
+#   `# v<x>` comment. Before the first PR against this repository,
+#   replace `@v4` with the corresponding commit SHA.
+#   `scripts/check-action-pins.sh` (added in a later phase)
+#   verifies SHA pinning mechanically.
+#
+# Token policy:
+#   The default `GITHUB_TOKEN` is sufficient for release-please to
+#   open and merge its Release PR, but tags it pushes will NOT
+#   trigger downstream workflows (GitHub event-loop protection).
+#   To complete the SLSA chain — i.e. have the `v<x.y.z>` tag fire
+#   `release.yml` (SLSA L3 build + provenance) — provide a Personal
+#   Access Token or GitHub App token with `contents: write` and
+#   `pull-requests: write` in the `RELEASE_PLEASE_TOKEN` secret.
+#   The expression below prefers that secret and falls back to
+#   `GITHUB_TOKEN` (Release PR works; SLSA chain stays manual).
+{% raw %}
+name: release-please
+
+on:
+  push:
+    branches:
+      - {% endraw %}{{ cookiecutter.default_branch_name }}{% raw %}
+
+permissions: read-all
+
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Maintain release PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Run release-please
+        uses: googleapis/release-please-action@v4 # v4
+        with:
+          config-file: release-please-config.json
+          manifest-file: release-please-manifest.json
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+{% endraw %}

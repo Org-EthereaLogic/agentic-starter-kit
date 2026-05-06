@@ -25,6 +25,7 @@ INCLUDE_SBOM = "{{ cookiecutter.include_sbom }}"
 INCLUDE_MACARON = "{{ cookiecutter.include_macaron }}"
 INCLUDE_DEVCONTAINER = "{{ cookiecutter.include_devcontainer }}"
 INCLUDE_DOCS_SITE = "{{ cookiecutter.include_docs_site }}"
+INCLUDE_RELEASE_AUTOMATION = "{{ cookiecutter.include_release_automation }}"
 LICENSE_CHOICE = "{{ cookiecutter.license }}"
 
 PROJECT_ROOT = Path.cwd()
@@ -90,6 +91,11 @@ def prune_integration_files() -> None:
         remove("mkdocs.yml")
         remove("docs/index.md")
         remove(".github/workflows/docs.yml")
+    if INCLUDE_RELEASE_AUTOMATION == "no":
+        remove(".cz.toml")
+        remove("release-please-config.json")
+        remove("release-please-manifest.json")
+        remove(".github/workflows/release-please.yml")
 
 
 def prune_databricks_files() -> None:
@@ -127,6 +133,7 @@ def write_summary() -> None:
     print(f"  macaron          : {INCLUDE_MACARON}")
     print(f"  devcontainer     : {INCLUDE_DEVCONTAINER}")
     print(f"  docs site        : {INCLUDE_DOCS_SITE}")
+    print(f"  release autom.   : {INCLUDE_RELEASE_AUTOMATION}")
     print()
     print("Next steps:")
     print("  cd <project>")

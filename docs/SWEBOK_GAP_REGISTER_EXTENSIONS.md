@@ -63,7 +63,7 @@
 
 | ID | Gap | Deliverable | CI Verifier | Status |
 |---|---|---|---|---|
-| GAP-EXT-008 | release-please (Google) GitHub Action that creates a single Release PR aggregating conventional commits; merging the PR publishes; conditional on `include_release_automation=yes` | `.github/workflows/release-please.yml`; `release-please-config.json`; `release-please-manifest.json`; `docs/release-process.md` | release-please workflow | planned (conditional) |
+| GAP-EXT-008 | release-please (Google) GitHub Action that creates a single Release PR aggregating conventional commits; merging the PR publishes; conditional on `include_release_automation=yes` | `{{cookiecutter.project_slug}}/.github/workflows/release-please.yml`; `{{cookiecutter.project_slug}}/release-please-config.json`; `{{cookiecutter.project_slug}}/release-please-manifest.json`; `{{cookiecutter.project_slug}}/.cz.toml` (Commitizen helper); `{{cookiecutter.project_slug}}/CONTRIBUTING.md` release section | release-please workflow | landed (conditional) |
 | GAP-EXT-014 | commitlint as commit-msg pre-commit hook to mechanically enforce IMP-002 | Updated `.pre-commit-config.yaml` (commit-msg stage); `commitlint.config.cjs`; documented `commitizen` as optional helper in CONTRIBUTING.md | pre-commit (commit-msg stage) | planned |
 
 ---

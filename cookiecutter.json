@@ -17,6 +17,7 @@
   "include_macaron": ["no", "yes"],
   "include_devcontainer": ["yes", "no"],
   "include_docs_site": ["no", "yes"],
+  "include_release_automation": ["yes", "no"],
   "default_branch_name": "main",
   "_copy_without_render": [
     "scripts/*.sh",

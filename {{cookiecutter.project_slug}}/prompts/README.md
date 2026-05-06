@@ -29,6 +29,6 @@ Your prompt text here.
 
 ## Example
 
-`prompts/summarize-v1.md` — initial summarization prompt.
+`prompts/summarize-v1.0.md` — initial summarization prompt.
 
 Add your application prompts here following the convention above.

@@ -28,10 +28,10 @@ root.
 
 ```
 prompts/
-  README.md              ← convention guide (this policy in short form)
-  summarize-v1.md        ← initial version
-  summarize-v2.md        ← non-breaking update
-  extract-entities-v1.md
+  README.md                  ← convention guide (this policy in short form)
+  summarize-v1.0.md          ← initial version
+  summarize-v2.0.md          ← non-breaking update
+  extract-entities-v1.0.md
 ```
 
 Each file carries YAML frontmatter:
@@ -42,7 +42,7 @@ name: summarize
 version: "2.0"
 model: claude-sonnet-4-6
 breaking: false
-supersedes: summarize-v1.md
+supersedes: summarize-v1.0.md
 ---
 ```
 

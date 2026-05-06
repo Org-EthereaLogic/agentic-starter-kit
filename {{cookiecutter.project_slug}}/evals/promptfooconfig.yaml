@@ -21,10 +21,23 @@ providers:
       max_tokens: 1024
 
 # ---------------------------------------------------------------------------
+# Prompts
+# ---------------------------------------------------------------------------
+# Define prompts here and reference them by label in each test case.
+# To load a versioned prompt file use: file://prompts/my-prompt-v1.0.md
+# See https://promptfoo.dev/docs/configuration/parameters#prompts
+prompts:
+  - label: smoke
+    raw: "Reply with exactly the word READY and nothing else."
+  - label: json-format
+    raw: |
+      Return a JSON object with a single key "status" set to "ok".
+      Return only the JSON object, no explanation.
+
+# ---------------------------------------------------------------------------
 # Test cases
 # ---------------------------------------------------------------------------
-# Each test case defines its prompt inline or references a file under
-# prompts/ using the `file://` URI (e.g. `file://prompts/summarize-v1.md`).
+# Each test case references a prompt by its label and declares assertions.
 #
 # Assertion types:
 #   contains        — output includes the string (case-insensitive)
@@ -41,7 +54,7 @@ tests:
   # Replace or extend this with tests targeting your actual prompts.
   # -------------------------------------------------------------------------
   - description: "smoke — model responds to a basic instruction"
-    prompt: "Reply with exactly the word READY and nothing else."
+    prompt: smoke
     assert:
       - type: contains
         value: "READY"
@@ -50,14 +63,13 @@ tests:
   # Output format check
   # -------------------------------------------------------------------------
   - description: "format — JSON output is well-formed"
-    prompt: |
-      Return a JSON object with a single key "status" set to "ok".
-      Return only the JSON object, no explanation.
+    prompt: json-format
     assert:
       - type: javascript
         value: |
           try {
-            const parsed = JSON.parse(output);
+            const cleaned = output.replace(/^```(?:json)?\n?|\n?```$/g, '').trim();
+            const parsed = JSON.parse(cleaned);
             return parsed.status === "ok";
           } catch {
             return false;

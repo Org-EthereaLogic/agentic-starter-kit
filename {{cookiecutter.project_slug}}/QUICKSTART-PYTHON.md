@@ -35,34 +35,37 @@ git init -b {{ cookiecutter.default_branch_name }}
 
 # 2. Stage everything the template produced. After this commit,
 #    revert to staging files explicitly (see "Before Committing"
-#    below — IMP-005 forbids `git add -A` for normal work).
+#    below — IMP-004 forbids `git add -A` for normal work).
 git add -A
 
-# 3. Conventional-commit the scaffold. The pre-commit hooks ship
-#    pre-installed via `make sync`, so this commit will run the
-#    same validation gates as `make validate`.
+# 3. Install local Git hooks after the repository exists.
+pre-commit install --hook-type pre-commit --hook-type pre-push
+
+# 4. Conventional-commit the scaffold. The pre-commit hooks run
+#    their configured subset; `make validate` remains the full
+#    local verification gate.
 git commit -m "chore(scaffold): initial agentic-starter-kit render"
 
-# 4. Create the GitHub repo and push. `--private` is the safer
+# 5. Create the GitHub repo and push. `--private` is the safer
 #    default; flip to `--public` when you're ready to publish.
 gh repo create {{ cookiecutter.project_slug }} --private --source=. --push
 ```
 
 ### What to expect on the first CI run
 
-The push triggers `.github/workflows/ci.yml`. Five jobs run by
-default; three more run when their toggle was set during render.
+The push triggers `.github/workflows/ci.yml`. Three jobs run by
+default; four more run when their toggle was set during render.
+OSSF Scorecards runs in `.github/workflows/scorecards.yml`.
 
 | Job | First-run state | Action needed |
 | --- | --- | --- |
 | `validate` (make validate) | ✅ green | none |
 | `hooks-test` (CRIT-008) | ✅ green | none |
 | `secret-scan` (TruffleHog OSS) | ✅ green | none — works without a token |
-| `scorecards` | ✅ green | none |
 | `sbom` *(if `include_sbom=yes`)* | ✅ green | artifact uploaded |
 | `codacy` *(if `include_codacy=yes`)* | ❌ fails | add `CODACY_PROJECT_TOKEN` repo secret |
-| `snyk` *(if `include_snyk=yes`)* | ❌ fails | add `SNYK_TOKEN` repo secret |
-| `coverage` *(if `include_codecov=yes`)* | ❌ upload fails | add `CODECOV_TOKEN` repo secret |
+| `snyk` *(if `include_snyk=yes`)* | ✅ green with warnings | add `SNYK_TOKEN` for complete scan results |
+| `codecov` *(if `include_codecov=yes`)* | ✅ green with upload warnings | add `CODECOV_TOKEN` for complete upload results |
 
 Add the missing tokens at **Settings → Secrets and variables →
 Actions → New repository secret**:
@@ -74,8 +77,9 @@ Actions → New repository secret**:
 - `CODECOV_TOKEN` — from your Codecov repo settings; required even
   for public repos since 2024.
 
-After adding the tokens, re-run the workflow from the failed run's
-GitHub UI (`Re-run failed jobs`). All eight jobs should pass.
+After adding the tokens, re-run the workflow from the GitHub UI.
+All enabled jobs should complete, and token-backed integrations
+should produce results instead of warnings.
 
 If you opted out of one or more integrations during render, the
 corresponding job is absent from the workflow file — there is
@@ -83,7 +87,7 @@ nothing to configure.
 
 ## Project Structure
 
-```
+```text
 {{ cookiecutter.project_slug }}/
 ├── pyproject.toml              # Python project metadata; dev/prod deps here
 ├── src/                        # Primary source code

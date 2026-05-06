@@ -47,6 +47,7 @@ tests:
   regressions
 
 Run with:
+
 ```bash
 python3 tests/test_command_contracts.py
 ```
@@ -58,6 +59,7 @@ python3 tests/test_command_contracts.py
   regressions, and `check-governance.sh` skill-frontmatter behavior
 
 Run with:
+
 ```bash
 python3 tests/test_skill_contracts.py
 ```
@@ -73,6 +75,7 @@ python3 tests/test_skill_contracts.py
   - `_run_hook()` — invoke hook, capture output
 
 Run with:
+
 ```bash
 python3 -m unittest tests.test_pre_tool_use_hook -v
 make hooks-test  # from root
@@ -85,6 +88,7 @@ make hooks-test  # from root
 - Key functions: Same as Python, implemented in JavaScript
 
 Run with:
+
 ```bash
 node tests/test_pre_tool_use_hook.js
 make hooks-test  # from root
@@ -93,6 +97,7 @@ make hooks-test  # from root
 ## Adding a New Test Case
 
 **Step 1:** Add to `hook_test_spec.yaml`:
+
 ```yaml
   - name: my_new_test
     class: 3
@@ -104,6 +109,7 @@ make hooks-test  # from root
 ```
 
 **Step 2:** Add test to `test_pre_tool_use_hook.py`:
+
 ```python
 def test_my_new_test(self) -> None:
     """Class 3: [description]."""
@@ -117,6 +123,7 @@ def test_my_new_test(self) -> None:
 ```
 
 **Step 3:** Add test to `test_pre_tool_use_hook.js`:
+
 ```javascript
 test("my new test", () => {
   const dir = setupRepo("feat/x");
@@ -127,6 +134,7 @@ test("my new test", () => {
 ```
 
 **Step 4:** Run both test suites to verify:
+
 ```bash
 make hooks-test
 ```
@@ -141,6 +149,7 @@ make hooks-test
 ## Future Improvements
 
 Template-based code generation could auto-generate both `.py` and `.js` test files from `hook_test_spec.yaml` via:
+
 - Jinja2 template rendering in post-gen hook
 - Or, standalone script in `scripts/` to regenerate tests
 
@@ -148,12 +157,14 @@ This would eliminate the 90% duplication and ensure perfect sync. See `/docs/OPT
 
 ## Common Issues
 
-**"Tests pass on my machine but fail in CI"**
+### "Tests pass on my machine but fail in CI"
+
 - Ensure Node.js is v20+: `node --version`
 - Ensure Python 3.11+: `python3 --version`
 - Check git is configured: `git config user.email` (should not be empty)
 
-**"How do I test a single case?"**
+### "How do I test a single case?"
+
 - Python: `python3 -m unittest tests.test_pre_tool_use_hook.PreToolUseHookTests.test_refspec_to_protected_blocks`
 - JavaScript: `node --test tests/test_pre_tool_use_hook.js --grep "refspec to protected blocks"`
 

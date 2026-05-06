@@ -83,14 +83,15 @@ Detailed in `AGENTS.md`. Compressed:
 | --- | --- |
 | `.claude/commands/` | Slash-command definitions. Each is a Markdown file with YAML frontmatter declaring `description`, `argument-hint`, and `allowed-tools`. |
 | `.claude/agents/` | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
-| `.claude/skills/` | Progressive-disclosure capability packs. Single Markdown files with frontmatter declaring `name`, `description`, and a `paths:` glob list that gates lazy loading. |
+| `.claude/skills/` | Progressive-disclosure capability packs. Single Markdown files with frontmatter declaring `name`, `description`, and a `paths` glob list that gates lazy loading. |
 | `.claude/hooks/pre-tool-use.js` | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
 | `.claude/settings.json` | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
 | `.mcp.json` | MCP server registration for this project. Ships a read-only filesystem/git baseline plus a token-scoped GitHub entry; see `docs/MCP_POLICY.md` before changing any entry. |
 
 These `.claude/...` paths ship with every fresh scaffold. Add new
-commands, agents, or skills under their respective directories and
-they are picked up automatically.
+commands, agents, or skills under their respective directories with
+valid frontmatter. Skills load only when their `paths` globs match
+touched files; see the directory READMEs for the required shape.
 
 ## Required checks before commit
 

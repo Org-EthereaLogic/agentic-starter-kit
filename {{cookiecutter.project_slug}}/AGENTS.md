@@ -42,7 +42,7 @@ lower-numbered tier wins.
 When authority sources conflict, resolve in this order. Tier 1 wins.
 
 | Tier | Authority | Scope |
-|---|---|---|
+| --- | --- | --- |
 | 1 | `SECURITY.md` | Security-relevant decisions |
 | 2 | `CONSTITUTION.md` | Foundational principles |
 | 3 | `DIRECTIVES.md` | Specific rules |
@@ -109,7 +109,7 @@ Per `CONSTITUTION.md §P8`, the agent's autonomy mode is a function
 of the task's risk class.
 
 | Risk class | Trigger | Autonomy mode |
-|---|---|---|
+| --- | --- | --- |
 | Low | Docs, tests, refactors with green CI | YOLO (no confirmation) |
 | Medium | Production-path code, schema changes | Auto (review checkpoint) |
 | High | Security policies, runtime hook, release engineering | Ask (operator confirms each step) |
@@ -150,8 +150,8 @@ full register and the per-directive enforcement mechanism.
 
 ## Required checks
 
-Once the build glue is scaffolded, every substantive change passes
-the following local checks before commit:
+Every fresh scaffold includes build glue. Every substantive change
+passes the following local checks before commit:
 
 - `make marker-scan` — no stub markers in canonical surfaces
   (`CRIT-001`).
@@ -170,8 +170,7 @@ the following local checks before commit:
 
 `make validate` aggregates every check above except
 `make coverage`. Run coverage separately when the operator or CI
-contract requires it. Until that aggregate target is in place, run
-each check individually or rely on reviewer attention.
+contract requires it.
 
 ## Communication style
 

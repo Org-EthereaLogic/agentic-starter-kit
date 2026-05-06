@@ -15,16 +15,17 @@
 
 ## Plan summary
 
-The roadmap is divided into four phases. Each phase ends in a
+The roadmap is divided into four phases. Each phase ended in a
 publishable release. **Phase A → v0.2; Phase B → v0.3; Phase C →
-v0.4.** Phase D is deferred polish.
+v0.4 (+ v0.4.1 hotfix). Phase D — Polish — was originally deferred,
+then shipped opportunistically alongside Phase C.**
 
-| Phase | Name | Target | Issues | Total effort (days) | Status |
+| Phase | Name | Release | Issues | Total effort (days) | Status |
 | --- | --- | --- | --- | --- | --- |
-| A | Hardening | v0.2, 2026-05-16 | 5 | 9 | ✅ shipped |
-| B | Specialization | v0.3, 2026-06-06 | 4 | 9 | ✅ shipped |
+| A | Hardening | v0.2, 2026-05-03 | 5 | 9 | ✅ shipped |
+| B | Specialization | v0.3, 2026-05-06 | 4 | 9 | ✅ shipped |
 | C | Distribution | v0.4 + v0.4.1, 2026-05-06 | 5 | 10 | ✅ shipped |
-| D | Polish | (deferred) | 1 | 2 | ✅ shipped |
+| D | Polish | 2026-05-06 | 1 | 2 | ✅ shipped |
 | — | Post-roadmap fixes | v0.4 / v0.4.1 hotfixes | 9 | ~10 | ✅ shipped |
 
 Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
@@ -35,7 +36,7 @@ receive the next sprint of work.
 
 ---
 
-## Phase A — Hardening (v0.2, due 2026-05-16)
+## Phase A — Hardening (v0.2, shipped 2026-05-03)
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -47,7 +48,7 @@ receive the next sprint of work.
 
 **Phase A gate:** `make validate` passes; OSSF Scorecards ≥ 7/10 on the rendered smoke project.
 
-## Phase B — Specialization (v0.3, due 2026-06-06)
+## Phase B — Specialization (v0.3, shipped 2026-05-06)
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -58,7 +59,7 @@ receive the next sprint of work.
 
 **Phase B gate:** every command/agent has YAML frontmatter; agents-coverage check in `make validate`; `/gov.*` ↔ `/speckit.*` mapping table complete.
 
-## Phase C — Distribution (v0.4, due 2026-06-27)
+## Phase C — Distribution (v0.4 + v0.4.1, shipped 2026-05-06)
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -70,7 +71,7 @@ receive the next sprint of work.
 
 **Phase C gate:** a 6-month-old smoke project absorbs every Phase A/B/C addition via `copier update` without merge conflicts on locked governance files.
 
-## Phase D — Polish (deferred)
+## Phase D — Polish (shipped 2026-05-06)
 
 | ID | Issue | Title | Gap | Lev | Eff | Status |
 | --- | --- | --- | --- | --- | --- | --- |

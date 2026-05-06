@@ -7,6 +7,7 @@ Getting started with the Python path of this scaffold.
 - Python 3.11+
 - `uv` package manager (recommended) or `pip`
 - `git` 2.40+
+- GitHub CLI (`gh`)
 
 ## Setup (2 minutes)
 
@@ -150,27 +151,35 @@ make clean
 ## Before Committing
 
 1. **Run validation:**
+
    ```bash
    make validate
    ```
+
    All checks must pass before merging to the default branch.
 
 2. **Use conventional commits:**
+
    ```bash
    git commit -m "feat(auth): add login endpoint"
    ```
+
    Types: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`, `build`, `ci`, `perf`, `style`
 
 3. **Name your branch:**
+
    ```bash
    git checkout -b feat/your-feature
    ```
+
    Format: `<type>/<slug>` (e.g., `feat/auth`, `fix/crash-on-empty-input`)
 
 4. **Stage files explicitly:**
+
    ```bash
    git add src/auth.py tests/test_auth.py
    ```
+
    Never use `git add -A` or `git add .`
 
 ## Governance Directives
@@ -202,6 +211,7 @@ python3 -m unittest tests.test_pre_tool_use_hook.PreToolUseHookTests.test_refspe
 ```
 
 The test specification is in `tests/hook_test_spec.yaml`. When adding new test cases:
+
 1. Add to `hook_test_spec.yaml` (single source of truth)
 2. Update `tests/test_pre_tool_use_hook.py`
 3. Update `tests/test_pre_tool_use_hook.js` (TypeScript variant must stay in sync)
@@ -220,6 +230,7 @@ def test_example():
 ```
 
 Run with:
+
 ```bash
 make test-python
 ```
@@ -229,6 +240,7 @@ make test-python
 ### "WARN: ruff not installed"
 
 Ruff is installed as a dev dependency via `pyproject.toml`. Ensure you've run:
+
 ```bash
 make sync
 ```
@@ -243,11 +255,13 @@ type-checker is selected at template-generation time via the
 ### Tests fail but I haven't changed anything
 
 Check that the hook regression tests pass:
+
 ```bash
 make hooks-test
 ```
 
 If hook tests fail, the repository may have a stale `.git` state. Verify your branch name and commit setup:
+
 ```bash
 git status
 git log -1 --oneline

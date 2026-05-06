@@ -183,9 +183,16 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5 # v5
         with:
-          python-version: "3.11"
-      - name: Install cyclonedx-py
-        run: pip install --upgrade pip cyclonedx-bom
+          python-version: "3.12"
+      - name: Install uv
+        run: pip install --upgrade pip uv
+      - name: Sync project (creates .venv)
+        # `cyclonedx-py environment .venv` needs a venv to inspect.
+        # Sync without dev deps so the SBOM reflects production
+        # dependencies only.
+        run: uv sync --no-dev
+      - name: Install cyclonedx-bom
+        run: pip install cyclonedx-bom
 {% endif %}
 {% if cookiecutter.primary_language in ("typescript", "polyglot") %}
       - name: Setup Node

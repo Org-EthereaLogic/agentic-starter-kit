@@ -23,6 +23,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 HOOKS_DIR = REPO_ROOT / ".claude" / "hooks"
@@ -30,7 +31,7 @@ HOOKS_DIR = REPO_ROOT / ".claude" / "hooks"
 
 def _run_hook(
     hook_filename: str,
-    payload: dict,
+    payload: dict[str, Any],
     cwd: Path,
     *,
     project_root: Path | None = None,
@@ -49,7 +50,7 @@ def _run_hook(
     )
 
 
-def _read_audit_lines(project_root: Path) -> list[dict]:
+def _read_audit_lines(project_root: Path) -> list[dict[str, Any]]:
     audit = project_root / "report" / "audit.jsonl"
     if not audit.exists():
         return []

@@ -37,6 +37,7 @@ dev = [
   "ruff>=0.7,<1",
 {% if cookiecutter.python_typechecker == "ty" %}  "ty>=0.0.1,<1",
 {% else %}  "mypy>=1.11,<2",
+  "types-PyYAML>=6,<7",
 {% endif %}  "pytest>=8,<9",
   "pytest-cov>=5,<7",
   "pre-commit>=3.7,<5",

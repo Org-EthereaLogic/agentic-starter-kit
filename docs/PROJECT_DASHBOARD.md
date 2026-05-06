@@ -19,14 +19,19 @@ The roadmap is divided into four phases. Each phase ends in a
 publishable release. **Phase A → v0.2; Phase B → v0.3; Phase C →
 v0.4.** Phase D is deferred polish.
 
-| Phase | Name | Target | Issues | Total effort (days) |
-| --- | --- | --- | --- | --- |
-| A | Hardening | v0.2, due 2026-05-16 | 5 | 9 |
-| B | Specialization | v0.3, due 2026-06-06 | 4 | 9 |
-| C | Distribution | v0.4, due 2026-06-27 | 5 | 10 |
-| D | Polish | deferred | 1 | 2 |
+| Phase | Name | Target | Issues | Total effort (days) | Status |
+| --- | --- | --- | --- | --- | --- |
+| A | Hardening | v0.2, 2026-05-16 | 5 | 9 | ✅ shipped |
+| B | Specialization | v0.3, 2026-06-06 | 4 | 9 | ✅ shipped |
+| C | Distribution | v0.4 + v0.4.1, 2026-05-06 | 5 | 10 | ✅ shipped |
+| D | Polish | (deferred) | 1 | 2 | ✅ shipped |
+| — | Post-roadmap fixes | v0.4 / v0.4.1 hotfixes | 9 | ~10 | ✅ shipped |
 
 Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
+
+**Current state (2026-05-06):** all roadmap and post-roadmap work is
+merged. There are no open issues. The project board is ready to
+receive the next sprint of work.
 
 ---
 
@@ -71,6 +76,40 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 | --- | --- | --- | --- | --- | --- | --- |
 | D1 | [#24](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/24) | Examples gallery / vignettes | — | Low | 2 | ✅ |
 
+## Post-roadmap fixes (May 5–6, 2026)
+
+Discovered during the first real-world build of `campaign-pulse` from
+the kit. All shipped via v0.4 + v0.4.1.
+
+| Issue | Title | Area | Status |
+| --- | --- | --- | --- |
+| [#38](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/38) | Pin `pypa/gh-action-pip-audit` to a published tag | ci | ✅ |
+| [#39](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/39) | Pin `ossf/scorecard-action` to a published tag | ci | ✅ |
+| [#40](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/40) | Dependabot `docker /.devcontainer` errors on empty dir | ci | ✅ |
+| [#41](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/41) | gitleaks-action requires paid `GITLEAKS_LICENSE` | ci | ✅ |
+| [#42](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/42) | macOS `/var → /private/var` symlink test failure | hooks | ✅ |
+| [#43](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/43) | `check-doc-drift.sh` requires Bash 4+ (macOS ships 3.2) | tooling | ✅ |
+| [#44](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/44) | CycloneDX SBOM job fails with exit code 2 | ci | ✅ |
+| [#45](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/45) | Convention drift between starter-kit defaults and product baseline | tooling | ✅ |
+| [#66](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/66) | v0.4.0 `make validate` silently skips lint/typecheck/test gates | tooling | ✅ |
+
+## Sprint tracking
+
+Project #6 carries a `Sprint` single-select field with these slots:
+
+| Slot | Window |
+| --- | --- |
+| Backlog | unscheduled |
+| Sprint 1 | 2026-05-06 → 2026-05-19 |
+| Sprint 2 | 2026-05-20 → 2026-06-02 |
+| Sprint 3 | 2026-06-03 → 2026-06-16 |
+| Sprint 4 | 2026-06-17 → 2026-06-30 |
+| Future | beyond Sprint 4 |
+
+When new work is filed, add it to Project #6, set `Sprint: Backlog`,
+fill `Effort` and `Leverage`, and pull into the active sprint when
+planning.
+
 ---
 
 ## Refresh
@@ -92,4 +131,7 @@ job is to be readable from the repo at a glance.
 
 - Created: 2026-05-02
 - Source: research report and improvement plan in conversation
+- Updated 2026-05-06: post-roadmap fix issues (#38–45, #66) added to
+  the GitHub project; `Sprint` field and `Deferred` status option
+  added to Project #6.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

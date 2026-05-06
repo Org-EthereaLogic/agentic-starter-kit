@@ -16,6 +16,7 @@
   "include_sbom": ["yes", "no"],
   "include_macaron": ["no", "yes"],
   "include_devcontainer": ["yes", "no"],
+  "include_docs_site": ["no", "yes"],
   "default_branch_name": "main",
   "_copy_without_render": [
     "scripts/*.sh",

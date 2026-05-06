@@ -328,18 +328,59 @@ jobs:
           test ! -e /tmp/rendered-no-copier/.dockerignore
           echo "✓ copier pruning works for $PRIMARY_LANGUAGE"
 
+  docs-site-build:
+    name: Docs site build (mkdocs --strict)
+    runs-on: ubuntu-latest
+    needs: smoke-test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install render tools and mkdocs-material
+        run: pip install cookiecutter copier mkdocs-material --quiet
+      - name: Render with include_docs_site=yes (cookiecutter)
+        run: |
+          rm -rf /tmp/docs-cc
+          cookiecutter . --no-input -f --output-dir /tmp/docs-cc \
+            include_docs_site=yes
+      - name: Build site (strict)
+        working-directory: /tmp/docs-cc/my-agentic-project
+        run: mkdocs build --strict
+      - name: Verify pruning when include_docs_site=no (cookiecutter)
+        run: |
+          rm -rf /tmp/docs-cc-no
+          cookiecutter . --no-input -f --output-dir /tmp/docs-cc-no \
+            include_docs_site=no
+          test ! -e /tmp/docs-cc-no/my-agentic-project/mkdocs.yml
+          test ! -e /tmp/docs-cc-no/my-agentic-project/docs/index.md
+          test ! -e /tmp/docs-cc-no/my-agentic-project/.github/workflows/docs.yml
+          echo "✓ cookiecutter pruning works for include_docs_site=no"
+      - name: Verify pruning when include_docs_site=no (copier)
+        run: |
+          rm -rf /tmp/docs-co-no
+          mkdir -p /tmp/docs-co-no
+          copier copy --trust --defaults \
+            --data include_docs_site=no \
+            --vcs-ref HEAD . /tmp/docs-co-no
+          test ! -e /tmp/docs-co-no/mkdocs.yml
+          test ! -e /tmp/docs-co-no/docs/index.md
+          test ! -e /tmp/docs-co-no/.github/workflows/docs.yml
+          echo "✓ copier pruning works for include_docs_site=no"
+
   smoke-test-summary:
     name: Smoke Test Summary
     if: always()
-    needs: [smoke-test, render-equivalence, devcontainer-build]
+    needs: [smoke-test, render-equivalence, devcontainer-build, docs-site-build]
     runs-on: ubuntu-latest
     steps:
       - name: Check smoke test results
         run: |
           if [ "${{ needs.smoke-test.result }}" = "success" ] \
               && [ "${{ needs.render-equivalence.result }}" = "success" ] \
-              && [ "${{ needs.devcontainer-build.result }}" = "success" ]; then
-            echo "✅ All template variants, render-equivalence, and devcontainer build passed"
+              && [ "${{ needs.devcontainer-build.result }}" = "success" ] \
+              && [ "${{ needs.docs-site-build.result }}" = "success" ]; then
+            echo "✅ All template variants, render-equivalence, devcontainer build, and docs-site build passed"
             exit 0
           else
             echo "❌ One or more variants failed smoke test"

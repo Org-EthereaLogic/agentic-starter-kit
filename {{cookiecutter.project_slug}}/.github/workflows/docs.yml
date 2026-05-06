@@ -1,0 +1,67 @@
+# Build and deploy the MkDocs Material docs site for
+# {{ cookiecutter.project_name }} to GitHub Pages.
+#
+# - Pull requests touching `docs/` or `mkdocs.yml` build the site
+#   in `--strict` mode so broken refs fail PR review.
+# - Pushes to `{{ cookiecutter.default_branch_name }}` upload the
+#   built site as a Pages artifact and deploy it via
+#   `actions/deploy-pages`. Enable Pages in the repository settings
+#   with source `GitHub Actions` for the deploy step to succeed.
+
+name: Docs site
+
+on:
+  push:
+    branches:
+      - {{ cookiecutter.default_branch_name }}
+    paths:
+      - docs/**
+      - mkdocs.yml
+      - .github/workflows/docs.yml
+  pull_request:
+    paths:
+      - docs/**
+      - mkdocs.yml
+      - .github/workflows/docs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ '{{' }} github.ref {{ '}}' }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # v4
+      - uses: actions/setup-python@v5 # v5
+        with:
+          python-version: '3.12'
+      - name: Install MkDocs Material
+        run: pip install --quiet mkdocs-material
+      - name: Build (strict)
+        run: mkdocs build --strict
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/{{ cookiecutter.default_branch_name }}'
+        uses: actions/upload-pages-artifact@v3 # v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    if: github.event_name == 'push' && github.ref == 'refs/heads/{{ cookiecutter.default_branch_name }}'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ '{{' }} steps.deploy.outputs.page_url {{ '}}' }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4 # v4

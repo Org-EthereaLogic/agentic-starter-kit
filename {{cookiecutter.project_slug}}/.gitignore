@@ -58,3 +58,11 @@ sbom/
 
 # Local agent memory (PostToolUse trace etc. — Phase 15)
 .claude/agent-memory/
+
+# Local data and secrets (never committed; loaded at runtime instead)
+data/
+secrets/
+*.duckdb
+*.parquet
+*.service-account.json
+.playwright/

@@ -38,8 +38,10 @@ updates:
       - dependencies
       - node
 
-{% endif %}  # Devcontainer (lands in Phase 14 / GAP-EXT-007). The entry is
-  # benign when no Dockerfile is present.
+{% endif %}{% if cookiecutter.include_devcontainer == "yes" %}  # Devcontainer image references in `.devcontainer/devcontainer.json`.
+  # Dependabot errors when this directory is empty, so the entry is
+  # gated on `include_devcontainer == "yes"` — only emitted when the
+  # devcontainer actually ships.
   - package-ecosystem: docker
     directory: "/.devcontainer"
     schedule:
@@ -50,8 +52,8 @@ updates:
       - devcontainer
 
   # Production Dockerfile at repo root. SHA-pinned base images get
-  # refreshed by Dependabot automatically. The entry is benign when
-  # no root Dockerfile is present (e.g. include_devcontainer=no).
+  # refreshed by Dependabot automatically. Gated on the same flag so
+  # Dependabot doesn't error when the Dockerfile is pruned.
   - package-ecosystem: docker
     directory: "/"
     schedule:
@@ -60,3 +62,4 @@ updates:
     labels:
       - dependencies
       - docker
+{% endif %}

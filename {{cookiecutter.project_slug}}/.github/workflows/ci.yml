@@ -77,19 +77,30 @@ jobs:
         run: make hooks-test
 
   secret-scan:
-    name: Secret scan (gitleaks)
+    name: Secret scan (TruffleHog OSS)
+    # TruffleHog OSS is the default secret scanner because
+    # `gitleaks/gitleaks-action@v2` requires a paid GITLEAKS_LICENSE
+    # for organization-owned repositories — a first-run breaker for
+    # most users. TruffleHog is Apache-2.0 and works without any
+    # license configuration. To switch back to gitleaks, replace the
+    # step below and provide `GITLEAKS_LICENSE` as a repo secret.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4 # v4
         with:
           fetch-depth: 0
-      - name: Gitleaks
-        uses: gitleaks/gitleaks-action@v2 # v2
-{% if cookiecutter.include_codacy == "yes" %}{% raw %}
-        env:
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-{% endraw %}{% endif %}
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@v3.95.2 # v3.95.2
+        with:
+          path: ./
+          # Scan the full history on push events; on PRs scan only
+          # the diff against the base ref to keep runtime bounded.
+          base: {% raw %}${{ github.event.before || github.event.pull_request.base.sha || '' }}{% endraw %}
+          head: HEAD
+          # `--only-verified` filters out unverified hits. Verified
+          # findings are the ones worth blocking the build on.
+          extra_args: --only-verified
 
 {% if cookiecutter.include_codacy == "yes" %}  codacy:
     name: Codacy analysis

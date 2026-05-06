@@ -43,7 +43,10 @@ jobs:
           persist-credentials: false
 
       - name: Run Scorecards
-        uses: ossf/scorecard-action@v2 # v2
+        # ossf/scorecard-action does not publish a bare `@v2` tag — only
+        # full semver tags. Pin to a published release so the workflow
+        # resolves on the first push.
+        uses: ossf/scorecard-action@v2.4.3 # v2.4.3
         with:
           results_file: results.sarif
           results_format: sarif

@@ -54,9 +54,19 @@ test-python:
 coverage-python:
 {% if cookiecutter.primary_language in ("python", "polyglot") %}
 	@if [ "$(HAS_UV)" = "yes" ]; then \
-		uv run --quiet pytest --cov=. tests/ 2>/dev/null || uv run --quiet pytest tests/; \
+		if uv run --quiet pytest --help | grep -q -- "--cov"; then \
+			uv run --quiet pytest --cov=. tests/; \
+		else \
+			echo "WARN: pytest-cov not installed; running tests without coverage"; \
+			uv run --quiet pytest tests/; \
+		fi; \
 	elif [ "$(HAS_PYTEST)" = "yes" ]; then \
-		pytest --cov=. tests/ 2>/dev/null || pytest tests/; \
+		if pytest --help | grep -q -- "--cov"; then \
+			pytest --cov=. tests/; \
+		else \
+			echo "WARN: pytest-cov not installed; running tests without coverage"; \
+			pytest tests/; \
+		fi; \
 	else \
 		echo "WARN: pytest not installed (run 'make sync' or 'uv sync --group dev')"; \
 	fi

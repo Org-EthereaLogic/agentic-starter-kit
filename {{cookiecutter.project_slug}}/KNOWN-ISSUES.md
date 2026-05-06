@@ -19,14 +19,14 @@ workflow once the secrets are in place.
 | --- | --- | --- |
 | `codacy` | `CODACY_PROJECT_TOKEN` | Codacy → your repo → *Settings → Integrations → Project API* |
 | `snyk` | `SNYK_TOKEN` | <https://app.snyk.io/account> → *Auth Token* |
-| `coverage` | `CODECOV_TOKEN` | Codecov → repo settings (still required for **public** repos in 2026) |
+| `codecov` | `CODECOV_TOKEN` | Codecov → repo settings (still required for **public** repos in 2026) |
 
 Add at **GitHub → Settings → Secrets and variables → Actions →
 New repository secret**. Then *Re-run failed jobs* on the affected
 workflow run.
 
 Codacy is the hard gate here. `snyk` runs with `continue-on-error:
-true` and `coverage` sets `fail_ci_if_error: false`, so those two can
+true` and `codecov` sets `fail_ci_if_error: false`, so those two can
 surface warnings without failing the whole workflow.
 
 If you opted any integration off at scaffold time, the matching
@@ -41,14 +41,16 @@ organization standardizes on gitleaks, swap the secret-scan step
 in `.github/workflows/ci.yml` and add a `GITLEAKS_LICENSE` repo
 secret — the comment block in that file walks through it.
 
-### CycloneDX SBOM job runs inside the project venv
+### CycloneDX SBOM job uses the project venv for Python scaffolds
 
+When `include_sbom=yes` and the rendered project includes Python,
 `scripts/generate-sbom.sh` invokes `cyclonedx-py` directly. In CI,
 the SBOM job runs `uv sync --no-dev` first so `.venv` exists, then
 `make sbom` prefers that environment when generating
 `sbom-python.cdx.json`. If you change the script, keep the `.venv`
 preference so the SBOM reflects the project environment instead of
-an ad hoc shell state.
+an ad hoc shell state. TypeScript-only scaffolds use the npm SBOM
+path, and projects rendered with `include_sbom=no` have no SBOM job.
 
 ---
 

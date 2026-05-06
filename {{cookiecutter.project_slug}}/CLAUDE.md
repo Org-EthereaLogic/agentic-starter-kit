@@ -81,22 +81,18 @@ Detailed in `AGENTS.md`. Compressed:
 
 | Path | Purpose |
 | --- | --- |
-| `.claude/commands/` *(when scaffolded)* | Slash-command definitions. Each is a Markdown file with YAML frontmatter declaring `description`, `argument-hint`, and `allowed-tools`. |
-| `.claude/agents/` *(when scaffolded)* | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
-| `.claude/skills/` *(when scaffolded)* | Progressive-disclosure capability packs. Single Markdown files with frontmatter declaring `name`, `description`, and a `paths:` glob list that gates lazy loading. |
-| `.claude/hooks/pre-tool-use.js` *(when scaffolded)* | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
-| `.claude/settings.json` *(when scaffolded)* | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
+| `.claude/commands/` | Slash-command definitions. Each is a Markdown file with YAML frontmatter declaring `description`, `argument-hint`, and `allowed-tools`. |
+| `.claude/agents/` | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
+| `.claude/skills/` | Progressive-disclosure capability packs. Single Markdown files with frontmatter declaring `name`, `description`, and a `paths:` glob list that gates lazy loading. |
+| `.claude/hooks/pre-tool-use.js` | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
+| `.claude/settings.json` | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
 | `.mcp.json` | MCP server registration for this project. Ships a read-only filesystem/git baseline plus a token-scoped GitHub entry; see `docs/MCP_POLICY.md` before changing any entry. |
 
-These `.claude/...` paths are part of the intended contract surface
-for the build, but they may not exist in a freshly rendered Phase 2
-scaffold. Specific command and agent inventories populate during
-the build's Layer 3 scaffolding, and file-level listings apply only
-after those paths have been scaffolded.
+These `.claude/...` paths ship with every fresh scaffold. Add new
+commands, agents, or skills under their respective directories and
+they are picked up automatically.
 
 ## Required checks before commit
-
-Once the build glue is scaffolded:
 
 ```sh
 make marker-scan        # CRIT-001 — no stubs in canonical surfaces
@@ -105,9 +101,6 @@ make check-traceability # specs reference real source/tests/evidence
 make hooks-test         # CRIT-008 — hook regression suite green
 make validate           # aggregates the above + lint/typecheck/test
 ```
-
-Until those targets exist (added in Phase 4 of the build),
-reviewer attention enforces.
 
 ## File map
 
@@ -132,7 +125,7 @@ reviewer attention enforces.
   file).
 - `docs/STANDARDS.md` — standards register (SWEBOK v4, ISO/IEC/IEEE
   32675:2022, IEEE 42010, AGENTS.md format, IEEE 2675,
-  CycloneDX/SPDX, CERT Top 10), once scaffolded.
+  CycloneDX/SPDX, CERT Top 10).
 
 ---
 

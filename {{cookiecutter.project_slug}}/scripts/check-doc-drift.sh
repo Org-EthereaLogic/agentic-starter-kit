@@ -6,6 +6,16 @@
 # referenced path exists in the repo. Surfaces drift (referenced
 # path missing) as findings.
 
+# Bash 4+ is required for the associative array used to dedupe
+# findings. macOS ships Bash 3.2 by default and never upgrades it,
+# so soft-skip there with a hint instead of failing `make validate`.
+# Linux CI runs Bash 5+, so the check still gates on every PR.
+if (( BASH_VERSINFO[0] < 4 )); then
+    echo "check-doc-drift: Bash 4+ required (got ${BASH_VERSION}); skipping." >&2
+    echo "  On macOS: \`brew install bash\` and re-run via the Homebrew bash." >&2
+    exit 0
+fi
+
 set -euo pipefail
 
 # Source common utilities

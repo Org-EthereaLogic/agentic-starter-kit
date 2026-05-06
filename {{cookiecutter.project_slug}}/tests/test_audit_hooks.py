@@ -73,7 +73,11 @@ class SessionStartHookTests(unittest.TestCase):
             self.assertEqual(len(events), 1)
             self.assertEqual(events[0]["type"], "session-start")
             self.assertEqual(events[0]["session_id"], "test-session-1")
-            self.assertEqual(events[0]["cwd"], str(cwd))
+            # Node `process.cwd()` returns the realpath-resolved path on
+            # macOS (where `/var` is a symlink to `/private/var`), so
+            # compare resolved paths on both sides for cross-platform
+            # parity. Linux is unaffected; macOS would otherwise fail.
+            self.assertEqual(events[0]["cwd"], str(cwd.resolve()))
             self.assertIn("ts", events[0])
             self.assertFalse((cwd / "report" / "audit.jsonl").exists())
 

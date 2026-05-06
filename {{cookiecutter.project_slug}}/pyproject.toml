@@ -14,7 +14,7 @@ name = "{{ cookiecutter.python_package_name }}"
 version = "0.1.0"
 description = "{{ cookiecutter.project_description }}"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "{{ cookiecutter.license }}" }
 authors = [
   { name = "{{ cookiecutter.author_name }}", email = "{{ cookiecutter.author_email }}" },
@@ -46,8 +46,8 @@ dev = [
 # --- Ruff ---------------------------------------------------------
 
 [tool.ruff]
-line-length = 88
-target-version = "py310"
+line-length = 120
+target-version = "py311"
 src = ["src", "tests"]
 exclude = [
   ".venv",
@@ -96,7 +96,7 @@ indent-style = "space"
 [tool.ty.environment]
 # Astral's `ty`. Configuration intentionally minimal — ty's defaults
 # are aligned with the strict-mode end of the spectrum.
-python-version = "3.10"
+python-version = "3.11"
 
 [tool.ty.src]
 exclude = [
@@ -115,7 +115,7 @@ include = ["tests/**"]
 unresolved-import = "warn"
 {% else %}
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 strict = true
 warn_unused_ignores = true
 warn_redundant_casts = true
@@ -131,6 +131,20 @@ exclude = [
 [[tool.mypy.overrides]]
 module = "tests.*"
 disallow_untyped_decorators = false  # pytest fixtures often fight with strict
+
+# Uncomment for data/scientific projects — these libraries don't ship
+# usable type stubs, so strict mode flags every import. Add only what
+# your project actually imports; pandas and numpy ship stubs and are
+# intentionally absent.
+# [[tool.mypy.overrides]]
+# module = [
+#   "matplotlib.*",
+#   "scipy.*",
+#   "seaborn.*",
+#   "sklearn.*",
+#   "statsmodels.*",
+# ]
+# ignore_missing_imports = true
 {% endif %}
 
 # --- pytest -------------------------------------------------------

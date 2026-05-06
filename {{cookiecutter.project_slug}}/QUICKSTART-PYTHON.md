@@ -4,7 +4,7 @@ Getting started with the Python path of this scaffold.
 
 ## Prerequisites
 
-- Python 3.10+
+- Python 3.11+
 - `uv` package manager (recommended) or `pip`
 - `git` 2.40+
 

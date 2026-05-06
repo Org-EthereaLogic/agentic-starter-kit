@@ -169,6 +169,14 @@ include_devcontainer:
     - "yes"
     - "no"
 
+include_docs_site:
+  type: str
+  help: "Add `mkdocs.yml` (Material) and a `docs.yml` workflow that deploys to GitHub Pages."
+  default: "no"
+  choices:
+    - "no"
+    - "yes"
+
 default_branch_name:
   type: str
   help: "Protected branch the runtime hook guards."
@@ -201,6 +209,7 @@ cookiecutter:
     include_sbom: "{{ include_sbom }}"
     include_macaron: "{{ include_macaron }}"
     include_devcontainer: "{{ include_devcontainer }}"
+    include_docs_site: "{{ include_docs_site }}"
     default_branch_name: "{{ default_branch_name }}"
 
 # Post-render pruning. Mirrors hooks/post_gen_project.py for the
@@ -230,6 +239,8 @@ _tasks:
     when: "{{ include_sbom == 'no' }}"
   - command: "rm -rf .devcontainer Dockerfile .dockerignore"
     when: "{{ include_devcontainer == 'no' }}"
+  - command: "rm -f mkdocs.yml docs/index.md .github/workflows/docs.yml"
+    when: "{{ include_docs_site == 'no' }}"
 
   # Strip placeholder .gitkeep files left from the template scaffold.
   - command: "find . -name .gitkeep -type f -delete"

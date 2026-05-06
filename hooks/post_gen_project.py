@@ -24,6 +24,7 @@ INCLUDE_SNYK = "{{ cookiecutter.include_snyk }}"
 INCLUDE_SBOM = "{{ cookiecutter.include_sbom }}"
 INCLUDE_MACARON = "{{ cookiecutter.include_macaron }}"
 INCLUDE_DEVCONTAINER = "{{ cookiecutter.include_devcontainer }}"
+INCLUDE_DOCS_SITE = "{{ cookiecutter.include_docs_site }}"
 LICENSE_CHOICE = "{{ cookiecutter.license }}"
 
 PROJECT_ROOT = Path.cwd()
@@ -85,6 +86,10 @@ def prune_integration_files() -> None:
         remove(".devcontainer")
         remove("Dockerfile")
         remove(".dockerignore")
+    if INCLUDE_DOCS_SITE == "no":
+        remove("mkdocs.yml")
+        remove("docs/index.md")
+        remove(".github/workflows/docs.yml")
 
 
 def prune_databricks_files() -> None:
@@ -121,6 +126,7 @@ def write_summary() -> None:
     print(f"  sbom             : {INCLUDE_SBOM}")
     print(f"  macaron          : {INCLUDE_MACARON}")
     print(f"  devcontainer     : {INCLUDE_DEVCONTAINER}")
+    print(f"  docs site        : {INCLUDE_DOCS_SITE}")
     print()
     print("Next steps:")
     print("  cd <project>")

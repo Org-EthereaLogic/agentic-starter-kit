@@ -37,6 +37,22 @@ docker build -t {{ cookiecutter.project_slug }} .
 Refresh base-image digests via Dependabot's `docker` ecosystem (configured
 in `.github/dependabot.yml`).
 {% endif -%}
+{% if cookiecutter.include_docs_site == 'yes' -%}
+
+### Docs site
+
+A [MkDocs Material](https://squidfunk.github.io/mkdocs-material/) site
+surfaces the contents of `docs/`. Preview locally:
+
+```sh
+uv tool run --with mkdocs-material mkdocs serve
+```
+
+`.github/workflows/docs.yml` builds the site in `--strict` mode on every
+pull request and deploys it to GitHub Pages on push to
+`{{ cookiecutter.default_branch_name }}`. Enable Pages with source
+"GitHub Actions" once the repository exists.
+{% endif -%}
 
 ## Governance layers
 

@@ -151,6 +151,7 @@ shown):
 | `include_sbom` | `yes` | `yes`, `no` | Adds `scripts/generate-sbom.sh` plus a CI job |
 | `include_macaron` | `no` | `no`, `yes` | Adds an Oracle Macaron supply-chain analysis job to `supply-chain.yml`. Off by default — Macaron is optional and adds workflow runtime |
 | `include_devcontainer` | `yes` | `yes`, `no` | Adds `.devcontainer/devcontainer.json` plus a SHA-pinned multi-stage `Dockerfile` for the rendered project |
+| `include_docs_site` | `no` | `no`, `yes` | Adds `mkdocs.yml` (Material theme) and `.github/workflows/docs.yml` that deploys to GitHub Pages on push to the default branch |
 | `default_branch_name` | `main` | free text | Protected branch the runtime hook guards |
 
 The post-generation hook (`hooks/post_gen_project.py` for

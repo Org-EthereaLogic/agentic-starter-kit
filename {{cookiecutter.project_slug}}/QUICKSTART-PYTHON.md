@@ -34,12 +34,12 @@ is intended.
 git init -b {{ cookiecutter.default_branch_name }}
 
 # 2. Stage everything the template produced. After this commit,
-#    revert to staging files explicitly (see "Before Committing"
-#    below — IMP-004 forbids `git add -A` for normal work).
+#    revert to staging files explicitly (AGENTS.md §Act — IMP-004
+#    forbids `git add -A` for normal work).
 git add -A
 
 # 3. Install local Git hooks after the repository exists.
-pre-commit install --hook-type pre-commit --hook-type pre-push
+uv run pre-commit install --hook-type pre-commit --hook-type pre-push
 
 # 4. Conventional-commit the scaffold. The pre-commit hooks run
 #    their configured subset; `make validate` remains the full

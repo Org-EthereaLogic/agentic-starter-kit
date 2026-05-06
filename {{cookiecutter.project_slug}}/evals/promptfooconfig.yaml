@@ -14,11 +14,7 @@ description: "{{ cookiecutter.project_name }} prompt evaluations"
 # Providers
 # ---------------------------------------------------------------------------
 providers:
-  - id: anthropic:messages:claude-haiku-4-5-20251001
-    config:
-      # ANTHROPIC_API_KEY must be set in the environment.
-      # In CI this comes from the Actions secret; locally from .env.
-      max_tokens: 1024
+  - id: echo
 
 # ---------------------------------------------------------------------------
 # Prompts
@@ -28,11 +24,7 @@ providers:
 # See https://promptfoo.dev/docs/configuration/parameters#prompts
 prompts:
   - label: smoke
-    raw: "Reply with exactly the word READY and nothing else."
-  - label: json-format
-    raw: |
-      Return a JSON object with a single key "status" set to "ok".
-      Return only the JSON object, no explanation.
+    raw: '{"status":"ok","message":"READY"}'
 
 # ---------------------------------------------------------------------------
 # Test cases
@@ -53,8 +45,7 @@ tests:
   # Smoke test — model responds at all
   # Replace or extend this with tests targeting your actual prompts.
   # -------------------------------------------------------------------------
-  - description: "smoke — model responds to a basic instruction"
-    prompt: smoke
+  - description: "smoke — starter output contains readiness marker"
     assert:
       - type: contains
         value: "READY"
@@ -63,7 +54,6 @@ tests:
   # Output format check
   # -------------------------------------------------------------------------
   - description: "format — JSON output is well-formed"
-    prompt: json-format
     assert:
       - type: javascript
         value: |

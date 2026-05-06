@@ -29,6 +29,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
       - name: Install cookiecutter
         run: pip install cookiecutter -q
 
@@ -54,6 +59,9 @@ jobs:
           cd /tmp/test-render/test-python-project
           pip install uv -q
           make sync
+
+      - name: Install promptfoo
+        run: npm install --global promptfoo
 
       - name: Run marker-scan
         run: |
@@ -115,6 +123,9 @@ jobs:
         run: |
           cd /tmp/test-render/test-typescript-project
           npm install
+
+      - name: Install promptfoo
+        run: npm install --global promptfoo
 
       - name: Run marker-scan
         run: |

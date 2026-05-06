@@ -11,9 +11,9 @@ you.
 
 ### Required repo secrets
 
-The CI workflow ships with three jobs that need tokens you have
-not set yet. The jobs fail loudly on the first push; they pass
-once the secrets are configured.
+The CI workflow includes three token-backed integrations. Configure
+the matching secret for each one you opted into, then rerun the
+workflow once the secrets are in place.
 
 | Job | Secret | Where to get it |
 | --- | --- | --- |
@@ -24,6 +24,10 @@ once the secrets are configured.
 Add at **GitHub → Settings → Secrets and variables → Actions →
 New repository secret**. Then *Re-run failed jobs* on the affected
 workflow run.
+
+Codacy is the hard gate here. `snyk` runs with `continue-on-error:
+true` and `coverage` sets `fail_ci_if_error: false`, so those two can
+surface warnings without failing the whole workflow.
 
 If you opted any integration off at scaffold time, the matching
 job is absent from `ci.yml` and there is nothing to configure.
@@ -39,13 +43,12 @@ secret — the comment block in that file walks through it.
 
 ### CycloneDX SBOM job runs inside the project venv
 
-`scripts/generate-sbom.sh` invokes `cyclonedx-py` via
-`uv run --no-sync`, which keeps it inside the venv that
-`make sync` already populated. Earlier kit revisions invoked the
-tool from a fresh process and tripped on PEP 735 dep-groups; that
-is now fixed. If you change the script, keep the `uv run`
-prefix — running `cyclonedx-py` from outside the venv may
-re-surface the failure on `[dependency-groups]` projects.
+`scripts/generate-sbom.sh` invokes `cyclonedx-py` directly. In CI,
+the SBOM job runs `uv sync --no-dev` first so `.venv` exists, then
+`make sbom` prefers that environment when generating
+`sbom-python.cdx.json`. If you change the script, keep the `.venv`
+preference so the SBOM reflects the project environment instead of
+an ad hoc shell state.
 
 ---
 
@@ -54,17 +57,16 @@ re-surface the failure on `[dependency-groups]` projects.
 ### Bash 3.2
 
 Apple ships Bash 3.2 (frozen at the GPLv2 line) and never upgrades
-it. Several governance scripts use Bash 4+ associative arrays.
-Each one degrades gracefully — `make validate` will print a
-WARN and continue — but the affected check effectively skips on
-the system Bash.
+it. `scripts/check-doc-drift.sh` uses Bash 4+ associative arrays,
+so on macOS Bash 3.2 it prints a WARN and exits 0 while the rest of
+the shell-based governance checks should be run under Homebrew bash.
 
 Recommendation: install Homebrew bash and put it on PATH ahead of
 `/bin/bash`:
 
 ```bash
 brew install bash
-echo 'export PATH="/opt/homebrew/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="'$(brew --prefix)'/bin:$PATH"' >> ~/.zshrc
 exec zsh
 ```
 
@@ -83,10 +85,10 @@ hook subprocess tests, follow the same pattern.
 ### Make targets that shell out to `node`
 
 `make hooks-test` invokes `node` to exercise the runtime hook.
-Node 20+ is required. The target prints a soft WARN if Node is
-missing or older — it does not fail the target — so `nvm`-managed
-shells that haven't activated yet still produce a useful
-diagnostic instead of `node: not found`.
+Node 20+ is required. Because the target calls `node --test`
+directly, missing or older Node will fail the target as soon as the
+JS hook tests are present. `nvm`-managed shells should activate a
+compatible Node before running the suite.
 
 ---
 
@@ -109,8 +111,8 @@ rerun `ruff format`.
 
 ### `ty` is the default type-checker, not mypy
 
-Astral's `ty` is the 2026 default. Choose `python_typechecker=mypy`
-at scaffold time if you need an established stub-heavy ecosystem
+The template defaults to `ty`. Choose `python_typechecker=mypy` at
+scaffold time if you need an established stub-heavy ecosystem
 (e.g. SQLAlchemy with mypy plugins). The mypy variant ships a
 commented `[[tool.mypy.overrides]]` block for scientific deps
 (matplotlib, scipy, seaborn, sklearn, statsmodels) — uncomment what

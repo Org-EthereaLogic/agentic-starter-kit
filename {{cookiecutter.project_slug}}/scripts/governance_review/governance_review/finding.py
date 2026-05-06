@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from enum import StrEnum
+from enum import Enum
 from typing import Any
 
 
-class Severity(StrEnum):
+class Severity(str, Enum):  # noqa: UP042
     ERROR = "error"
     WARNING = "warning"
     NOTE = "note"

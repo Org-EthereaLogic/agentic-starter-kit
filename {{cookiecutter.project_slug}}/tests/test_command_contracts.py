@@ -107,7 +107,8 @@ class CommandContractTests(unittest.TestCase):
         for path in sorted(COMMANDS_DIR.glob("gov.*.md")):
             match = FRONTMATTER_RE.match(path.read_text())
             self.assertIsNotNone(match, f"{path.name} is missing frontmatter")
-            assert match is not None  # type narrow for static analysis
+            if match is None:
+                self.fail(f"{path.name} is missing frontmatter")
             body = match.group("body")
             for key in REQUIRED_FRONTMATTER_KEYS:
                 self.assertIn(key, body, f"{path.name} is missing {key}")

@@ -19,6 +19,73 @@
   "include_docs_site": ["no", "yes"],
   "include_release_automation": ["yes", "no"],
   "default_branch_name": "main",
+  "__prompts__": {
+    "project_name": "Display name of the project",
+    "project_slug": "URL/path-safe project identifier (auto-derived from the name)",
+    "project_description": "One-line description used in pyproject.toml, package.json, README",
+    "python_package_name": "Importable Python package name (underscores, no dashes)",
+    "author_name": "Author or maintainer name",
+    "author_email": "Author email — baseline for the security disclosure address",
+    "year": "Year stamped into LICENSE and copyright headers",
+    "license": "License shipped with the rendered project",
+    "primary_language": {
+      "__prompt__": "Primary language path (drives which build files survive post-render pruning)",
+      "python": "Python only — pyproject.toml, ty/mypy, pytest",
+      "typescript": "TypeScript only — package.json, tsconfig.json, vitest",
+      "polyglot": "Both — keep Python and TypeScript build glue side by side"
+    },
+    "python_typechecker": {
+      "__prompt__": "Python type-checker — Astral `ty` is the 2026 default, `mypy` is the opt-in fallback",
+      "ty": "Astral ty (fast, minimal config)",
+      "mypy": "mypy (mature, ships scientific-deps overrides commented out)"
+    },
+    "include_databricks": {
+      "__prompt__": "Reserve Databricks bundle scaffolding (lands in a later release)",
+      "no": "skip — no Databricks files",
+      "yes": "reserve placeholder for future Databricks scaffolding"
+    },
+    "include_codacy": {
+      "__prompt__": "Add Codacy quality analysis (.codacy.yml + CI job)",
+      "yes": "include — adds .codacy.yml and the codacy CI job",
+      "no": "skip — no Codacy integration"
+    },
+    "include_codecov": {
+      "__prompt__": "Add Codecov coverage upload (codecov.yaml + CI upload job)",
+      "yes": "include — adds codecov.yaml and the coverage upload job",
+      "no": "skip — coverage runs locally only"
+    },
+    "include_snyk": {
+      "__prompt__": "Add Snyk vulnerability scan (.snyk + CI job)",
+      "yes": "include — adds .snyk and the snyk CI job",
+      "no": "skip — no Snyk integration"
+    },
+    "include_sbom": {
+      "__prompt__": "Generate CycloneDX SBOM via scripts/generate-sbom.sh + CI job",
+      "yes": "include — emits sbom-{python,node}.cdx.json on every release",
+      "no": "skip — no SBOM artifact"
+    },
+    "include_macaron": {
+      "__prompt__": "Add Oracle Macaron supply-chain analysis job to supply-chain.yml",
+      "no": "skip — supply-chain.yml without the Macaron job",
+      "yes": "include — Macaron analysis runs on push (slower workflow)"
+    },
+    "include_devcontainer": {
+      "__prompt__": "Add .devcontainer/devcontainer.json and a SHA-pinned Dockerfile",
+      "yes": "include — devcontainer + production Dockerfile",
+      "no": "skip — bring your own dev environment"
+    },
+    "include_docs_site": {
+      "__prompt__": "Add mkdocs.yml (Material) + docs.yml workflow that deploys to GitHub Pages",
+      "no": "skip — docs/ stays as plain markdown",
+      "yes": "include — MkDocs Material site auto-published from main"
+    },
+    "include_release_automation": {
+      "__prompt__": "Add Commitizen + release-please for automated Release PRs and tags",
+      "yes": "include — .cz.toml, release-please config, and release workflow",
+      "no": "skip — release manually"
+    },
+    "default_branch_name": "Protected branch the runtime hook guards (typically `main`)"
+  },
   "_copy_without_render": [
     "scripts/*.sh",
     ".devcontainer/*.sh",

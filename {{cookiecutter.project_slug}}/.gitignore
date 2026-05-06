@@ -60,8 +60,8 @@ sbom/
 .claude/agent-memory/
 
 # Local data and secrets (never committed; loaded at runtime instead)
-data/
-secrets/
+/data/
+/secrets/
 *.duckdb
 *.parquet
 *.service-account.json

@@ -150,7 +150,7 @@ This would eliminate the 90% duplication and ensure perfect sync. See `/docs/OPT
 
 **"Tests pass on my machine but fail in CI"**
 - Ensure Node.js is v20+: `node --version`
-- Ensure Python 3.10+: `python3 --version`
+- Ensure Python 3.11+: `python3 --version`
 - Check git is configured: `git config user.email` (should not be empty)
 
 **"How do I test a single case?"**

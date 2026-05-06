@@ -133,7 +133,7 @@ The key rules affecting day-to-day work:
 ### Dependencies not installing
 
 Ensure you're running `make sync` with the correct prerequisites:
-- **Python path:** Python 3.10+ and `uv` or `pip`
+- **Python path:** Python 3.11+ and `uv` or `pip`
 - **TypeScript path:** Node 20+ with `npm`
 
 ### Validation gate failing

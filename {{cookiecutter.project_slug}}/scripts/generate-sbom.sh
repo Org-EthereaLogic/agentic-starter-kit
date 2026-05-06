@@ -29,7 +29,20 @@ generated=0
 
 if [[ -f pyproject.toml ]]; then
   if command -v cyclonedx-py >/dev/null 2>&1; then
-    cyclonedx-py environment . > sbom/sbom-python.cdx.json
+    # `cyclonedx-py environment` introspects an installed Python
+    # environment; the positional argument has to be either a venv
+    # directory or an interpreter executable. Passing the project
+    # root errors with "Failed to find python in directory: .".
+    # Prefer `.venv` when present (created by `make sync` / `uv
+    # sync`); otherwise fall back to the current interpreter so
+    # the script keeps working in environments where deps live
+    # in system Python (some CI runners, Dockerfile builds).
+    if [[ -d .venv ]]; then
+      cyclonedx-py environment .venv > sbom/sbom-python.cdx.json
+    else
+      log_warn "no .venv at project root; using the current Python interpreter"
+      cyclonedx-py environment > sbom/sbom-python.cdx.json
+    fi
     log_ok "SBOM generated: sbom/sbom-python.cdx.json"
     generated=$((generated + 1))
   else

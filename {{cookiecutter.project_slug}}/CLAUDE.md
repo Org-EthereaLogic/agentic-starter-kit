@@ -125,7 +125,7 @@ make validate           # aggregates the above + lint/typecheck/test
   file).
 - `docs/STANDARDS.md` — standards register (SWEBOK v4, ISO/IEC/IEEE
   32675:2022, IEEE 42010, AGENTS.md format, IEEE 2675,
-  CycloneDX/SPDX, CERT Top 10), once scaffolded.
+  CycloneDX/SPDX, CERT Top 10).
 
 ---
 

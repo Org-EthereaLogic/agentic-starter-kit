@@ -99,10 +99,11 @@ indent-style = "space"
 # are aligned with the strict-mode end of the spectrum.
 python-version = "3.11"
 # `scripts/governance_review/` ships the GOV-NNN validator as an
-# importable package; tests load it via PYTHONPATH manipulation. Add
-# the package root here so ty can resolve `governance_review.*`
-# imports during static analysis.
-extra-paths = ["scripts/governance_review"]
+# importable package; tests load it via PYTHONPATH manipulation.
+# `scripts/lib/` hosts the governance-rules.yaml loader consumed by
+# the bash gates and `tests/test_governance_loader.py`. Add both so
+# ty can resolve their imports during static analysis.
+extra-paths = ["scripts/governance_review", "scripts/lib"]
 
 [tool.ty.src]
 exclude = [

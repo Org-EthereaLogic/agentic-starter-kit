@@ -9,7 +9,6 @@ against a synthetic governance YAML so they don't drift if the real
 
 from __future__ import annotations
 
-import importlib.util
 import sys
 import textwrap
 from pathlib import Path
@@ -17,18 +16,14 @@ from pathlib import Path
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-LOADER_PATH = PROJECT_ROOT / "scripts" / "lib" / "governance.py"
+LOADER_DIR = PROJECT_ROOT / "scripts" / "lib"
 
+# scripts/lib is not on sys.path by default; prepend it so the
+# governance module can be imported with normal type-checked syntax
+# rather than the importlib.util dance.
+sys.path.insert(0, str(LOADER_DIR))
 
-def _load_module():
-    spec = importlib.util.spec_from_file_location("governance_loader", LOADER_PATH)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["governance_loader"] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-governance = _load_module()
+from governance import GovernanceRules  # noqa: E402
 
 
 @pytest.fixture
@@ -71,35 +66,35 @@ def synthetic_rules(tmp_path: Path) -> Path:
 
 
 def test_required_files_round_trip(synthetic_rules: Path) -> None:
-    rules = governance.GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(synthetic_rules)
     assert rules.get_required_files() == ["CONSTITUTION.md", "README.md"]
 
 
 def test_required_agents_round_trip(synthetic_rules: Path) -> None:
-    rules = governance.GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(synthetic_rules)
     assert rules.get_required_agents() == [
         ".claude/agents/lead-software-engineer.md"
     ]
 
 
 def test_required_skills_round_trip(synthetic_rules: Path) -> None:
-    rules = governance.GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(synthetic_rules)
     assert rules.get_required_skills() == [".claude/skills/run-validate.md"]
 
 
 def test_optional_dirs_round_trip(synthetic_rules: Path) -> None:
-    rules = governance.GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(synthetic_rules)
     assert rules.get_optional_dirs() == ["docs", "report"]
 
 
 def test_marker_surfaces_round_trip(synthetic_rules: Path) -> None:
-    rules = governance.GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(synthetic_rules)
     assert rules.get_marker_surfaces() == ["CLAUDE.md", "docs"]
 
 
 def test_marker_strings_assembled_from_pairs(synthetic_rules: Path) -> None:
     """The split-pair representation joins back into the literal markers."""
-    rules = governance.GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(synthetic_rules)
     # The forbidden literals are reassembled here only inside an
     # assertion comparing them to the loader output.
     expected_first = "TO" + "DO"
@@ -111,7 +106,7 @@ def test_marker_regex_word_bounded_alternation(synthetic_rules: Path) -> None:
     """The regex matches each marker on a word boundary, nothing else."""
     import re
 
-    rules = governance.GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(synthetic_rules)
     pattern = re.compile(rules.get_marker_regex())
 
     assert pattern.search("TO" + "DO: ship it")
@@ -125,7 +120,7 @@ def test_loader_works_against_shipped_rules() -> None:
     real = PROJECT_ROOT / "governance-rules.yaml"
     if not real.exists():
         pytest.skip("governance-rules.yaml not present in this checkout")
-    rules = governance.GovernanceRules(real)
+    rules = GovernanceRules(real)
     assert rules.get_required_files()
     assert rules.get_required_agents()
     assert rules.get_required_skills()
@@ -148,7 +143,7 @@ def test_missing_sections_return_empty_lists(tmp_path: Path) -> None:
             """
         )
     )
-    rules = governance.GovernanceRules(rules_file)
+    rules = GovernanceRules(rules_file)
     assert rules.get_required_files() == []
     assert rules.get_marker_strings() == []
     assert rules.get_marker_regex() == ""

@@ -84,7 +84,8 @@ def _run_hook(payload: str, cwd: Path) -> subprocess.CompletedProcess[bytes]:
 def _payload_for(scenario: dict[str, Any]) -> str:
     """Build the JSON payload string for a spec scenario."""
     if "fixture" in scenario:
-        return (FIXTURES / scenario["fixture"]).read_text()
+        fixture_name: str = scenario["fixture"]
+        return (FIXTURES / fixture_name).read_text()
     if "tool_name" in scenario:
         body: dict[str, Any] = {
             "tool_name": scenario["tool_name"],

@@ -239,11 +239,11 @@ cookiecutter:
 _tasks:
   # Language pruning — Python path keeps Python build files.
   # Mirrors `prune_language_files` in hooks/post_gen_project.py.
-  - command: "rm -f package.json tsconfig.json tests/test_pre_tool_use_hook.js .claude/agents/typescript-pro.md"
+  - command: "rm -f package.json tsconfig.json tests/test_pre_tool_use_hook.js .claude/agents/typescript-pro.md QUICKSTART-TYPESCRIPT.md"
     when: "{{ primary_language == 'python' }}"
 
   # TypeScript path keeps Node build files.
-  - command: "rm -f pyproject.toml tests/test_pre_tool_use_hook.py tests/test_governance_review.py .claude/agents/python-pro.md"
+  - command: "rm -f pyproject.toml tests/test_pre_tool_use_hook.py tests/test_governance_review.py tests/test_governance_loader.py .claude/agents/python-pro.md QUICKSTART-PYTHON.md"
     when: "{{ primary_language == 'typescript' }}"
 
   # Integration pruning — drop configs the user opted out of.

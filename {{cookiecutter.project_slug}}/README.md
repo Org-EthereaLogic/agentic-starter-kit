@@ -16,7 +16,13 @@ make validate     # run the full pre-merge gate
 make hooks-test   # exercise the protected-branch runtime hook
 ```
 
-- `make sync` installs dev tools (ruff, {{ cookiecutter.python_typechecker }}, pytest, etc.) and must run first
+{% if cookiecutter.primary_language == 'python' -%}
+- `make sync` installs Python dev tools (`ruff`, `{{ cookiecutter.python_typechecker }}`, `pytest`, etc.) and must run first
+{%- elif cookiecutter.primary_language == 'typescript' -%}
+- `make sync` installs Node dev tools (`eslint`, `prettier`, `typescript`, `vitest`, etc.) and must run first
+{%- else -%}
+- `make sync` installs dev tools for both stacks — Python (`ruff`, `{{ cookiecutter.python_typechecker }}`, `pytest`) and Node (`eslint`, `prettier`, `typescript`, `vitest`) — and must run first
+{%- endif %}
 - `make validate` aggregates all governance checks and is the canonical pre-merge gate
 - If `make validate` is clean, the scaffold is healthy. Each gate's failure surfaces a specific file or pattern needing attention
 

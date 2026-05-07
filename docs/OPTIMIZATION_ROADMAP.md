@@ -218,7 +218,10 @@ jobs:
 
 ### 8. Add Integration Test for Post-Gen Hook
 
-**Status:** 📋 Open — tracked in [#70](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/70).
+**Status:** ✅ Done — implemented as `tests/test_post_gen_pruning.py`
+(pytest harness covering language × `include_*` flag matrix), wired
+through `make template-test` and the `hook-pruning-test` job in
+`.github/workflows/template-smoke-test.yml`. Tracked #70.
 
 **Test:** Verify hook correctly removes language-inappropriate files
 

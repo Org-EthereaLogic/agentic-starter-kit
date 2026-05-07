@@ -119,6 +119,7 @@ regression suites for `pre-tool-use.js`. Logic drifted independently
 when only one was touched.
 
 **Decision — data-driven Option A (JSON spec):**
+
 - `tests/hook_test_spec.json` is the single source of truth for every
   bypass-class scenario and fixture-driven case.
 - `tests/test_pre_tool_use_hook.py` and `tests/test_pre_tool_use_hook.js`
@@ -127,6 +128,7 @@ when only one was touched.
   the JSON at generation time, so no two-pass rendering is required.
 
 **Why JSON over the originally-scoped `tests/fixtures/test_template.jinja2`:**
+
 - JSON is parsed by both languages with the standard library — no
   PyYAML or `js-yaml` dependency, no custom Jinja2 environment in the
   post-gen hook, no nested-template escaping concerns.
@@ -137,6 +139,7 @@ when only one was touched.
   pick the new case up automatically on the next `make hooks-test`.
 
 **Why not Option B (shared `tests/lib/` utilities):**
+
 - Would still leave two parallel scenario lists (one per driver),
   re-introducing the drift the issue was filed to eliminate.
 - The shared-helper extraction is small enough that JSON-driven

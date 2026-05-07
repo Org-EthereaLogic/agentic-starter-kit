@@ -15,7 +15,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -78,18 +78,22 @@ function runScenario(scenario) {
   const dir = scenario.branch
     ? setupRepo(scenario.branch)
     : mkdtempSync(path.join(tmpdir(), "hook-test-"));
-  const result = runHook(payloadFor(scenario), dir);
-  assert.equal(
-    result.status,
-    scenario.expected_exit,
-    `${scenario.name}: expected exit ${scenario.expected_exit}, got ${result.status}; stderr=${JSON.stringify(result.stderr)}`,
-  );
-  if (scenario.check_stderr) {
-    const needle = scenario.check_stderr.toLowerCase();
-    assert.ok(
-      String(result.stderr).toLowerCase().includes(needle),
-      `${scenario.name}: stderr did not contain ${JSON.stringify(scenario.check_stderr)}; stderr=${JSON.stringify(result.stderr)}`,
+  try {
+    const result = runHook(payloadFor(scenario), dir);
+    assert.equal(
+      result.status,
+      scenario.expected_exit,
+      `${scenario.name}: expected exit ${scenario.expected_exit}, got ${result.status}; stderr=${JSON.stringify(result.stderr)}`,
     );
+    if (scenario.check_stderr) {
+      const needle = scenario.check_stderr.toLowerCase();
+      assert.ok(
+        String(result.stderr).toLowerCase().includes(needle),
+        `${scenario.name}: stderr did not contain ${JSON.stringify(scenario.check_stderr)}; stderr=${JSON.stringify(result.stderr)}`,
+      );
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 }
 

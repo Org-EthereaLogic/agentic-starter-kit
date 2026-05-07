@@ -28,8 +28,9 @@ import os
 import subprocess
 import tempfile
 import unittest
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 HOOK_PATH = REPO_ROOT / ".claude" / "hooks" / "pre-tool-use.js"

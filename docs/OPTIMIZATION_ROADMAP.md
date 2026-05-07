@@ -218,29 +218,17 @@ jobs:
 
 ### 8. Add Integration Test for Post-Gen Hook
 
-**Status:** 📋 Open — tracked in [#70](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/70).
+**Status:** ✅ Done — implemented as `tests/test_post_gen_pruning.py`
+(pytest harness covering language × `include_*` flag matrix), wired
+through `make template-test` and the `hook-pruning-test` job in
+`.github/workflows/template-smoke-test.yml`. Tracked #70.
 
-**Test:** Verify hook correctly removes language-inappropriate files
-
-```bash
-# tests/test_post_gen_hook.sh
-
-test_python_variant() {
-  render_template primary_language=python
-  assert_file_exists pyproject.toml
-  assert_file_not_exists package.json
-  assert_file_exists tests/test_pre_tool_use_hook.py
-  assert_file_not_exists tests/test_pre_tool_use_hook.js
-}
-
-test_typescript_variant() {
-  render_template primary_language=typescript
-  assert_file_exists package.json
-  assert_file_not_exists pyproject.toml
-  assert_file_exists tests/test_pre_tool_use_hook.js
-  assert_file_not_exists tests/test_pre_tool_use_hook.py
-}
-```
+**Test:** Verify hook correctly removes language-inappropriate files.
+The implementation is a pytest harness that renders the template into
+a `tmp_path` per test and asserts presence/absence of files for each
+`primary_language` and each `include_*` flag at both `yes` and `no`.
+Run locally with `make template-test`; CI runs the same suite via the
+`hook-pruning-test` job.
 
 **Effort:** 1 hour | **Impact:** Medium | **Blocker:** No
 

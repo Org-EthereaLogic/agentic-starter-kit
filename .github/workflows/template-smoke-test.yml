@@ -7,6 +7,8 @@ on:
       - 'cookiecutter.json'
       - 'copier.yml'
       - 'hooks/**'
+      - 'tests/**'
+      - 'Makefile'
       - '{{cookiecutter.project_slug}}/**'
       - '.github/workflows/template-smoke-test.yml'
   pull_request:
@@ -15,6 +17,8 @@ on:
       - 'cookiecutter.json'
       - 'copier.yml'
       - 'hooks/**'
+      - 'tests/**'
+      - 'Makefile'
       - '{{cookiecutter.project_slug}}/**'
       - '.github/workflows/template-smoke-test.yml'
 
@@ -371,10 +375,28 @@ jobs:
           test ! -e /tmp/docs-co-no/.github/workflows/docs.yml
           echo "✓ copier pruning works for include_docs_site=no"
 
+  hook-pruning-test:
+    name: Post-gen hook pruning matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install render and test dependencies
+        run: pip install cookiecutter pytest --quiet
+      - name: Run pruning integration test
+        run: make template-test
+
   smoke-test-summary:
     name: Smoke Test Summary
     if: always()
-    needs: [smoke-test, render-equivalence, devcontainer-build, docs-site-build]
+    needs:
+      - smoke-test
+      - render-equivalence
+      - devcontainer-build
+      - docs-site-build
+      - hook-pruning-test
     runs-on: ubuntu-latest
     steps:
       - name: Check smoke test results
@@ -382,10 +404,11 @@ jobs:
           if [ "${{ needs.smoke-test.result }}" = "success" ] \
               && [ "${{ needs.render-equivalence.result }}" = "success" ] \
               && [ "${{ needs.devcontainer-build.result }}" = "success" ] \
-              && [ "${{ needs.docs-site-build.result }}" = "success" ]; then
-            echo "✅ All template variants, render-equivalence, devcontainer build, and docs-site build passed"
+              && [ "${{ needs.docs-site-build.result }}" = "success" ] \
+              && [ "${{ needs.hook-pruning-test.result }}" = "success" ]; then
+            echo "✅ All template variants, render-equivalence, devcontainer build, docs-site build, and hook pruning matrix passed"
             exit 0
           else
-            echo "❌ One or more variants failed smoke test"
+            echo "❌ One or more smoke-test jobs failed (variants, render-equivalence, devcontainer, docs-site, or hook-pruning)"
             exit 1
           fi

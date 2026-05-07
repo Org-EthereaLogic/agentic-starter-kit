@@ -30,9 +30,12 @@ then shipped opportunistically alongside Phase C.**
 
 Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 
-**Current state (2026-05-06):** all roadmap and post-roadmap work is
-merged. There are no open issues. The project board is ready to
-receive the next sprint of work.
+**Current state (2026-05-06):** all roadmap and post-roadmap work
+is merged. The first batch of follow-on optimization work has been
+filed as issues [#69–#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue)
+in `Sprint: Backlog`, sourced from
+[`docs/OPTIMIZATION_ROADMAP.md`](OPTIMIZATION_ROADMAP.md). Sprint 1
+(2026-05-06 → 2026-05-19) is empty pending a planning pull.
 
 ---
 
@@ -76,6 +79,21 @@ receive the next sprint of work.
 | ID | Issue | Title | Gap | Lev | Eff | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | D1 | [#24](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/24) | Examples gallery / vignettes | — | Low | 2 | ✅ |
+
+## Backlog — Optimization roadmap (filed 2026-05-06)
+
+Sourced from `docs/OPTIMIZATION_ROADMAP.md`. The other six items
+in that doc (#1–#4, #6, #7) shipped during Phases A–C; only the
+six below remain open.
+
+| ID | Issue | Title | Lev | Eff | Status |
+| --- | --- | --- | --- | --- | --- |
+| O5 | [#69](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/69) | Consolidate Python/TypeScript hook test maintenance | High | 1 | 📋 |
+| O8 | [#70](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/70) | Integration test for post-gen hook file pruning | Medium | 1 | 📋 |
+| O9 | [#71](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/71) | Jinja2 filter library for template-side helpers | Low | 1 | 📋 |
+| O10 | [#72](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/72) | Extract governance rules to data-driven config | Medium | 1 | 📋 |
+| O11 | [#73](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/73) | Language-specific quickstart guides | Medium | 1 | 📋 |
+| O12 | [#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/74) | Language/tool comparison matrix in README | Low | 1 | 📋 |
 
 ## Post-roadmap fixes (May 5–6, 2026)
 
@@ -135,4 +153,8 @@ job is to be readable from the repo at a glance.
 - Updated 2026-05-06: post-roadmap fix issues (#38–45, #66) added to
   the GitHub project; `Sprint` field and `Deferred` status option
   added to Project #6.
+- Updated 2026-05-06: optimization-roadmap follow-on items filed
+  as #69–#74 against Project #6 (`Sprint: Backlog`); shipped items
+  from `docs/OPTIMIZATION_ROADMAP.md` (#1–#4, #6, #7) annotated
+  with status notes inline in that doc.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

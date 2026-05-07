@@ -163,6 +163,29 @@ answers — for example, `pyproject.toml` is dropped when
 `primary_language == typescript` and `.codacy.yml` is dropped when
 `include_codacy == no`. Both modes apply the same pruning rules.
 
+### Language toolchain matrix
+
+The `primary_language` choice selects a fixed toolchain. The table
+below shows what ships in the rendered project for each path so you
+can decide before running the template instead of inspecting
+`cookiecutter.json` and the post-gen hook.
+
+| Concern | `python` | `typescript` | `polyglot` |
+| --- | --- | --- | --- |
+| Build manifest | `pyproject.toml` | `package.json`, `tsconfig.json` | both |
+| Package manager | [`uv`](https://docs.astral.sh/uv/) (recommended; `pip` works) | `npm` (Node 20+) | both, side by side |
+| Linter | [`ruff`](https://docs.astral.sh/ruff/) | [`eslint`](https://eslint.org/) | both |
+| Formatter | `ruff format` | [`prettier`](https://prettier.io/) | both |
+| Type checker | [`ty`](https://github.com/astral-sh/ty) (default) or [`mypy`](https://mypy.readthedocs.io/) — selected by `python_typechecker` | `tsc --noEmit` | Python checker per `python_typechecker` **and** `tsc` |
+| Test runner | [`pytest`](https://docs.pytest.org/) (`pytest-cov` for coverage) | [`vitest`](https://vitest.dev/) (`@vitest/coverage-v8` for coverage) | both |
+| SBOM (when `include_sbom=yes`) | `cyclonedx-py environment` → `sbom/sbom-python.cdx.json` | `@cyclonedx/cyclonedx-npm` → `sbom/sbom-node.cdx.json` | both files emitted |
+
+`polyglot` ships the union: every file listed for `python` *and*
+`typescript` survives the post-gen prune, so a polyglot project has
+both `pyproject.toml` and `package.json`, both test runners, both
+linters, and so on. There is no merged toolchain — the two stacks
+co-exist and each owns its own files.
+
 ### After generation
 
 ```bash

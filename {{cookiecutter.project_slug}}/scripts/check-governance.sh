@@ -11,6 +11,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 
+# --- Governance data source (CRIT-002 source of truth) ---
+
+GOV_RULES="${GOV_RULES:-governance-rules.yaml}"
+GOV_LOADER=("python3" "$SCRIPT_DIR/lib/governance.py" "--file" "$GOV_RULES")
+
+if [[ ! -f "$GOV_RULES" ]]; then
+  log_error "$GOV_RULES not found; cannot enforce CRIT-002"
+  exit 1
+fi
+
 frontmatter_has_key() {
   local file="$1"
   local key="$2"
@@ -27,20 +37,14 @@ frontmatter_value() {
 }
 
 # --- Strictly required files (Layer 1 + Layer 2 + Layer 4) ---
+# Loaded from governance-rules.yaml ▸ required_files. The read-loop
+# below replaces an inline bash array; `mapfile` would be cleaner
+# but is bash 4+ and these scripts target bash 3.2 (macOS default).
 
-required_files=(
-  "CONSTITUTION.md"
-  "DIRECTIVES.md"
-  "SECURITY.md"
-  "README.md"
-  "CLAUDE.md"
-  "AGENTS.md"
-  "GEMINI.md"
-  ".claude/settings.json"
-  ".claude/hooks/pre-tool-use.js"
-  ".mcp.json"
-  "docs/MCP_POLICY.md"
-)
+required_files=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && required_files+=("$line")
+done < <("${GOV_LOADER[@]}" --list-required-files)
 
 for f in "${required_files[@]}"; do
   check_file_exists "$f" || true
@@ -71,17 +75,15 @@ fi
 # --- Layer 3 agent inventory (Phase B1) ---
 #
 # Six agents are always required regardless of primary_language.
+# Loaded from governance-rules.yaml ▸ required_agents.
 # At least one of python-pro / typescript-pro must be present; the
-# polyglot path keeps both, single-language paths keep one.
+# polyglot path keeps both, single-language paths keep one (this
+# language-conditional check stays here, not in YAML).
 
-required_agents=(
-  ".claude/agents/lead-software-engineer.md"
-  ".claude/agents/sdlc-technical-writer.md"
-  ".claude/agents/test-automator.md"
-  ".claude/agents/ux-delight-specialist.md"
-  ".claude/agents/security-reviewer.md"
-  ".claude/agents/governance-auditor.md"
-)
+required_agents=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && required_agents+=("$line")
+done < <("${GOV_LOADER[@]}" --list-required-agents)
 
 for f in "${required_agents[@]}"; do
   check_file_exists "$f" || true
@@ -108,14 +110,13 @@ fi
 # Skills are progressive-disclosure capability packs per the Linux
 # Foundation SKILL.md spec. Each skill is a single .md with YAML
 # frontmatter declaring `name`, `description`, and `paths:` (a glob
-# list that gates lazy loading). Three starter skills ship with the
-# template; renaming one without updating this list is a finding.
+# list that gates lazy loading). Loaded from
+# governance-rules.yaml ▸ required_skills.
 
-required_skills=(
-  ".claude/skills/run-validate.md"
-  ".claude/skills/audit-trail-tail.md"
-  ".claude/skills/traceability-update.md"
-)
+required_skills=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && required_skills+=("$line")
+done < <("${GOV_LOADER[@]}" --list-required-skills)
 
 for f in "${required_skills[@]}"; do
   check_file_exists "$f" || true
@@ -140,13 +141,12 @@ if [[ -d ".claude/skills" ]]; then
 fi
 
 # --- Optionally required (later phases populate) ---
+# Loaded from governance-rules.yaml ▸ optional_dirs.
 
-optional_dirs=(
-  "docs"
-  "specs/deep_specs"
-  "specs/security-requirements"
-  "report"
-)
+optional_dirs=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && optional_dirs+=("$line")
+done < <("${GOV_LOADER[@]}" --list-optional-dirs)
 
 for d in "${optional_dirs[@]}"; do
   check_dir_exists "$d" || log_warn "optional directory not yet present: $d"

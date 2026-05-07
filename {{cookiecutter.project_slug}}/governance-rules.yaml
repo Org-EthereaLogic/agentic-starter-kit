@@ -470,3 +470,71 @@ validation_gates:
       - IMP-005
     command: /audit
     phase: pr-review
+
+
+# Enforcement data
+# ----------------
+# Structured lists that make-governance-check / marker-scan consume
+# at runtime. Keep this section in lock-step with DIRECTIVES.md
+# CRIT-001 (markers) and CRIT-002 (required artifacts).
+
+# CRIT-002 — strictly required files (Layer 1 + Layer 2 + Layer 4).
+required_files:
+  - CONSTITUTION.md
+  - DIRECTIVES.md
+  - SECURITY.md
+  - README.md
+  - CLAUDE.md
+  - AGENTS.md
+  - GEMINI.md
+  - .claude/settings.json
+  - .claude/hooks/pre-tool-use.js
+  - .mcp.json
+  - docs/MCP_POLICY.md
+
+# Layer 3 agent inventory (Phase B1). Always required regardless of
+# primary_language. The language-conditional pair python-pro.md /
+# typescript-pro.md is enforced separately in check-governance.sh.
+required_agents:
+  - .claude/agents/lead-software-engineer.md
+  - .claude/agents/sdlc-technical-writer.md
+  - .claude/agents/test-automator.md
+  - .claude/agents/ux-delight-specialist.md
+  - .claude/agents/security-reviewer.md
+  - .claude/agents/governance-auditor.md
+
+# Layer 3 skill inventory (Phase B3). Each skill is a single .md
+# with frontmatter declaring `name`, `description`, and `paths`.
+required_skills:
+  - .claude/skills/run-validate.md
+  - .claude/skills/audit-trail-tail.md
+  - .claude/skills/traceability-update.md
+
+# Optional directories — later phases populate these. Missing is a
+# warning, not an error.
+optional_dirs:
+  - docs
+  - specs/deep_specs
+  - specs/security-requirements
+  - report
+
+# CRIT-001 — prohibited stub markers and the canonical surfaces
+# that must remain marker-free.
+#
+# Each marker is stored as a [prefix, suffix] pair so this YAML file
+# itself never contains the literal forbidden string. The loader
+# joins each pair before emitting the regex; runtime behaviour is
+# identical to the previous inline definition in marker-scan.sh.
+prohibited_markers:
+  pattern_pairs:
+    - [TO, DO]
+    - [FIX, ME]
+    - [TB, D]
+    - [PLACE, HOLDER]
+  surfaces:
+    - specs
+    - .claude
+    - CLAUDE.md
+    - AGENTS.md
+    - GEMINI.md
+    - docs

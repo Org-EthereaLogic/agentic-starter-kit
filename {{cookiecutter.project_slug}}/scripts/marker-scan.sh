@@ -11,22 +11,30 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/common.sh"
 
-# Build the marker regex from concatenated halves (defensive self-ref avoidance).
-m1="TO"; m2="DO"
-m3="FIX"; m4="ME"
-m5="TB"; m6="D"
-m7="PLACE"; m8="HOLDER"
-markers="\\b(${m1}${m2}|${m3}${m4}|${m5}${m6}|${m7}${m8})\\b"
+# --- Governance data source (CRIT-001 source of truth) ---
 
-# Canonical surfaces per CRIT-001.
-surfaces=(
-  "specs"
-  ".claude"
-  "CLAUDE.md"
-  "AGENTS.md"
-  "GEMINI.md"
-  "docs"
-)
+GOV_RULES="${GOV_RULES:-governance-rules.yaml}"
+GOV_LOADER=("python3" "$SCRIPT_DIR/lib/governance.py" "--file" "$GOV_RULES")
+
+if [[ ! -f "$GOV_RULES" ]]; then
+  log_error "$GOV_RULES not found; cannot enforce CRIT-001"
+  exit 1
+fi
+
+# Marker regex is assembled from split [prefix, suffix] pairs in the
+# YAML so the rules file itself never carries the literal forbidden
+# strings. Surfaces are loaded from governance-rules.yaml. Read-loop
+# substitutes for `mapfile -t` (bash 4+) so this stays bash 3.2-safe.
+markers="$("${GOV_LOADER[@]}" --marker-regex)"
+surfaces=()
+while IFS= read -r line; do
+  [[ -n "$line" ]] && surfaces+=("$line")
+done < <("${GOV_LOADER[@]}" --list-marker-surfaces)
+
+if [[ -z "$markers" ]]; then
+  log_error "no prohibited markers configured in $GOV_RULES"
+  exit 1
+fi
 
 # Filter present surfaces (some land in later phases).
 present=()

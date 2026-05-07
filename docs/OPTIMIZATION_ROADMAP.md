@@ -254,38 +254,20 @@ if a third render tool is added. See #71 for the full rationale.
 
 ### 10. Extract Governance Rules to Data-Driven Config
 
-**Status:** 📋 Open — tracked in [#72](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/72).
-
-**Current:** Hardcoded rules in `scripts/check-governance.sh`
-
-**Proposed:** `governance.yaml`
-```yaml
-required_files:
-  - CONSTITUTION.md
-  - DIRECTIVES.md
-  - SECURITY.md
-  - AGENTS.md
-  - CLAUDE.md
-  - README.md
-  - Makefile
-
-required_directories:
-  - .claude
-  - tests
-  - scripts
-  - .github/workflows
-
-prohibited_markers:
-  - "TODO:"
-  - "FIXME:"
-  - "<your name>"
-  - "<your email>"
-```
-
-**Benefits:**
-- Single source of truth
-- Easier to audit requirements
-- Testable in isolation
+**Status:** ✅ Done — closed [#72](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/72).
+The required-file, required-agent, required-skill, optional-dir,
+and prohibited-marker lists now live as top-level keys in
+`{{cookiecutter.project_slug}}/governance-rules.yaml`. The existing
+`scripts/lib/governance.py` loader gained accessors and CLI flags
+(`--list-required-files`, `--list-required-agents`,
+`--list-required-skills`, `--list-optional-dirs`,
+`--list-marker-surfaces`, `--marker-regex`); `check-governance.sh`
+and `marker-scan.sh` consume those instead of inlining bash arrays.
+Marker strings are stored as split `[prefix, suffix]` pairs so the
+YAML itself never carries the literal forbidden token. CRIT-001 and
+CRIT-002 in `DIRECTIVES.md` now name `governance-rules.yaml` as the
+single source of truth, and a new `tests/test_governance_loader.py`
+exercises every accessor against a synthetic fixture.
 
 **Effort:** 2 hours | **Impact:** Medium | **Blocker:** No
 

@@ -41,6 +41,7 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "pyproject.toml",
             "tests/test_pre_tool_use_hook.py",
             "tests/test_governance_review.py",
+            "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
         ),
         "absent": (
@@ -61,6 +62,7 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "pyproject.toml",
             "tests/test_pre_tool_use_hook.py",
             "tests/test_governance_review.py",
+            "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
         ),
     },
@@ -72,6 +74,7 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "tests/test_pre_tool_use_hook.py",
             "tests/test_pre_tool_use_hook.js",
             "tests/test_governance_review.py",
+            "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
             ".claude/agents/typescript-pro.md",
         ),

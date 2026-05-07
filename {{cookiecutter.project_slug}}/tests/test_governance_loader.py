@@ -118,8 +118,7 @@ def test_marker_regex_word_bounded_alternation(synthetic_rules: Path) -> None:
 def test_loader_works_against_shipped_rules() -> None:
     """The real governance-rules.yaml exposes every accessor non-empty."""
     real = PROJECT_ROOT / "governance-rules.yaml"
-    if not real.exists():
-        pytest.skip("governance-rules.yaml not present in this checkout")
+    assert real.exists(), "governance-rules.yaml must ship in every rendered project"
     rules = GovernanceRules(rules_file=real)
     assert rules.get_required_files()
     assert rules.get_required_agents()

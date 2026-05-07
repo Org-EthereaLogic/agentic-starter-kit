@@ -112,21 +112,37 @@ report_scan_result
 
 ### 5. Consolidate Test Suite Maintenance
 
-**Status:** 📋 Open — tracked in [#69](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/69).
+**Status:** ✅ Shipped — closed via [#69](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/69).
 
-**Problem:** Python and TypeScript test files are 90% identical
+**Problem:** Python and TypeScript hook test files were ~90% identical
+regression suites for `pre-tool-use.js`. Logic drifted independently
+when only one was touched.
 
-**Option A — Template-based generation (preferred):**
-- Create `tests/fixtures/test_template.jinja2`
-- Post-gen hook renders to `.py` or `.js`
-- Single source of truth for test logic
+**Decision — data-driven Option A (JSON spec):**
+- `tests/hook_test_spec.json` is the single source of truth for every
+  bypass-class scenario and fixture-driven case.
+- `tests/test_pre_tool_use_hook.py` and `tests/test_pre_tool_use_hook.js`
+  iterate the spec at import time and dispatch one test per scenario.
+- Cookiecutter renders `{{ cookiecutter.default_branch_name }}` inside
+  the JSON at generation time, so no two-pass rendering is required.
 
-**Option B — Shared test utilities:**
-- Extract common test patterns to `tests/lib/`
-- Both `.py` and `.js` import/require shared logic
-- Separate language-specific parts
+**Why JSON over the originally-scoped `tests/fixtures/test_template.jinja2`:**
+- JSON is parsed by both languages with the standard library — no
+  PyYAML or `js-yaml` dependency, no custom Jinja2 environment in the
+  post-gen hook, no nested-template escaping concerns.
+- The drivers stay short and idiomatic for their language (`unittest`
+  on Python, `node:test` on Node) rather than being machine-generated,
+  which keeps stack traces and selectors easy to read.
+- Adding a regression now means editing one JSON file — both languages
+  pick the new case up automatically on the next `make hooks-test`.
 
-**Effort:** 4 hours (Option A) | 2 hours (Option B) | **Impact:** High | **Blocker:** No
+**Why not Option B (shared `tests/lib/` utilities):**
+- Would still leave two parallel scenario lists (one per driver),
+  re-introducing the drift the issue was filed to eliminate.
+- The shared-helper extraction is small enough that JSON-driven
+  scenarios subsume it without the extra import surface.
+
+**Effort:** 3 hours actual | **Impact:** High | **Blocker:** No
 
 ---
 

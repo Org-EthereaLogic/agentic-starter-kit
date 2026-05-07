@@ -19,23 +19,62 @@ whitespace-tolerant frontmatter parsing enforced by
 `scripts/check-governance.sh`.
 
 **Test coverage:** hook regression suites plus Layer-3 contract
-checks across Python (`unittest`) and JavaScript (`node:test`)
+checks across Python (`unittest`) and JavaScript (`node:test`).
 
 ## Hook Test Specification (Single Source of Truth)
 
-**File:** `hook_test_spec.yaml`
+**File:** `hook_test_spec.json`
 
-When the hook behavior changes, **update `hook_test_spec.yaml` first**, then ensure both test implementations reflect the specification:
+`hook_test_spec.json` is consumed at import time by **both**
+`test_pre_tool_use_hook.py` and `test_pre_tool_use_hook.js`. Each
+scenario in the spec becomes one test in each language driver, so
+adding, removing, or editing a case requires changes in exactly one
+place — the JSON file. JSON was chosen over YAML so both languages
+parse the spec with their standard library (no PyYAML / `js-yaml`
+dependency).
 
-```yaml
-tests:
-  - name: refspec_to_protected_blocks
-    class: 2
-    description: "Class 2: refspec-to-protected blocks regardless of HEAD"
-    branch: feat/x
-    command: "git push origin feat/x:main"
-    expected_exit: 2
-    check_stderr: "main"
+### Spec schema
+
+Top-level keys: `tests` (synthesized payloads) and `fixtures`
+(payloads loaded from `tests/fixtures/<name>.json`). Each entry
+supports the following fields:
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `name` | yes | Unique identifier; becomes the Python `test_<name>` method. |
+| `description` | yes | Human-readable; becomes the `node:test` test name. |
+| `class` | yes | Bypass class (1–8 per `.claude/hooks/README.md`; `0` = baseline). |
+| `branch` | optional | Initial repo branch. Omit / `null` to skip git setup. |
+| `command` | one of | Bash command — wrapped as `{tool_name: "Bash", tool_input: {command}}`. |
+| `tool_name` + `tool_input` | one of | Non-Bash payload — passed through verbatim. |
+| `fixture` | one of | Filename under `tests/fixtures/`; payload loaded as-is. |
+| `expected_exit` | yes | `0` = allow, `2` = block. |
+| `check_stderr` | optional | Case-insensitive substring required in stderr; `null` skips. |
+
+Cookiecutter renders `{{ cookiecutter.default_branch_name }}` inside
+the JSON during template generation, so the rendered spec contains
+the literal branch name (e.g. `"main"`).
+
+### Adding a new test case
+
+**Step 1** — Add an entry to `hook_test_spec.json`:
+
+```json
+{
+  "name": "my_new_test",
+  "class": 3,
+  "description": "Class 3: [description]",
+  "branch": "feat/x",
+  "command": "git [command]",
+  "expected_exit": 2,
+  "check_stderr": "keyword"
+}
+```
+
+**Step 2** — Run both suites. No driver edits required:
+
+```sh
+make hooks-test
 ```
 
 ## Test Files
@@ -48,7 +87,7 @@ tests:
 
 Run with:
 
-```bash
+```sh
 python3 tests/test_command_contracts.py
 ```
 
@@ -60,100 +99,46 @@ python3 tests/test_command_contracts.py
 
 Run with:
 
-```bash
+```sh
 python3 tests/test_skill_contracts.py
 ```
 
-### Python: `test_pre_tool_use_hook.py`
+### Python hook driver: `test_pre_tool_use_hook.py`
 
 - Framework: `unittest`
-- Coverage: 18 test cases
-- Key functions:
-  - `_git_env()` — git environment for subprocess calls
-  - `_setup_repo()` — create temp repo on controlled branch
-  - `_bash_payload()` — construct hook payload JSON
-  - `_run_hook()` — invoke hook, capture output
+- Coverage: every entry under `tests` + `fixtures` in `hook_test_spec.json`
+- Each scenario is attached to `PreToolUseHookTests` as `test_<name>` at
+  import time, so individual selectors still work:
 
-Run with:
-
-```bash
+```sh
 python3 -m unittest tests.test_pre_tool_use_hook -v
-make hooks-test  # from root
+python3 -m unittest tests.test_pre_tool_use_hook.PreToolUseHookTests.test_refspec_to_protected_blocks
+make hooks-test  # from repo root
 ```
 
-### JavaScript: `test_pre_tool_use_hook.js`
+### JavaScript hook driver: `test_pre_tool_use_hook.js`
 
 - Framework: Node 20+ `node:test` (built-in)
-- Coverage: 18 test cases
-- Key functions: Same as Python, implemented in JavaScript
+- Coverage: same scenarios via the same JSON spec
+- Each scenario becomes one `test(description, …)` call.
 
 Run with:
 
-```bash
-node tests/test_pre_tool_use_hook.js
-make hooks-test  # from root
-```
-
-## Adding a New Test Case
-
-**Step 1:** Add to `hook_test_spec.yaml`:
-
-```yaml
-  - name: my_new_test
-    class: 3
-    description: "Class 3: [description]"
-    branch: feat/x
-    command: "git [command]"
-    expected_exit: 2
-    check_stderr: "keyword"
-```
-
-**Step 2:** Add test to `test_pre_tool_use_hook.py`:
-
-```python
-def test_my_new_test(self) -> None:
-    """Class 3: [description]."""
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp_path = Path(tmp)
-        _setup_repo(tmp_path, "feat/x")
-        payload = _bash_payload("git [command]")
-        result = _run_hook(payload, tmp_path)
-    self.assertEqual(result.returncode, 2)
-    self.assertIn("keyword", result.stderr.decode())
-```
-
-**Step 3:** Add test to `test_pre_tool_use_hook.js`:
-
-```javascript
-test("my new test", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(bashPayload("git [command]"), dir);
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /keyword/);
-});
-```
-
-**Step 4:** Run both test suites to verify:
-
-```bash
-make hooks-test
+```sh
+node --test tests/test_pre_tool_use_hook.js
+node --test tests/test_pre_tool_use_hook.js --grep "refspec to protected blocks"
+make hooks-test  # from repo root
 ```
 
 ## Maintenance Notes
 
-- **Both implementations must stay in sync** — when updating one, update the other
-- **hook_test_spec.yaml is the reference** — it documents expected behavior
-- **Test fixtures** (`tests/fixtures/*.json`) provide edge cases; update both if changed
-- **Exit codes:** 0 = allowed, 2 = blocked (per hook protocol)
-
-## Future Improvements
-
-Template-based code generation could auto-generate both `.py` and `.js` test files from `hook_test_spec.yaml` via:
-
-- Jinja2 template rendering in post-gen hook
-- Or, standalone script in `scripts/` to regenerate tests
-
-This would eliminate the 90% duplication and ensure perfect sync. See `/docs/OPTIMIZATION_ROADMAP.md` for details.
+- **Spec is canonical** — `hook_test_spec.json` is the only place to
+  add or modify hook regression cases. Drivers iterate it.
+- **Fixtures stay in `tests/fixtures/`** — `*.json` payload files are
+  referenced by `fixture: "<filename>"` entries in the spec.
+- **Exit codes:** `0` = allowed, `2` = blocked (per hook protocol).
+- **Both languages must run green** — `make hooks-test` invokes the
+  driver(s) appropriate for the rendered project's `primary_language`.
 
 ## Common Issues
 

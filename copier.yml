@@ -246,6 +246,14 @@ _tasks:
   - command: "rm -f pyproject.toml tests/test_pre_tool_use_hook.py tests/test_governance_review.py tests/test_governance_loader.py .claude/agents/python-pro.md QUICKSTART-PYTHON.md"
     when: "{{ primary_language == 'typescript' }}"
 
+  # Strip variant-tagged content from pyproject.toml. The template
+  # ships a single, valid-TOML file with both type-checker sections
+  # and the union of dev deps so editors/LSPs can parse it; this
+  # pass removes whichever variant the user did not pick. Mirrors
+  # `prune_pyproject_variants` in hooks/post_gen_project.py.
+  - command: "python3 \"{{ _copier_conf.src_path }}/hooks/_prune_pyproject.py\" --typechecker {{ python_typechecker }} --include-sbom {{ include_sbom }}"
+    when: "{{ primary_language in ['python', 'polyglot'] }}"
+
   # Integration pruning — drop configs the user opted out of.
   - command: "rm -f .codacy.yml"
     when: "{{ include_codacy == 'no' }}"

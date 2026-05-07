@@ -11,6 +11,7 @@ script can run safely against a partial scaffold.
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -107,6 +108,67 @@ def prune_integration_files() -> None:
         remove("Makefile.fragments/evals.mk")
 
 
+# Sentinel patterns recognised in pyproject.toml. Keep in sync with
+# hooks/_prune_pyproject.py — copier invokes that script directly,
+# but cookiecutter copies this hook to a temp file before running
+# it (with no access to sibling files), so the logic is duplicated.
+_PRUNE_LINE_SENTINEL = re.compile(r"^(?P<content>.*?)\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+)\s*$")
+_PRUNE_BLOCK_BEGIN = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+):begin\s*$")
+_PRUNE_BLOCK_END = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+):end\s*$")
+
+
+def _prune_variants(text: str, answers: dict[str, str]) -> str:
+    out: list[str] = []
+    skip_block: tuple[str, str] | None = None
+    keep_block: tuple[str, str] | None = None
+    trailing_newline = text.endswith("\n")
+
+    for line in text.splitlines():
+        begin = _PRUNE_BLOCK_BEGIN.match(line)
+        if begin:
+            tag = (begin["key"], begin["val"])
+            if answers.get(begin["key"]) == begin["val"]:
+                keep_block = tag
+            else:
+                skip_block = tag
+            continue
+        end = _PRUNE_BLOCK_END.match(line)
+        if end:
+            tag = (end["key"], end["val"])
+            if skip_block == tag:
+                skip_block = None
+            elif keep_block == tag:
+                keep_block = None
+            continue
+        if skip_block is not None:
+            continue
+        single = _PRUNE_LINE_SENTINEL.match(line)
+        if single:
+            if answers.get(single["key"]) == single["val"]:
+                out.append(single["content"].rstrip())
+            continue
+        out.append(line)
+
+    return "\n".join(out) + ("\n" if trailing_newline else "")
+
+
+def prune_pyproject_variants() -> None:
+    """Strip variant-tagged content from the rendered ``pyproject.toml``.
+
+    The template ships a single, valid-TOML ``pyproject.toml`` with all
+    type-checker sections and dev dependencies present so editors/LSPs
+    can parse it. This step removes the lines and blocks that don't
+    match the chosen ``python_typechecker`` and ``include_sbom``.
+    """
+    if PRIMARY_LANGUAGE not in ("python", "polyglot"):
+        return
+    target = PROJECT_ROOT / "pyproject.toml"
+    if not target.exists():
+        return
+    answers = {"typechecker": PYTHON_TYPECHECKER, "sbom": INCLUDE_SBOM}
+    target.write_text(_prune_variants(target.read_text(), answers))
+
+
 def prune_databricks_files() -> None:
     """Remove Databricks-specific files when the option is off.
 
@@ -157,6 +219,7 @@ def write_summary() -> None:
 def main() -> int:
     print("Pruning unselected files…")
     prune_language_files()
+    prune_pyproject_variants()
     prune_integration_files()
     prune_databricks_files()
     prune_license_files()

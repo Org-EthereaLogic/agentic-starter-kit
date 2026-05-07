@@ -6,6 +6,8 @@ and audit workflows.
 """
 # ruff: noqa: E501  Line length relaxed for readability of help text
 
+from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path
@@ -152,6 +154,53 @@ class GovernanceRules:
         critical = self.get_all_critical()
         return [d for d in critical if d.get("enabled", True)]
 
+    # ------------------------------------------------------------------
+    # Enforcement-data accessors
+    #
+    # The lists below back the `make governance-check` and
+    # `make marker-scan` enforcement gates. Keeping the data here
+    # rather than inline in shell means a single edit to
+    # governance-rules.yaml updates every consumer.
+    # ------------------------------------------------------------------
+
+    def get_required_files(self) -> list[str]:
+        """Strictly required files per CRIT-002."""
+        return list(self.data.get("required_files", []))
+
+    def get_required_agents(self) -> list[str]:
+        """Layer 3 agents required regardless of primary_language."""
+        return list(self.data.get("required_agents", []))
+
+    def get_required_skills(self) -> list[str]:
+        """Layer 3 skills shipped with the template."""
+        return list(self.data.get("required_skills", []))
+
+    def get_optional_dirs(self) -> list[str]:
+        """Directories populated by later phases (warn-only)."""
+        return list(self.data.get("optional_dirs", []))
+
+    def get_marker_surfaces(self) -> list[str]:
+        """Canonical surfaces scanned for prohibited markers (CRIT-001)."""
+        return list(self.data.get("prohibited_markers", {}).get("surfaces", []))
+
+    def get_marker_strings(self) -> list[str]:
+        """Prohibited marker strings, assembled from split [prefix, suffix] pairs.
+
+        The pairs are stored split so the YAML file itself never
+        contains the literal forbidden string (defensive
+        self-reference avoidance, mirroring the previous inline
+        construction in marker-scan.sh).
+        """
+        pairs = self.data.get("prohibited_markers", {}).get("pattern_pairs", [])
+        return ["".join(pair) for pair in pairs]
+
+    def get_marker_regex(self) -> str:
+        """Compile the marker strings into a word-bounded alternation regex."""
+        markers = self.get_marker_strings()
+        if not markers:
+            return ""
+        return r"\b(" + "|".join(markers) + r")\b"
+
     def export_for_ci(self, format: str = "json") -> str:
         """Export directives in CI-friendly format.
 
@@ -200,6 +249,14 @@ def main() -> None:
     )
     parser.add_argument("--blocking", action="store_true", help="Show only blocking (Critical) rules")
     parser.add_argument("--gate", help="Show rules for a specific validation gate (e.g., hooks_test)")
+    # Enforcement-data getters consumed by the bash gates. Each emits
+    # one item per line so callers can pipe straight into mapfile.
+    parser.add_argument("--list-required-files", action="store_true", help="Emit required_files (one per line)")
+    parser.add_argument("--list-required-agents", action="store_true", help="Emit required_agents (one per line)")
+    parser.add_argument("--list-required-skills", action="store_true", help="Emit required_skills (one per line)")
+    parser.add_argument("--list-optional-dirs", action="store_true", help="Emit optional_dirs (one per line)")
+    parser.add_argument("--list-marker-surfaces", action="store_true", help="Emit prohibited_markers.surfaces (one per line)")
+    parser.add_argument("--marker-regex", action="store_true", help="Emit the assembled prohibited-marker alternation regex")
 
     args = parser.parse_args()
 
@@ -208,6 +265,23 @@ def main() -> None:
     except FileNotFoundError as e:
         print(f"ERROR: {e}", file=sys.stderr)
         sys.exit(1)
+
+    enforcement_emitters: dict[str, Any] = {
+        "list_required_files": rules.get_required_files,
+        "list_required_agents": rules.get_required_agents,
+        "list_required_skills": rules.get_required_skills,
+        "list_optional_dirs": rules.get_optional_dirs,
+        "list_marker_surfaces": rules.get_marker_surfaces,
+    }
+    for flag, getter in enforcement_emitters.items():
+        if getattr(args, flag):
+            for item in getter():
+                print(item)
+            sys.exit(0)
+
+    if args.marker_regex:
+        print(rules.get_marker_regex())
+        sys.exit(0)
 
     if args.validate:
         if rules.validate_file():

@@ -52,8 +52,11 @@ messages, prose explanations, comments outside canonical surfaces)
 are not blocked.
 
 **Enforcement.** `make marker-scan` runs on every PR and on every
-push to default. The script is in `scripts/marker-scan.sh` and uses
-a concatenated regex so it does not match itself.
+push to default. The script is in `scripts/marker-scan.sh`. The
+marker strings and surface list are loaded from
+`governance-rules.yaml` (key `prohibited_markers`) — that YAML is
+the single source of truth; the script assembles a concatenated
+regex at runtime so it does not match itself.
 
 ### CRIT-002 — Required governance files exist
 
@@ -72,7 +75,11 @@ decision chain. The check is mechanical; absence is a build break
 once that artifact is part of the scaffold.
 
 **Enforcement.** `make governance-check` runs on every PR. The
-script is in `scripts/check-governance.sh`.
+script is in `scripts/check-governance.sh`. The required-file,
+required-agent, required-skill, and optional-directory lists are
+loaded from `governance-rules.yaml` (keys `required_files`,
+`required_agents`, `required_skills`, `optional_dirs`) — that YAML
+is the single source of truth.
 
 ### CRIT-003 — No runtime dependency on sibling-project internals
 

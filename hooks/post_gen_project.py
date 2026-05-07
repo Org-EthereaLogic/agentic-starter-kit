@@ -70,6 +70,7 @@ def prune_language_files() -> None:
         remove("pyproject.toml")
         remove("tests/test_pre_tool_use_hook.py")
         remove("tests/test_governance_review.py")
+        remove("tests/test_governance_loader.py")
         remove(".claude/agents/python-pro.md")
 
 

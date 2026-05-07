@@ -15,6 +15,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 AGENTS_DIR = REPO_ROOT / ".claude" / "agents"
 SKILLS_DIR = REPO_ROOT / ".claude" / "skills"
 GOVERNANCE_CHECK = REPO_ROOT / "scripts" / "check-governance.sh"
+GOVERNANCE_LIB = REPO_ROOT / "scripts" / "lib"
+GOVERNANCE_RULES = REPO_ROOT / "governance-rules.yaml"
 
 EXPECTED_SKILLS = {
     "audit-trail-tail.md",
@@ -105,6 +107,13 @@ def _create_minimal_project(root: Path) -> None:
 
     shutil.copytree(AGENTS_DIR, root / ".claude" / "agents")
     shutil.copytree(SKILLS_DIR, root / ".claude" / "skills")
+
+    # check-governance.sh now reads its required-file/agent/skill
+    # lists from governance-rules.yaml via scripts/lib/governance.py.
+    # Copy both into the minimal project so the script can resolve
+    # them at run time.
+    shutil.copy2(GOVERNANCE_RULES, root / "governance-rules.yaml")
+    shutil.copytree(GOVERNANCE_LIB, root / "scripts" / "lib")
 
 
 def _run_governance_check(project_root: Path) -> subprocess.CompletedProcess[str]:

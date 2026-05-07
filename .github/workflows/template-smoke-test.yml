@@ -384,9 +384,16 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install render and test dependencies
-        run: pip install cookiecutter pytest --quiet
-      - name: Run pruning integration test
-        run: make template-test
+        run: pip install cookiecutter pytest pytest-cov --quiet
+      - name: Run pruning integration test with coverage
+        run: make template-test-coverage
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4 # v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: template-hooks
+          fail_ci_if_error: false
 
   smoke-test-summary:
     name: Smoke Test Summary

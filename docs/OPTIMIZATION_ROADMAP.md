@@ -1,10 +1,19 @@
 # Cookiecutter Template: Optimization & Refactoring Roadmap
 
+> **Status (2026-05-06):** items #1, #2, #3, #4, #6, and #7 shipped
+> with v0.2 / v0.3 / v0.4. The remaining six items (#5, #8, #9,
+> #10, #11, #12) were filed as GitHub issues #69–#74 against
+> [Project #6](https://github.com/orgs/Org-EthereaLogic/projects/6)
+> in the Backlog. See *Status* notes inline.
+
 ---
 
 ## Quick Wins (Immediate)
 
 ### 1. Fix cookiecutter.json Defaults
+
+**Status:** ✅ Shipped (Phase A). Defaults are now `Author Name` /
+`author@example.com` / `An agentic application`.
 
 **Current State:**
 ```json
@@ -32,6 +41,9 @@
 
 ### 2. Convert TypeScript Test File to ES Modules
 
+**Status:** ✅ Shipped. `tests/test_pre_tool_use_hook.js` now uses
+ES module `import` syntax throughout.
+
 **Current:** `tests/test_pre_tool_use_hook.js` uses `require()`
 **Issue:** Incompatible with `"type": "module"` in package.json
 
@@ -52,6 +64,9 @@ import assert from "node:assert/strict";
 
 ### 3. Document make sync Requirement
 
+**Status:** ✅ Shipped. `README.md` documents `make sync` as the
+prerequisite for `make validate`.
+
 Add to `README.md`:
 ```markdown
 ## Getting Started
@@ -68,6 +83,10 @@ Add to `README.md`:
 ## Code Quality Improvements (1-2 weeks)
 
 ### 4. DRY Up Validation Scripts
+
+**Status:** ✅ Shipped. `scripts/lib/common.sh` and
+`scripts/lib/governance.py` are now sourced by `marker-scan.sh`,
+`check-governance.sh`, and friends.
 
 **Current:** `scripts/marker-scan.sh`, `scripts/check-governance.sh` share 40+ lines
 
@@ -93,6 +112,8 @@ report_scan_result
 
 ### 5. Consolidate Test Suite Maintenance
 
+**Status:** 📋 Open — tracked in [#69](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/69).
+
 **Problem:** Python and TypeScript test files are 90% identical
 
 **Option A — Template-based generation (preferred):**
@@ -110,6 +131,11 @@ report_scan_result
 ---
 
 ### 6. Create Makefile Fragment System
+
+**Status:** ✅ Shipped. The rendered project's `Makefile` now
+`include`s fragments under `Makefile.fragments/` (`defs.mk`,
+`sync.mk`, `checks.mk`, `python.mk`, `typescript.mk`, `hooks.mk`,
+`quality.mk`, `evals.mk`, `clean.mk`).
 
 **Current:** Monolithic Makefile with conditionals
 **Issue:** Hard to reason about; language-specific logic mixed
@@ -135,6 +161,10 @@ rm Makefile.python Makefile.typescript
 ## Testing & Validation (2-3 weeks)
 
 ### 7. Add Automated Template Smoke Tests
+
+**Status:** ✅ Shipped as `.github/workflows/template-smoke-test.yml`
+(supplemented by `smoke-test.yml`). Renders the template across a
+matrix of variants and runs `make validate` against each.
 
 **Create:** `.github/workflows/smoke-test.yml`
 
@@ -169,6 +199,8 @@ jobs:
 
 ### 8. Add Integration Test for Post-Gen Hook
 
+**Status:** 📋 Open — tracked in [#70](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/70).
+
 **Test:** Verify hook correctly removes language-inappropriate files
 
 ```bash
@@ -199,6 +231,8 @@ test_typescript_variant() {
 
 ### 9. Implement Jinja2 Filter Library
 
+**Status:** 📋 Open — tracked in [#71](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/71).
+
 **Problem:** Repetitive filters in templates (e.g., `|lower|replace('-','_')`)
 
 **Solution:** Create custom filters in `hooks/jinja_filters.py`
@@ -222,6 +256,8 @@ python_package_name = "{{ cookiecutter.project_name | to_python_package_name }}"
 ---
 
 ### 10. Extract Governance Rules to Data-Driven Config
+
+**Status:** 📋 Open — tracked in [#72](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/72).
 
 **Current:** Hardcoded rules in `scripts/check-governance.sh`
 
@@ -262,6 +298,8 @@ prohibited_markers:
 
 ### 11. Create Language-Specific Quick Start Guides
 
+**Status:** 📋 Open — tracked in [#73](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/73).
+
 **Files to create:**
 - `docs/QUICKSTART-PYTHON.md` — pytest, ruff, mypy workflow
 - `docs/QUICKSTART-TYPESCRIPT.md` — vitest, eslint, tsc workflow
@@ -279,6 +317,8 @@ prohibited_markers:
 ---
 
 ### 12. Enhance README with Comparison Matrix
+
+**Status:** 📋 Open — tracked in [#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/74).
 
 **Add:** Language/tool selection guide
 
@@ -406,6 +446,6 @@ check_no_markers() {
 
 ---
 
-*Last updated: 2026-05-02*
+*Last updated: 2026-05-06 (status reconciled; open items filed as #69–#74)*
 *Prepared by: Template Validation Team*
 

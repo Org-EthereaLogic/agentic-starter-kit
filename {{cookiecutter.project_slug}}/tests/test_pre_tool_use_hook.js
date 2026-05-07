@@ -1,10 +1,13 @@
 // Regression suite for `.claude/hooks/pre-tool-use.js`.
 //
-// TypeScript-path equivalent of `tests/test_pre_tool_use_hook.py`.
+// Driven by `tests/hook_test_spec.json` — the single source of truth
+// shared with `test_pre_tool_use_hook.py`. Each scenario in the spec
+// is dispatched as one `node:test` test at module load.
+//
 // Uses Node 20+'s built-in `node:test` runner — no external test
-// framework required. Each test sets up a temporary git repo on a
-// controlled branch and invokes the hook with a JSON payload via
-// stdin per the Claude Code hook protocol.
+// framework required. Each test sets up a temporary git repo on the
+// scenario's branch (when specified) and invokes the hook with a JSON
+// payload via stdin per the Claude Code hook protocol.
 //
 // The eight bypass classes covered are documented in
 // `.claude/hooks/README.md`.
@@ -12,7 +15,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -22,7 +25,8 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..");
 const HOOK_PATH = path.join(REPO_ROOT, ".claude", "hooks", "pre-tool-use.js");
 const FIXTURES = path.join(REPO_ROOT, "tests", "fixtures");
-const DEFAULT_BRANCH = "{{ cookiecutter.default_branch_name }}";
+const SPEC_PATH = path.join(REPO_ROOT, "tests", "hook_test_spec.json");
+const SPEC = JSON.parse(readFileSync(SPEC_PATH, "utf8"));
 
 function gitEnv() {
   return {
@@ -46,10 +50,6 @@ function setupRepo(branch) {
   return dir;
 }
 
-function bashPayload(command) {
-  return JSON.stringify({ tool_name: "Bash", tool_input: { command } });
-}
-
 function runHook(payload, cwd) {
   return spawnSync("node", [HOOK_PATH], {
     input: payload,
@@ -58,145 +58,45 @@ function runHook(payload, cwd) {
   });
 }
 
-test("refspec to protected blocks", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(
-    bashPayload(`git push origin feat/x:${DEFAULT_BRANCH}`),
-    dir,
-  );
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, new RegExp(DEFAULT_BRANCH));
-});
+function payloadFor(scenario) {
+  if (scenario.fixture) {
+    return readFileSync(path.join(FIXTURES, scenario.fixture), "utf8");
+  }
+  if (scenario.tool_name) {
+    return JSON.stringify({
+      tool_name: scenario.tool_name,
+      tool_input: scenario.tool_input || {},
+    });
+  }
+  return JSON.stringify({
+    tool_name: "Bash",
+    tool_input: { command: scenario.command || "" },
+  });
+}
 
-test("implicit push from protected blocks", () => {
-  const dir = setupRepo(DEFAULT_BRANCH);
-  const result = runHook(bashPayload("git push"), dir);
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, new RegExp(DEFAULT_BRANCH));
-});
+function runScenario(scenario) {
+  const dir = scenario.branch
+    ? setupRepo(scenario.branch)
+    : mkdtempSync(path.join(tmpdir(), "hook-test-"));
+  try {
+    const result = runHook(payloadFor(scenario), dir);
+    assert.equal(
+      result.status,
+      scenario.expected_exit,
+      `${scenario.name}: expected exit ${scenario.expected_exit}, got ${result.status}; stderr=${JSON.stringify(result.stderr)}`,
+    );
+    if (scenario.check_stderr) {
+      const needle = scenario.check_stderr.toLowerCase();
+      assert.ok(
+        String(result.stderr).toLowerCase().includes(needle),
+        `${scenario.name}: stderr did not contain ${JSON.stringify(scenario.check_stderr)}; stderr=${JSON.stringify(result.stderr)}`,
+      );
+    }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
 
-test("broad push --all blocks", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(bashPayload("git push --all origin"), dir);
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /--all/);
-});
-
-test("broad push --mirror blocks", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(bashPayload("git push --mirror origin"), dir);
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /--mirror/);
-});
-
-test("commit on protected blocks", () => {
-  const dir = setupRepo(DEFAULT_BRANCH);
-  const result = runHook(bashPayload("git commit -m 'feat: x'"), dir);
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /commit/i);
-});
-
-test("merge on protected blocks", () => {
-  const dir = setupRepo(DEFAULT_BRANCH);
-  const result = runHook(bashPayload("git merge feat/x"), dir);
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /merge/i);
-});
-
-test("rebase on protected blocks", () => {
-  const dir = setupRepo(DEFAULT_BRANCH);
-  const result = runHook(bashPayload("git rebase feat/x"), dir);
-  assert.equal(result.status, 2);
-});
-
-test("nested shell blocks", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(
-    bashPayload(`bash -c "git push origin feat/x:${DEFAULT_BRANCH}"`),
-    dir,
-  );
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /nested/i);
-});
-
-test("chained subcommand blocks", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(
-    bashPayload(`true && git push origin feat/x:${DEFAULT_BRANCH}`),
-    dir,
-  );
-  assert.equal(result.status, 2);
-});
-
-test("feature branch push allows", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(bashPayload("git push origin feat/x:feat/x"), dir);
-  assert.equal(result.status, 0);
-});
-
-test("feature branch commit allows", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(bashPayload("git commit -m 'feat: x'"), dir);
-  assert.equal(result.status, 0);
-});
-
-test("non-Bash tool passes through", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(
-    JSON.stringify({ tool_name: "Read", tool_input: { file_path: "/x" } }),
-    dir,
-  );
-  assert.equal(result.status, 0);
-});
-
-test("non-git Bash command passes through", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(bashPayload("ls -la"), dir);
-  assert.equal(result.status, 0);
-});
-
-test("empty command passes through", () => {
-  const dir = setupRepo("feat/x");
-  const result = runHook(bashPayload(""), dir);
-  assert.equal(result.status, 0);
-});
-
-test("fixture: protected-push.json blocks", () => {
-  const dir = setupRepo("feat/x");
-  const payload = readFileSync(
-    path.join(FIXTURES, "protected-push.json"),
-    "utf8",
-  );
-  const result = runHook(payload, dir);
-  assert.equal(result.status, 2);
-});
-
-test("fixture: broad-push-all.json blocks", () => {
-  const dir = setupRepo("feat/x");
-  const payload = readFileSync(
-    path.join(FIXTURES, "broad-push-all.json"),
-    "utf8",
-  );
-  const result = runHook(payload, dir);
-  assert.equal(result.status, 2);
-});
-
-test("fixture: feature-push-allowed.json allows", () => {
-  const dir = setupRepo("feat/x");
-  const payload = readFileSync(
-    path.join(FIXTURES, "feature-push-allowed.json"),
-    "utf8",
-  );
-  const result = runHook(payload, dir);
-  assert.equal(result.status, 0);
-});
-
-test("fixture: non-bash-tool.json passes through", () => {
-  const dir = setupRepo("feat/x");
-  const payload = readFileSync(
-    path.join(FIXTURES, "non-bash-tool.json"),
-    "utf8",
-  );
-  const result = runHook(payload, dir);
-  assert.equal(result.status, 0);
-});
+for (const scenario of [...SPEC.tests, ...SPEC.fixtures]) {
+  test(scenario.description || scenario.name, () => runScenario(scenario));
+}

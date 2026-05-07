@@ -93,7 +93,7 @@ nothing to configure.
 ├── src/                        # Primary source code
 ├── tests/                      # Test suite
 │   ├── test_pre_tool_use_hook.py  # Hook regression tests (CRIT-008)
-│   ├── hook_test_spec.yaml     # Test specification (single source of truth)
+│   ├── hook_test_spec.json     # Test specification (single source of truth)
 │   └── fixtures/               # Test payloads
 ├── docs/                       # Living documentation (populated later)
 ├── specs/                      # Specifications and traceability matrix
@@ -214,12 +214,12 @@ make hooks-test
 python3 -m unittest tests.test_pre_tool_use_hook.PreToolUseHookTests.test_refspec_to_protected_blocks
 ```
 
-The test specification is in `tests/hook_test_spec.yaml`. When adding new test cases:
+The test specification is in `tests/hook_test_spec.json` — both
+language drivers iterate it at import time, so a new case only needs
+to be added once. When adding a new test case:
 
-1. Add to `hook_test_spec.yaml` (single source of truth)
-2. Update `tests/test_pre_tool_use_hook.py`
-3. Update `tests/test_pre_tool_use_hook.js` (TypeScript variant must stay in sync)
-4. Run `make hooks-test` to verify both implementations pass
+1. Add an entry under `tests` (or `fixtures`) in `hook_test_spec.json`
+2. Run `make hooks-test` to verify both implementations pick it up
 
 ### Writing Tests
 

@@ -68,10 +68,12 @@ This layered approach provides:
 - Registered in `.claude/settings.json`
 - Tested via regression suite (CRIT-008)
 
-**Test Consolidation** (hook_test_spec.yaml):
+**Test Consolidation** (hook_test_spec.json):
 - Single source of truth for all 18 test cases
-- Python and TypeScript implementations stay in sync
-- YAML specification enables future code generation
+- Python and TypeScript drivers iterate the spec at import time, so
+  the implementations cannot drift
+- JSON spec is parsed by both languages with the standard library
+  (no PyYAML / `js-yaml` dependency)
 
 ## Implementation
 
@@ -81,7 +83,8 @@ This layered approach provides:
 - ✅ Establish validation gates (Layer 5)
 
 ### Consolidation Phase (Completed — Phase 5)
-- ✅ Test consolidation (hook_test_spec.yaml)
+
+- ✅ Test consolidation (hook_test_spec.json)
 - ✅ Shell script refactoring (common.sh utilities)
 - ✅ Makefile fragment system
 - ✅ Governance rules in YAML

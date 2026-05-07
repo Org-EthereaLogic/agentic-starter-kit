@@ -199,7 +199,7 @@ my-agentic-project/
     │   ├── nested-shell.json
     │   ├── non-bash-tool.json
     │   └── protected-push.json
-    ├── hook_test_spec.yaml
+    ├── hook_test_spec.json
     ├── test_audit_hooks.cjs            # cross-language audit-hook contract
     ├── test_audit_hooks.py
     ├── test_command_contracts.py

@@ -8,12 +8,6 @@
 # Type-checker is selected via the `python_typechecker` cookiecutter
 # variable. Default is `ty` (Astral); `mypy` is offered as an
 # opt-in fallback for projects with stub-heavy ecosystems.
-#
-# This file is valid TOML on disk so editors and TOML language
-# servers can parse it. The post-gen hook strips sentinel-tagged
-# lines and blocks that don't match the answers chosen at render
-# time; see `hooks/_prune_pyproject.py` for the sentinel format
-# and pruning logic.
 
 [project]
 name = "{{ cookiecutter.python_package_name }}"

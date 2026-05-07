@@ -112,9 +112,9 @@ def prune_integration_files() -> None:
 # hooks/_prune_pyproject.py — copier invokes that script directly,
 # but cookiecutter copies this hook to a temp file before running
 # it (with no access to sibling files), so the logic is duplicated.
-_PRUNE_LINE_SENTINEL = re.compile(r"^(?P<content>.*?)\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+)\s*$")
-_PRUNE_BLOCK_BEGIN = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+):begin\s*$")
-_PRUNE_BLOCK_END = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+):end\s*$")
+_PRUNE_LINE_SENTINEL = re.compile(r"^(?P<content>.*?)\s*#\s*variant:(?P<key>\w+)=(?P<val>[\w.-]+)\s*$")
+_PRUNE_BLOCK_BEGIN = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>[\w.-]+):begin\s*$")
+_PRUNE_BLOCK_END = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>[\w.-]+):end\s*$")
 
 
 def _prune_variants(text: str, answers: dict[str, str]) -> str:

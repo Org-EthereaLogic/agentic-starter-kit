@@ -15,10 +15,12 @@ Sentinels:
          ``answers[KEY] != VAL``; otherwise keep the contents and
          strip the marker lines.
 
-Both cookiecutter (via ``hooks/post_gen_project.py``) and copier
-(via a ``_tasks`` entry in ``copier.yml``) call this script after
-rendering. It is a no-op on files without sentinels, so it's safe
-to run repeatedly.
+Copier invokes this script directly via a ``_tasks`` entry in
+``copier.yml``. Cookiecutter cannot import sibling files from its
+post-gen hook (the hook is copied into a temp dir without access
+to ``hooks/``), so ``hooks/post_gen_project.py`` ships a duplicate
+of the parsing logic; keep both in sync. The script is a no-op on
+files without sentinels, so it's safe to run repeatedly.
 """
 
 from __future__ import annotations
@@ -28,9 +30,11 @@ import re
 import sys
 from pathlib import Path
 
-LINE_SENTINEL = re.compile(r"^(?P<content>.*?)\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+)\s*$")
-BLOCK_BEGIN = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+):begin\s*$")
-BLOCK_END = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>\w+):end\s*$")
+# Variant values may contain dots and hyphens (e.g. version numbers
+# or slugified names) in addition to word characters.
+LINE_SENTINEL = re.compile(r"^(?P<content>.*?)\s*#\s*variant:(?P<key>\w+)=(?P<val>[\w.-]+)\s*$")
+BLOCK_BEGIN = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>[\w.-]+):begin\s*$")
+BLOCK_END = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>[\w.-]+):end\s*$")
 
 
 def prune_text(text: str, answers: dict[str, str]) -> str:

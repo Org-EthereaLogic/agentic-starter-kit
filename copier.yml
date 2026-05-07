@@ -251,7 +251,7 @@ _tasks:
   # and the union of dev deps so editors/LSPs can parse it; this
   # pass removes whichever variant the user did not pick. Mirrors
   # `prune_pyproject_variants` in hooks/post_gen_project.py.
-  - command: "python3 \"{{ _copier_conf.src_path }}/hooks/_prune_pyproject.py\" --typechecker {{ python_typechecker }} --include-sbom {{ include_sbom }}"
+  - command: "{{ _copier_python }} \"{{ _copier_conf.src_path }}/hooks/_prune_pyproject.py\" --typechecker {{ python_typechecker }} --include-sbom {{ include_sbom }}"
     when: "{{ primary_language in ['python', 'polyglot'] }}"
 
   # Integration pruning — drop configs the user opted out of.

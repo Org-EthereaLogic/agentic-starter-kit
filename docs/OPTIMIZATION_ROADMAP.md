@@ -238,25 +238,15 @@ Run locally with `make template-test`; CI runs the same suite via the
 
 ### 9. Implement Jinja2 Filter Library
 
-**Status:** 📋 Open — tracked in [#71](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/71).
-
-**Problem:** Repetitive filters in templates (e.g., `|lower|replace('-','_')`)
-
-**Solution:** Create custom filters in `hooks/jinja_filters.py`
-
-```python
-@filter
-def to_python_package_name(s):
-    """Convert project name to valid Python package name."""
-    return s.lower().replace('-', '_').replace(' ', '_')
-```
-
-**Usage in templates:**
-```jinja2
-python_package_name = "{{ cookiecutter.project_name | to_python_package_name }}"
-```
-
-**Benefit:** Reusable, testable, DRY
+**Status:** ❌ Won't do — closed [#71](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/71)
+as **not planned**. Scope review found chained filters at only 4
+sites in 2 config files (`cookiecutter.json`, `copier.yml`) and zero
+in the rendered template tree. Net code would *grow*: cookiecutter
+needs an `_extensions` registration plus a `jinja2.ext.Extension`
+subclass, and copier has no equivalent native filter-extension API,
+so dual-tool parity costs more than the 4 lines saved. Revisit if
+chained filters ever appear in `{{cookiecutter.project_slug}}/**` or
+if a third render tool is added. See #71 for the full rationale.
 
 **Effort:** 2 hours | **Impact:** Low (nice-to-have) | **Blocker:** No
 

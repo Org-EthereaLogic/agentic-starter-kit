@@ -277,19 +277,19 @@ exercises every accessor against a synthetic fixture.
 
 ### 11. Create Language-Specific Quick Start Guides
 
-**Status:** 📋 Open — tracked in [#73](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/73).
-
-**Files to create:**
-- `docs/QUICKSTART-PYTHON.md` — pytest, ruff, mypy workflow
-- `docs/QUICKSTART-TYPESCRIPT.md` — vitest, eslint, tsc workflow
-- `docs/CONTRIBUTING.md` — Updated with tool-specific guidance
-
-**Content:**
-- How to run tests
-- How to check types
-- How to lint
-- How to format code
-- IDE setup instructions
+**Status:** ✅ Done — closed [#73](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/73).
+The substantive `QUICKSTART-PYTHON.md` (292 lines) and
+`QUICKSTART-TYPESCRIPT.md` (243 lines) already shipped at the
+rendered project root alongside the `QUICKSTART.md` hub. The
+remaining gap was conditional pruning: every variant shipped both
+guides regardless of `primary_language`. The hook now drops the
+inappropriate guide for `python`-only and `typescript`-only renders;
+the root pruning matrix asserts presence/absence per variant; and
+`README.md` gained a Quickstart-guides section that links the
+language-appropriate file via Jinja conditionals (both shown in the
+polyglot variant). Files stayed at the project root (not `docs/`)
+to preserve the existing hub layout — the `QUICKSTART.md` hub on
+its own already directs newcomers to the right guide.
 
 **Effort:** 3 hours | **Impact:** Medium (UX) | **Blocker:** No
 

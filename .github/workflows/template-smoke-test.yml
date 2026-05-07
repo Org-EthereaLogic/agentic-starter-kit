@@ -409,6 +409,6 @@ jobs:
             echo "✅ All template variants, render-equivalence, devcontainer build, docs-site build, and hook pruning matrix passed"
             exit 0
           else
-            echo "❌ One or more variants failed smoke test"
+            echo "❌ One or more smoke-test jobs failed (variants, render-equivalence, devcontainer, docs-site, or hook-pruning)"
             exit 1
           fi

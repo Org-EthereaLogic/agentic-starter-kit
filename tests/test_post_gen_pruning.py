@@ -9,6 +9,7 @@ project tree.
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import sys
@@ -17,7 +18,22 @@ from pathlib import Path
 import pytest
 
 TEMPLATE_ROOT = Path(__file__).resolve().parent.parent
-RENDERED_SLUG = "my-agentic-project"
+
+
+def _default_rendered_slug() -> str:
+    """Derive the rendered project directory name from cookiecutter defaults.
+
+    Mirrors the Jinja expression in ``cookiecutter.json``'s
+    ``project_slug``: ``project_name|lower|replace(' ', '-')|replace('_', '-')``.
+    Reading it from the JSON keeps the test resilient to future renames of
+    the default ``project_name``.
+    """
+    config = json.loads((TEMPLATE_ROOT / "cookiecutter.json").read_text())
+    project_name = config["project_name"]
+    return project_name.lower().replace(" ", "-").replace("_", "-")
+
+
+RENDERED_SLUG = _default_rendered_slug()
 
 LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
     "python": {

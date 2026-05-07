@@ -6,6 +6,8 @@ and audit workflows.
 """
 # ruff: noqa: E501  Line length relaxed for readability of help text
 
+from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path

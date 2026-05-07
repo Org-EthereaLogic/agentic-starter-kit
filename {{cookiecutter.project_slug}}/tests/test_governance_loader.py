@@ -66,35 +66,35 @@ def synthetic_rules(tmp_path: Path) -> Path:
 
 
 def test_required_files_round_trip(synthetic_rules: Path) -> None:
-    rules = GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(rules_file=synthetic_rules)
     assert rules.get_required_files() == ["CONSTITUTION.md", "README.md"]
 
 
 def test_required_agents_round_trip(synthetic_rules: Path) -> None:
-    rules = GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(rules_file=synthetic_rules)
     assert rules.get_required_agents() == [
         ".claude/agents/lead-software-engineer.md"
     ]
 
 
 def test_required_skills_round_trip(synthetic_rules: Path) -> None:
-    rules = GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(rules_file=synthetic_rules)
     assert rules.get_required_skills() == [".claude/skills/run-validate.md"]
 
 
 def test_optional_dirs_round_trip(synthetic_rules: Path) -> None:
-    rules = GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(rules_file=synthetic_rules)
     assert rules.get_optional_dirs() == ["docs", "report"]
 
 
 def test_marker_surfaces_round_trip(synthetic_rules: Path) -> None:
-    rules = GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(rules_file=synthetic_rules)
     assert rules.get_marker_surfaces() == ["CLAUDE.md", "docs"]
 
 
 def test_marker_strings_assembled_from_pairs(synthetic_rules: Path) -> None:
     """The split-pair representation joins back into the literal markers."""
-    rules = GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(rules_file=synthetic_rules)
     # The forbidden literals are reassembled here only inside an
     # assertion comparing them to the loader output.
     expected_first = "TO" + "DO"
@@ -106,7 +106,7 @@ def test_marker_regex_word_bounded_alternation(synthetic_rules: Path) -> None:
     """The regex matches each marker on a word boundary, nothing else."""
     import re
 
-    rules = GovernanceRules(synthetic_rules)
+    rules = GovernanceRules(rules_file=synthetic_rules)
     pattern = re.compile(rules.get_marker_regex())
 
     assert pattern.search("TO" + "DO: ship it")
@@ -120,7 +120,7 @@ def test_loader_works_against_shipped_rules() -> None:
     real = PROJECT_ROOT / "governance-rules.yaml"
     if not real.exists():
         pytest.skip("governance-rules.yaml not present in this checkout")
-    rules = GovernanceRules(real)
+    rules = GovernanceRules(rules_file=real)
     assert rules.get_required_files()
     assert rules.get_required_agents()
     assert rules.get_required_skills()
@@ -143,7 +143,7 @@ def test_missing_sections_return_empty_lists(tmp_path: Path) -> None:
             """
         )
     )
-    rules = GovernanceRules(rules_file)
+    rules = GovernanceRules(rules_file=rules_file)
     assert rules.get_required_files() == []
     assert rules.get_marker_strings() == []
     assert rules.get_marker_regex() == ""

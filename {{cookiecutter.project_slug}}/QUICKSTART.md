@@ -107,8 +107,12 @@ The key rules affecting day-to-day work:
 ├── README.md                   # Project overview
 ├── CONTRIBUTING.md             # How to contribute
 ├── QUICKSTART.md               # This file
+{% if cookiecutter.primary_language in ("python", "polyglot") -%}
 ├── QUICKSTART-PYTHON.md        # Python guide
+{% endif -%}
+{% if cookiecutter.primary_language in ("typescript", "polyglot") -%}
 ├── QUICKSTART-TYPESCRIPT.md    # TypeScript guide
+{% endif -%}
 │
 ├── src/                        # Your code
 ├── tests/                      # Your tests

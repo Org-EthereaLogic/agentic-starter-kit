@@ -19,6 +19,21 @@ make hooks-test   # exercise the protected-branch runtime hook
 - `make sync` installs dev tools (ruff, {{ cookiecutter.python_typechecker }}, pytest, etc.) and must run first
 - `make validate` aggregates all governance checks and is the canonical pre-merge gate
 - If `make validate` is clean, the scaffold is healthy. Each gate's failure surfaces a specific file or pattern needing attention
+
+### Quickstart guides
+
+Language-specific on-ramps live alongside the root-level `QUICKSTART.md`
+hub. They cover dev-tool install, test/lint/typecheck commands, and a
+first-contribution checklist for the variant that ships in this render.
+
+{% if cookiecutter.primary_language == 'python' -%}
+- [`QUICKSTART-PYTHON.md`](QUICKSTART-PYTHON.md) — `uv sync`, `pytest`, `ruff`, `{{ cookiecutter.python_typechecker }}`.
+{% elif cookiecutter.primary_language == 'typescript' -%}
+- [`QUICKSTART-TYPESCRIPT.md`](QUICKSTART-TYPESCRIPT.md) — `npm install`, `node --test`, `eslint`, `tsc`.
+{% else -%}
+- [`QUICKSTART-PYTHON.md`](QUICKSTART-PYTHON.md) — `uv sync`, `pytest`, `ruff`, `{{ cookiecutter.python_typechecker }}`.
+- [`QUICKSTART-TYPESCRIPT.md`](QUICKSTART-TYPESCRIPT.md) — `npm install`, `node --test`, `eslint`, `tsc`.
+{% endif %}
 {% if cookiecutter.include_devcontainer == 'yes' -%}
 
 ### Container workflows

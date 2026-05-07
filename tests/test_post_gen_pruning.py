@@ -43,12 +43,14 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "tests/test_governance_review.py",
             "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
+            "QUICKSTART-PYTHON.md",
         ),
         "absent": (
             "package.json",
             "tsconfig.json",
             "tests/test_pre_tool_use_hook.js",
             ".claude/agents/typescript-pro.md",
+            "QUICKSTART-TYPESCRIPT.md",
         ),
     },
     "typescript": {
@@ -57,6 +59,7 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "tsconfig.json",
             "tests/test_pre_tool_use_hook.js",
             ".claude/agents/typescript-pro.md",
+            "QUICKSTART-TYPESCRIPT.md",
         ),
         "absent": (
             "pyproject.toml",
@@ -64,6 +67,7 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "tests/test_governance_review.py",
             "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
+            "QUICKSTART-PYTHON.md",
         ),
     },
     "polyglot": {
@@ -77,6 +81,8 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
             ".claude/agents/typescript-pro.md",
+            "QUICKSTART-PYTHON.md",
+            "QUICKSTART-TYPESCRIPT.md",
         ),
         "absent": (),
     },

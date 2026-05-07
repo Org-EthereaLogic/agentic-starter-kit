@@ -66,12 +66,14 @@ def prune_language_files() -> None:
         remove("tsconfig.json")
         remove("tests/test_pre_tool_use_hook.js")
         remove(".claude/agents/typescript-pro.md")
+        remove("QUICKSTART-TYPESCRIPT.md")
     elif PRIMARY_LANGUAGE == "typescript":
         remove("pyproject.toml")
         remove("tests/test_pre_tool_use_hook.py")
         remove("tests/test_governance_review.py")
         remove("tests/test_governance_loader.py")
         remove(".claude/agents/python-pro.md")
+        remove("QUICKSTART-PYTHON.md")
 
 
 def prune_integration_files() -> None:

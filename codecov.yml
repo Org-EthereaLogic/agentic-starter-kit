@@ -1,0 +1,52 @@
+# Codecov configuration for the agentic-starter-kit template repository.
+# Reference: https://docs.codecov.com/docs/codecov-yaml
+#
+# Scope: this file configures Codecov for the *template repository
+# itself*, not for projects rendered from it. Generated projects ship
+# their own `codecov.yaml` at `{{cookiecutter.project_slug}}/codecov.yaml`.
+#
+# Coverage source: `hooks/` is the only Python that runs during the
+# template-repo test suite. The rendered template tree under
+# `{{cookiecutter.project_slug}}/` is never executed in this repo's CI,
+# so it is excluded; tests under `tests/` are the test runner, not
+# the unit under measurement.
+
+coverage:
+  status:
+    # Informational while coverage signal is being built out. The
+    # current `tests/` suite drives `cookiecutter` as a subprocess,
+    # so pytest-cov sees zero lines in `hooks/`; tightening the
+    # gate before in-process unit tests land would block every PR.
+    # Flip `informational` to `false` once direct unit tests for
+    # `hooks/_prune_pyproject.py:prune_text` and the post-gen
+    # variant logic raise the floor above ~80%.
+    project:
+      default:
+        target: auto
+        threshold: 0%
+        if_ci_failed: error
+        informational: true
+    patch:
+      default:
+        target: 80%
+        threshold: 0%
+        if_ci_failed: error
+        informational: true
+
+ignore:
+  - "tests/**/*"
+  - "docs/**/*"
+  - ".github/**/*"
+  # The rendered template tree under `{{cookiecutter.project_slug}}/`
+  # never executes in this repo's CI (generated projects ship their
+  # own Codecov config). Excluding it here keeps the template-repo
+  # coverage signal focused on `hooks/` instead of being diluted by
+  # thousands of un-run lines.
+  - "{{cookiecutter.project_slug}}/**/*"
+
+comment:
+  layout: "reach,diff,flags,files,header,footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: false

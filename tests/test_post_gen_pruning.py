@@ -13,6 +13,7 @@ import json
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -191,6 +192,38 @@ def test_copier_only_artifact_removed(tmp_path: Path) -> None:
     """The cookiecutter hook strips ``.copier-answers.yml``."""
     project = _render(tmp_path)
     assert not (project / ".copier-answers.yml").exists()
+
+
+@pytest.mark.parametrize("typechecker", ["ty", "mypy"])
+def test_pyproject_typechecker_variant(tmp_path: Path, typechecker: str) -> None:
+    """The chosen ``python_typechecker`` is the only one left in pyproject.toml."""
+    project = _render(tmp_path, primary_language="python", python_typechecker=typechecker)
+    contents = (project / "pyproject.toml").read_text()
+    parsed = tomllib.loads(contents)
+
+    tool = parsed.get("tool", {})
+    if typechecker == "ty":
+        assert "ty" in tool, "ty config section missing"
+        assert "mypy" not in tool, "mypy config section should be pruned"
+        assert any(d.startswith("ty>=") for d in parsed["dependency-groups"]["dev"])
+        assert not any(d.startswith("mypy>=") for d in parsed["dependency-groups"]["dev"])
+    else:
+        assert "mypy" in tool, "mypy config section missing"
+        assert "ty" not in tool, "ty config section should be pruned"
+        assert any(d.startswith("mypy>=") for d in parsed["dependency-groups"]["dev"])
+        assert not any(d.startswith("ty>=") for d in parsed["dependency-groups"]["dev"])
+
+    assert "# variant:" not in contents, "variant sentinels should be stripped"
+    assert "{%" not in contents and "{# " not in contents, "no Jinja control flow should remain"
+
+
+@pytest.mark.parametrize("include_sbom", ["yes", "no"])
+def test_pyproject_sbom_variant(tmp_path: Path, include_sbom: str) -> None:
+    """``include_sbom`` controls the cyclonedx-bom dev dependency."""
+    project = _render(tmp_path, primary_language="python", include_sbom=include_sbom)
+    parsed = tomllib.loads((project / "pyproject.toml").read_text())
+    has_cyclonedx = any(d.startswith("cyclonedx-bom") for d in parsed["dependency-groups"]["dev"])
+    assert has_cyclonedx == (include_sbom == "yes")
 
 
 def test_render_is_idempotent(tmp_path: Path) -> None:

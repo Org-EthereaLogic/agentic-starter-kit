@@ -37,6 +37,12 @@ ignore:
   - "tests/**/*"
   - "docs/**/*"
   - ".github/**/*"
+  # The rendered template tree under `{{cookiecutter.project_slug}}/`
+  # never executes in this repo's CI (generated projects ship their
+  # own Codecov config). Excluding it here keeps the template-repo
+  # coverage signal focused on `hooks/` instead of being diluted by
+  # thousands of un-run lines.
+  - "{{cookiecutter.project_slug}}/**/*"
 
 comment:
   layout: "reach,diff,flags,files,header,footer"

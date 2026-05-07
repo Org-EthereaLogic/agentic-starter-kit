@@ -388,9 +388,15 @@ jobs:
       - name: Run pruning integration test with coverage
         run: make template-test-coverage
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4 # v4
+        # Forks don't get access to the org-level CODECOV_TOKEN
+        # secret; skip the upload step in that case so fork PRs
+        # don't fail-soft with a meaningless 0% upload.
+        if: ${{ env.CODECOV_TOKEN != '' }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          token: ${{ env.CODECOV_TOKEN }}
           files: ./coverage.xml
           flags: template-hooks
           fail_ci_if_error: false

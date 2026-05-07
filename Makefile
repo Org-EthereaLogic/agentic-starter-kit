@@ -11,7 +11,7 @@ PYTHON ?= python3
 help:
 	@echo "Targets:"
 	@echo "  template-test           Run the post-gen hook pruning integration test."
-	@echo "  template-test-coverage  Same plus coverage.xml under hooks/ for Codecov."
+	@echo "  template-test-coverage  Same plus ./coverage.xml in the working dir for Codecov."
 	@echo
 	@echo "Requires: cookiecutter, pytest (install via \`pip install cookiecutter pytest\`)."
 	@echo "template-test-coverage additionally requires pytest-cov."

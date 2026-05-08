@@ -94,6 +94,44 @@ compatible Node before running the suite.
 
 ---
 
+## Dev container
+
+### Ruff `spawn .venv/bin/python ENOENT` on first attach
+
+Symptom: VS Code attaches to the dev container and the Ruff
+extension reports `spawn /workspaces/<project>/.venv/bin/python
+ENOENT` even though the container is healthy. Cause: VS Code reads
+`python.defaultInterpreterPath` (pinned to `${workspaceFolder}/.venv/bin/python`
+in `.devcontainer/devcontainer.json`) and starts the Python and
+Ruff extensions before `postCreateCommand` finishes the first
+`make sync` that creates the venv.
+
+The shipped `devcontainer.json` declares `"waitFor":
+"postCreateCommand"`, which holds the editor attach until the
+post-create script exits. If you cloned an older container created
+before this setting landed, rebuild once
+(`Dev Containers: Rebuild Container`) so the new wait behavior
+takes effect.
+
+### Stale `.venv` after a base-image upgrade
+
+Symptom: `make sync` reports success but tools that depend on
+`.venv/bin/python` (Ruff, pytest, the Python extension) still fail
+with `ENOENT` or report a missing interpreter. Cause: the venv was
+created against a Python that is no longer present — for example,
+the dev container's base image was rebumped from 3.12.6 to 3.12.13,
+or the host's pyenv shims rotated, or the venv was carried over a
+device migration. `uv sync` writes lock and metadata files but does
+not detect that `.venv/bin/python` itself is a dangling symlink.
+
+`sync-python` now self-heals: if `.venv` exists but
+`.venv/bin/python --version` fails, the target removes the venv
+before re-syncing, so the next interpreter resolves cleanly. If you
+hit the symptom on an older clone of the template, run `make sync`
+once and the recovery is automatic.
+
+---
+
 ## Tooling defaults
 
 ### Python ≥ 3.11

@@ -4,6 +4,10 @@
 
 sync-python:
 {% if cookiecutter.primary_language in ("python", "polyglot") %}
+	@if [ -d .venv ] && ! .venv/bin/python --version >/dev/null 2>&1; then \
+		echo "sync-python: removing stale .venv (interpreter is not runnable)"; \
+		rm -rf .venv; \
+	fi
 	@if [ -f pyproject.toml ]; then \
 		if [ "$(HAS_UV)" = "yes" ]; then \
 			uv sync; \

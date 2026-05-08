@@ -4,7 +4,7 @@ argument-hint: "[optional gate — marker-scan, governance-check, check-traceabi
 allowed-tools: Bash
 ---
 
-# gov.test
+# test
 
 Run the {{ cookiecutter.project_name }} validation suite and return
 structured results.

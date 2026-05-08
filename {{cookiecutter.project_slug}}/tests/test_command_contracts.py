@@ -9,88 +9,88 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 COMMANDS_DIR = REPO_ROOT / ".claude" / "commands"
 
-EXPECTED_GOV_COMMANDS = {
-    "gov.audit.md",
-    "gov.check-traceability.md",
-    "gov.commit.md",
-    "gov.implement.md",
-    "gov.plan.md",
-    "gov.prime.md",
-    "gov.pull-request.md",
-    "gov.review.md",
-    "gov.session-log.md",
-    "gov.spec-bump.md",
-    "gov.start.md",
-    "gov.status.md",
-    "gov.sync.md",
-    "gov.test.md",
-    "gov.threat-model.md",
-    "gov.verify.md",
+EXPECTED_COMMANDS = {
+    "audit.md",
+    "check-traceability.md",
+    "commit.md",
+    "implement.md",
+    "plan.md",
+    "prime.md",
+    "pull-request.md",
+    "review.md",
+    "session-log.md",
+    "spec-bump.md",
+    "start.md",
+    "status.md",
+    "sync.md",
+    "test.md",
+    "threat-model.md",
+    "verify.md",
 }
 
 REQUIRED_FRONTMATTER_KEYS = ("description:", "allowed-tools:")
 
 EXPECTED_PHRASES = {
-    "gov.audit.md": (
+    "audit.md": (
         "If present and in scope: `docs/ARCHITECTURE.md`",
         "If present: `specs/traceability.json`",
         "`not scaffolded` rather than PASS",
     ),
-    "gov.check-traceability.md": (
+    "check-traceability.md": (
         "`NOT SCAFFOLDED`",
         "Do not claim orphaned-file or orphaned-criteria",
     ),
-    "gov.plan.md": (
+    "plan.md": (
         "ADR/0001-adr-template.md",
         "no dedicated template is",
     ),
-    "gov.prime.md": (
+    "prime.md": (
         "not from template-only `cookiecutter.json`",
     ),
-    "gov.pull-request.md": (
+    "pull-request.md": (
         "Resolve `base_ref` to `target_branch`",
     ),
-    "gov.review.md": (
+    "review.md": (
         "when scaffolded, the",
         "Run the validation gates individually",
     ),
-    "gov.spec-bump.md": (
+    "spec-bump.md": (
         "compute the new version with",
         "`**Decision History:**` section",
         "`new_version` as `null`",
     ),
-    "gov.sync.md": (
+    "sync.md": (
         "always scans both `docs/`",
         "specs/traceability.json` exists",
     ),
-    "gov.test.md": (
+    "test.md": (
         "| 1 | `marker-scan` | `make marker-scan` |",
         "| 8 | `test` | `make test` |",
     ),
-    "gov.threat-model.md": (
+    "threat-model.md": (
         "If present: `docs/SECURITY_PROGRAM.md`",
         "create the parent",
     ),
 }
 
 FORBIDDEN_PHRASES = {
-    "gov.check-traceability.md": (
+    "check-traceability.md": (
         "missing/orphaned artifact",
     ),
-    "gov.plan.md": (
+    "plan.md": (
         "rfc-template.md",
         "design-template.md",
     ),
-    "gov.prime.md": (
+    "prime.md": (
         "per `cookiecutter.json` selections shipped into this",
     ),
-    "gov.review.md": (
+    "review.md": (
         "docs/PRD.md",
     ),
-    "gov.spec-bump.md": (
+    "spec-bump.md": (
         "frontmatter-style table",
     ),
-    "gov.sync.md": (
+    "sync.md": (
         "invoked over `specs/`",
     ),
 }
@@ -99,12 +99,12 @@ FRONTMATTER_RE = re.compile(r"\A---\n(?P<body>.+?)\n---\n", re.DOTALL)
 
 
 class CommandContractTests(unittest.TestCase):
-    def test_expected_gov_command_inventory_exists(self) -> None:
-        actual = {path.name for path in COMMANDS_DIR.glob("gov.*.md")}
-        self.assertEqual(actual, EXPECTED_GOV_COMMANDS)
+    def test_expected_command_inventory_exists(self) -> None:
+        actual = {path.name for path in COMMANDS_DIR.glob("*.md")}
+        self.assertEqual(actual, EXPECTED_COMMANDS)
 
     def test_each_command_has_required_frontmatter_keys(self) -> None:
-        for path in sorted(COMMANDS_DIR.glob("gov.*.md")):
+        for path in sorted(COMMANDS_DIR.glob("*.md")):
             match = FRONTMATTER_RE.match(path.read_text())
             self.assertIsNotNone(match, f"{path.name} is missing frontmatter")
             if match is None:

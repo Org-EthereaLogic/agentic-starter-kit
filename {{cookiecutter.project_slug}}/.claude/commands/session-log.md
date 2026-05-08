@@ -4,7 +4,7 @@ argument-hint: "[optional session topic]"
 allowed-tools: Read, Write, Bash
 ---
 
-# gov.session-log
+# session-log
 
 Write a timestamped session recap to `report/` capturing what this
 session changed, what was measured, and what remains open.

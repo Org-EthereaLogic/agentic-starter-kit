@@ -4,7 +4,7 @@ argument-hint: "<spec ID, plan path, or scoped task>"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash
 ---
 
-# gov.implement
+# implement
 
 Implement scoped work for {{ cookiecutter.project_name }} under the
 canonical SDLC contract.

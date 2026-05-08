@@ -4,7 +4,7 @@ argument-hint: "[optional scope — e.g., governance, docs, tests]"
 allowed-tools: Read, Glob, Grep, Bash, Write
 ---
 
-# gov.audit
+# audit
 
 Full governance, quality-control integration, and canonical docs
 audit for {{ cookiecutter.project_name }}.
@@ -81,7 +81,7 @@ audit the full surface.
 1. **Sync recency** — most recent
     `report/*-sync-post-merge.md` is no older than the most recent
     merge to `{{ cookiecutter.default_branch_name }}`. If staler,
-    surface the gap and recommend running `/gov.sync`.
+    surface the gap and recommend running `/sync`.
 
 2. **Traceability validity** — if `specs/traceability.json` is
   absent, report `not scaffolded` rather than PASS. If present,

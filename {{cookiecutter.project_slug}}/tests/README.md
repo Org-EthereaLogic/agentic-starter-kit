@@ -9,9 +9,9 @@ The hook protects the default branch by blocking certain git
 operations. The hook suites validate eight bypass classes and
 several baseline cases per the [hook README](../.claude/hooks/README.md).
 
-The slash-command contract suite validates the shipped `/gov.*`
-inventory, required YAML frontmatter, and prompt regressions that
-must not drift back into the scaffold.
+The slash-command contract suite validates the shipped
+`.claude/commands/` inventory, required YAML frontmatter, and prompt
+regressions that must not drift back into the scaffold.
 
 The skill contract suite validates the shipped `.claude/skills/`
 inventory, reviewed skill-language regressions, and the
@@ -82,7 +82,7 @@ make hooks-test
 ### Slash commands: `test_command_contracts.py`
 
 - Framework: `unittest`
-- Coverage: `/gov.*` inventory, frontmatter keys, reviewed prompt
+- Coverage: command inventory, frontmatter keys, reviewed prompt
   regressions
 
 Run with:

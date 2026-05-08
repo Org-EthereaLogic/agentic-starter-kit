@@ -4,7 +4,7 @@ argument-hint: "<change description or PR number>"
 allowed-tools: Read, Write, Glob, Grep
 ---
 
-# gov.threat-model
+# threat-model
 
 Refresh `docs/THREAT_MODEL.md` when a change introduces new attack
 surface. Mandatory invocation triggers:
@@ -75,4 +75,4 @@ change: $ARGUMENTS
 
 Diff summary of `docs/THREAT_MODEL.md`, list of new mitigations
 needing implementation, and any open threats with no proposed
-mitigation (these become candidates for the next `/gov.plan`).
+mitigation (these become candidates for the next `/plan`).

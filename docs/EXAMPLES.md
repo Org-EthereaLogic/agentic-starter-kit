@@ -115,23 +115,23 @@ my-agentic-project/
 │   │   ├── security-reviewer.md
 │   │   ├── test-automator.md
 │   │   └── ux-delight-specialist.md
-│   ├── commands/                       # 16 /gov.* slash commands
-│   │   ├── gov.audit.md
-│   │   ├── gov.check-traceability.md
-│   │   ├── gov.commit.md
-│   │   ├── gov.implement.md
-│   │   ├── gov.plan.md
-│   │   ├── gov.prime.md
-│   │   ├── gov.pull-request.md
-│   │   ├── gov.review.md
-│   │   ├── gov.session-log.md
-│   │   ├── gov.spec-bump.md
-│   │   ├── gov.start.md
-│   │   ├── gov.status.md
-│   │   ├── gov.sync.md
-│   │   ├── gov.test.md
-│   │   ├── gov.threat-model.md
-│   │   └── gov.verify.md
+│   ├── commands/                       # 16 unprefixed slash commands
+│   │   ├── audit.md
+│   │   ├── check-traceability.md
+│   │   ├── commit.md
+│   │   ├── implement.md
+│   │   ├── plan.md
+│   │   ├── prime.md
+│   │   ├── pull-request.md
+│   │   ├── review.md
+│   │   ├── session-log.md
+│   │   ├── spec-bump.md
+│   │   ├── start.md
+│   │   ├── status.md
+│   │   ├── sync.md
+│   │   ├── test.md
+│   │   ├── threat-model.md
+│   │   └── verify.md
 │   ├── hooks/                          # runtime enforcement
 │   │   ├── README.md
 │   │   ├── package.json
@@ -297,7 +297,7 @@ at 118.
 + tsconfig.json
 ```
 
-Everything else — the eight Makefile fragments, all 16 `/gov.*`
+Everything else — the eight Makefile fragments, all 16 slash
 commands, the runtime hook tree, the seven hook fixtures, the
 `scripts/governance_review/` validator package — is identical.
 Layer 1 / 2 / 3 governance files are language-agnostic by design.

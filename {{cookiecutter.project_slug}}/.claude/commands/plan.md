@@ -4,7 +4,7 @@ argument-hint: "<plan topic or scope>"
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
-# gov.plan
+# plan
 
 Create a structured implementation or design plan for
 {{ cookiecutter.project_name }}.

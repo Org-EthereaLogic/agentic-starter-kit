@@ -3,10 +3,10 @@ description: Quick repo health check — branch, diff stats, open PRs, marker-sc
 allowed-tools: Bash
 ---
 
-# gov.status
+# status
 
 Lightweight repo health check for mid-session check-ins. Does not
-run the full validation suite — use `/gov.test` or `/gov.audit` for
+run the full validation suite — use `/test` or `/audit` for
 that.
 
 ## Context snapshot

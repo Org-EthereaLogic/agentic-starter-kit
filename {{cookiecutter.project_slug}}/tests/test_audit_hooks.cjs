@@ -17,6 +17,7 @@ const {
   mkdtempSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } = require("node:fs");
@@ -73,7 +74,12 @@ test("session-start anchors audit log to project root", () => {
     assert.equal(events.length, 1);
     assert.equal(events[0].type, "session-start");
     assert.equal(events[0].session_id, "test-session-1");
-    assert.equal(events[0].cwd, cwd);
+    // Node's `process.cwd()` returns the realpath-resolved path on
+    // macOS (where `/var` is a symlink to `/private/var`), so compare
+    // resolved paths on both sides for cross-platform parity. Linux
+    // is unaffected; macOS would otherwise fail. Mirrors the comment
+    // and assertion in the Python twin (tests/test_audit_hooks.py).
+    assert.equal(events[0].cwd, realpathSync(cwd));
     assert.ok(events[0].ts);
     assert.equal(existsSync(path.join(cwd, "report", "audit.jsonl")), false);
   });

@@ -140,7 +140,7 @@ This layered approach provides:
 - `DIRECTIVES.md` — 18 governance directives with enforcement
 - `CLAUDE.md` — Claude Code quick reference
 - `AGENTS.md` — Full agent operating rules
-- `.github/workflows/template-smoke-test.yml` — CI validation
+- `.github/workflows/ci.yml` — CI validation
 
 ---
 

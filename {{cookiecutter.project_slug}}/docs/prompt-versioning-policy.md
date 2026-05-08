@@ -101,7 +101,7 @@ that causes a threshold breach blocks the merge.
 
 `.claude/commands/` and `.claude/agents/` prompt bodies follow the same
 versioning discipline, with one difference: because these files are
-named by role (e.g., `review.md`, `lead-software-engineer.md`), version
+named by role (e.g., `review`, `lead-software-engineer`), version
 metadata lives only in the YAML frontmatter (`version:` field). There is
 no file-rename on update.
 

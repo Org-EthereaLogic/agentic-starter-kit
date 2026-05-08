@@ -178,9 +178,9 @@ The starter skills in `.claude/skills/` must be present:
 - `.claude/skills/audit-trail-tail.md`
 - `.claude/skills/traceability-update.md`
 
-Skills follow the Linux Foundation `SKILL.md` progressive-disclosure
-spec (one Markdown file per skill with a `paths:` glob that gates
-lazy loading).
+Skills follow the Linux Foundation SKILL progressive-disclosure
+specification (one Markdown file per skill with a `paths:` glob that
+gates lazy loading).
 
 ---
 

@@ -18,8 +18,6 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-import pytest
-
 SCRIPT = Path(__file__).resolve().parent.parent / ".devcontainer" / "post-create.sh"
 # Resolve once so restricting PATH in tests never hides the interpreter.
 _BASH = shutil.which("bash") or "/bin/bash"

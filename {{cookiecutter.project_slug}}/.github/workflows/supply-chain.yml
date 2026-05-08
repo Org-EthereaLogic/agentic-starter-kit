@@ -1,8 +1,9 @@
 # Supply-chain audit for {{ cookiecutter.project_name }}.
 #
 # Runs language-native dependency audit on every PR and on push to
-# the default branch. Python: pip-audit against pyproject.toml.
-# TypeScript: npm audit (production deps only).
+# the default branch. Python: pip-audit against the resolved uv lock
+# (exported to a requirements.txt-compatible file). TypeScript: npm
+# audit (production deps only).
 #
 # Action pinning policy (DIRECTIVES.md IMP-006):
 #   Every `uses:` below is pinned to a 40-character commit SHA
@@ -41,10 +42,21 @@ jobs:
       - name: Sync dependencies
         run: make sync
 
+      - name: Export resolved requirements for pip-audit
+        # `pypa/gh-action-pip-audit` passes `inputs:` to pip-audit's
+        # `--requirement` flag, which only understands requirements.txt
+        # format — passing `pyproject.toml` directly fails with
+        # `invalid specifier at line 12: [project]`. Export uv's
+        # resolved lock to a requirements.txt the action can audit.
+        # `--no-emit-project` excludes the project itself (we audit
+        # third-party deps, not our own package); `--no-hashes` keeps
+        # the output a plain pip-readable file.
+        run: uv export --no-emit-project --no-hashes --format requirements-txt --output-file requirements.audit.txt
+
       - name: pip-audit
         uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266 # v1.1.0 (no bare v1 tag published)
         with:
-          inputs: pyproject.toml
+          inputs: requirements.audit.txt
           # Set vulnerability-service to OSV (default) plus PyPA's
           # advisory database for broader coverage.
           vulnerability-service: osv

@@ -45,7 +45,7 @@
 | ID | Gap | Deliverable | CI Verifier | Status |
 |---|---|---|---|---|
 | GAP-EXT-003 | OpenSSF Scorecard GitHub Action — runs 18+ security checks; baseline target ≥7/10; SARIF results uploaded to code-scanning | `.github/workflows/scorecard.yml` (SHA-pinned per IMP-006); `docs/security/scorecard-policy.md` | scorecard workflow | planned |
-| GAP-EXT-004 | SLSA L3 build provenance via `slsa-framework/slsa-github-generator` for release artifacts (conditional on `include_sbom=yes`) | `.github/workflows/slsa-provenance.yml`; `docs/security/slsa-policy.md` | slsa-provenance workflow | planned (conditional) |
+| GAP-EXT-004 | SLSA L3 build provenance via `slsa-framework/slsa-github-generator` for release artifacts | `{{cookiecutter.project_slug}}/.github/workflows/release.yml` (combined build + `generator_generic_slsa3.yml@v2.0.0` reusable workflow); inline policy header in that file (tag-pinning exception for the SLSA generator documented per IMP-006) | `release.yml` workflow on `v*` tag push | landed |
 | GAP-EXT-005 | SECURITY-INSIGHTS.yml — machine-readable security info per OpenSSF format; required file in governance-check | `{{cookiecutter.project_slug}}/SECURITY-INSIGHTS.yml`; updated `scripts/check-governance.sh` | `make governance-check` | planned |
 | GAP-EXT-006 | OpenSSF Best Practices Badge opt-in process documented (not auto-enrolled); CERT-Top-10-style self-audit aligned to badge criteria | `docs/security/openssf-badge-path.md`; updated `docs/cert-top-10-compliance.md` cross-references | n/a | planned |
 
@@ -111,7 +111,7 @@
 | GAP-EXT-017 | Adversarial review pattern — `/adversarial-review` runs `security-reviewer` + `lead-software-engineer` in opposition until APPROVED or 5 rounds; catches errors single-pass review misses | `{{cookiecutter.project_slug}}/.claude/commands/adversarial-review.md` | n/a | planned |
 | GAP-EXT-018 | Live AI monitoring — `PostToolUse` logging hook appends to `.claude/agent-memory/tool-trace.jsonl`; `make monitor` tails the trace | `{{cookiecutter.project_slug}}/.claude/hooks/post-tool-use.js`; `Makefile` (`make monitor`); update `.claude/settings.json` to register the hook | manual smoke test | planned |
 | GAP-EXT-019 | PreCompact context-snapshot hook — saves session state before Claude Code's auto-compression triggers; appends to `report/<UTC-timestamp>-pre-compact-snapshot.md` per IMP-001 | `{{cookiecutter.project_slug}}/.claude/hooks/pre-compact.js`; update `.claude/settings.json` | manual smoke test | planned |
-| GAP-EXT-020 | MCP server documentation — recommended servers (filesystem, git, semgrep, sequential-thinking), security-scanner pattern for vetting third-party MCP servers; **no auto-install** | `docs/mcp-servers.md`; sample `.mcp.json.example` (gitignored canonical, example committed) | n/a | planned |
+| GAP-EXT-020 | MCP server documentation — trust model, vetting procedure, baseline servers (filesystem, git, github), and addition workflow for third-party MCP servers; **no auto-install** | `{{cookiecutter.project_slug}}/docs/MCP_POLICY.md`; baseline `{{cookiecutter.project_slug}}/.mcp.json` (filesystem read-only, git read-only, GitHub gated by fine-grained PAT) | n/a | landed |
 
 ---
 

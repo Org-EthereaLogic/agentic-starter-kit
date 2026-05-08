@@ -35,8 +35,8 @@ in Phase 6 of the build plan; this section sketches the surface so
 | Layer 4 hooks (`.claude/hooks/*.js`) | Enforcement | Highest |
 | Layer 3 agent and command definitions (`.claude/agents/`, `.claude/commands/`) | Behavior | High |
 | Evidence trail (`report/`) | Forensic | High (append-only per `IMP-001`) |
-| Secrets in operator environment | Confidentiality | High |{% if cookiecutter.include_sbom == 'yes' %}
-| Generated SBOM artifacts (`sbom/`) | Supply-chain audit | Medium |{% endif %}
+| Secrets in operator environment | Confidentiality | High |
+| Generated SBOM artifacts (`sbom/`, when SBOM is enabled) | Supply-chain audit | Medium |
 
 ### Trust boundaries
 

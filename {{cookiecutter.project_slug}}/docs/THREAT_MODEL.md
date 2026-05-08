@@ -36,7 +36,9 @@ in Phase 6 of the build plan; this section sketches the surface so
 | Layer 3 agent and command definitions (`.claude/agents/`, `.claude/commands/`) | Behavior | High |
 | Evidence trail (`report/`) | Forensic | High (append-only per `IMP-001`) |
 | Secrets in operator environment | Confidentiality | High |
+{% if cookiecutter.include_sbom == 'yes' -%}
 | Generated SBOM artifacts (`sbom/`) | Supply-chain audit | Medium |
+{%- endif %}
 
 ### Trust boundaries
 
@@ -46,7 +48,7 @@ in Phase 6 of the build plan; this section sketches the surface so
   `.claude/hooks/pre-tool-use.js`. Tool output is untrusted (see
   ASI-02).
 3. **Project ↔ third-party code.** Third-party dependencies cross
-   the boundary at install time; SBOM, audit, and SHA-pinning
+   the boundary at install time; {% if cookiecutter.include_sbom == 'yes' %}SBOM, audit, and SHA-pinning{% else %}audit and SHA-pinning{% endif %}
    policies apply.
 4. **Project ↔ MCP servers.** When the project later ships an MCP
   configuration file and the accompanying MCP policy document

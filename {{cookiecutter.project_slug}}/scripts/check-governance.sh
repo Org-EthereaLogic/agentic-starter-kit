@@ -7,8 +7,12 @@
 
 set -euo pipefail
 
-# Source common utilities
+# Source common utilities. Note: this script operates on the
+# current working directory (callers like Make and the
+# skill-contract test suite invoke it from the project root they
+# want to validate; that may not be the script's own repo).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091  # path is dynamic via $SCRIPT_DIR; not statically resolvable
 source "$SCRIPT_DIR/lib/common.sh"
 
 # --- Governance data source (CRIT-002 source of truth) ---

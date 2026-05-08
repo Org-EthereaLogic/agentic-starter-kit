@@ -7,14 +7,19 @@
 
 set -euo pipefail
 
-# Source common utilities
+# Source common utilities. Note: this script operates on the
+# current working directory (callers like Make and the
+# skill-contract test suite invoke it from the project root they
+# want to validate; that may not be the script's own repo).
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091  # path is dynamic via $SCRIPT_DIR; not statically resolvable
 source "$SCRIPT_DIR/lib/common.sh"
 
 # --- Governance data source (CRIT-002 source of truth) ---
 
 GOV_RULES="${GOV_RULES:-governance-rules.yaml}"
-GOV_LOADER=("python3" "$SCRIPT_DIR/lib/governance.py" "--file" "$GOV_RULES")
+read -r -a _PYTHON_CMD <<< "$(governance_python)"
+GOV_LOADER=("${_PYTHON_CMD[@]}" "$SCRIPT_DIR/lib/governance.py" "--file" "$GOV_RULES")
 
 if [[ ! -f "$GOV_RULES" ]]; then
   log_error "$GOV_RULES not found; cannot enforce CRIT-002"

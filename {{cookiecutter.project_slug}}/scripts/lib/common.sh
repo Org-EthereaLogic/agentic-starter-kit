@@ -125,3 +125,40 @@ reset_counters() {
   _ERRORS=0
   _WARNINGS=0
 }
+
+# Resolve a Python interpreter that can import PyYAML. Governance
+# scripts read `governance-rules.yaml` via PyYAML; in a clean dev
+# container the system `python3` has no third-party packages, so
+# hardcoding `python3` made governance checks fail immediately after
+# `make sync` succeeded.
+#
+# Resolution order:
+#   1. `.venv/bin/python` — exists for Python/polyglot variants
+#      after `uv sync` (PyYAML installed via project deps).
+#   2. `uv run --quiet python` if uv is on PATH and pyproject.toml
+#      is present — uv resolves the project venv on demand.
+#   3. `uv run --quiet --with pyyaml python` if uv is on PATH but
+#      no pyproject.toml — TS-only variants. uv materializes a
+#      transient env with PyYAML on first call (cached after).
+#   4. `python3` as a last resort — works only when the operator
+#      has PyYAML installed globally.
+#
+# Output is space-separated command words. Callers should split
+# into an array via `read -r -a` so multi-word commands (like
+# `uv run --quiet python`) are passed as individual argv entries:
+#
+#   read -r -a PYTHON_CMD <<< "$(governance_python)"
+#   "${PYTHON_CMD[@]}" path/to/script.py "$@"
+governance_python() {
+  if [[ -x ".venv/bin/python" ]]; then
+    echo ".venv/bin/python"
+  elif command -v uv >/dev/null 2>&1; then
+    if [[ -f "pyproject.toml" ]]; then
+      echo "uv run --quiet python"
+    else
+      echo "uv run --quiet --with pyyaml python"
+    fi
+  else
+    echo "python3"
+  fi
+}

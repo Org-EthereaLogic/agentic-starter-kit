@@ -104,7 +104,13 @@ def test_npm_install_failure_is_non_fatal() -> None:
         # npm exits 1 for every invocation (simulates install failure).
         _stub(d, "npm", exits=1)
         _stub(d, "gh")
-        result = _run_ensure_ai_clis(f"{d}:{os.environ.get('PATH', '')}")
+        # Use a minimal PATH that has bash/env (for stub shebangs) but
+        # NO directory that already contains claude/codex/gemini. Without
+        # this, an environment where the AI CLIs are pre-installed (e.g.,
+        # the rendered project's own dev container, after `make sync`)
+        # would short-circuit the install loop with "already installed"
+        # instead of exercising the npm-failure branch we want to test.
+        result = _run_ensure_ai_clis(f"{d}:/usr/bin:/bin")
 
     assert result.returncode == 0, result.stderr
     assert "continuing" in result.stdout

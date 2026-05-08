@@ -15,7 +15,7 @@ specs/deep_specs/
 ├── README.md                  # This file
 ├── ADR/                       # Architecture Decision Records
 │   ├── 0001-adr-template.md   # (Template — copy to create new ADRs)
-│   ├── 0002-initial-structure.md  # Initial scaffold architecture
+│   ├── 0002-initial-scaffold-architecture.md  # Initial scaffold architecture
 │   └── ...                    # One file per decision
 ├── API/                       # API specifications
 ├── SCHEMA/                    # Data schemas
@@ -41,9 +41,9 @@ ADRs document significant architectural decisions with context, alternatives, an
 - Internal refactors (not affecting contracts)
 - Tactical code changes
 
-**File naming:** `NNNN-decision-title.md` (e.g., `0001-use-postgresql.md`)
+**File naming:** NNNN-decision-title.md (e.g., 0001-use-redis.md)
 
-**Reference:** See `ADR/0001-adr-template.md` for the template.
+**Reference:** See [`specs/deep_specs/ADR/0001-adr-template.md`](specs/deep_specs/ADR/0001-adr-template.md) for the template.
 
 ### 2. API Specifications
 
@@ -134,13 +134,13 @@ The `make check-traceability` gate (Phase 8) validates that:
 
 ## Examples
 
-**ADR Example:** `ADR/0002-initial-structure.md` documents the initial scaffold architecture.
+**ADR Example:** [`specs/deep_specs/ADR/0002-initial-scaffold-architecture.md`](specs/deep_specs/ADR/0002-initial-scaffold-architecture.md) documents the initial scaffold architecture.
 
 ## Getting Help
 
 - **Decision-making:** Read `CONSTITUTION.md §3` for the decision order
 - **Governance:** See `DIRECTIVES.md` (especially CRIT-004)
-- **Writing ADRs:** Use the template in `ADR/0001-adr-template.md`
+- **Writing ADRs:** Use the template in `specs/deep_specs/ADR/0001-adr-template.md`
 
 ---
 

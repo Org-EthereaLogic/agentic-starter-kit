@@ -36,7 +36,11 @@ in Phase 6 of the build plan; this section sketches the surface so
 | Layer 3 agent and command definitions (`.claude/agents/`, `.claude/commands/`) | Behavior | High |
 | Evidence trail (`report/`) | Forensic | High (append-only per `IMP-001`) |
 | Secrets in operator environment | Confidentiality | High |
-| Generated SBOM artifacts (`sbom/`, when SBOM is enabled) | Supply-chain audit | Medium |
+
+{% if cookiecutter.include_sbom == 'yes' %}
+A generated SBOM artifact (`sbom/`) is also a project asset on this
+configuration — supply-chain audit class, medium trust.
+{% endif %}
 
 ### Trust boundaries
 

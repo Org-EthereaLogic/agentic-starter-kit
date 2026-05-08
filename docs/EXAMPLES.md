@@ -52,7 +52,6 @@ Project scaffolded successfully.
   primary_language : python
   python_typecheck : ty
   license          : MIT
-  databricks       : no
   codacy           : yes
   codecov          : yes
   snyk             : yes

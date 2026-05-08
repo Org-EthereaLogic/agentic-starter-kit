@@ -18,7 +18,6 @@ from pathlib import Path
 
 PRIMARY_LANGUAGE = "{{ cookiecutter.primary_language }}"
 PYTHON_TYPECHECKER = "{{ cookiecutter.python_typechecker }}"
-INCLUDE_DATABRICKS = "{{ cookiecutter.include_databricks }}"
 INCLUDE_CODACY = "{{ cookiecutter.include_codacy }}"
 INCLUDE_CODECOV = "{{ cookiecutter.include_codecov }}"
 INCLUDE_SNYK = "{{ cookiecutter.include_snyk }}"
@@ -169,16 +168,6 @@ def prune_pyproject_variants() -> None:
     target.write_text(_prune_variants(target.read_text(), answers))
 
 
-def prune_databricks_files() -> None:
-    """Remove Databricks-specific files when the option is off.
-
-    The template ships no Databricks files in the initial release.
-    Future Databricks bundle scaffolding lands here when added.
-    """
-    if INCLUDE_DATABRICKS == "no":
-        return
-
-
 def prune_license_files() -> None:
     """Currently a single LICENSE is templated to the chosen license.
 
@@ -196,7 +185,6 @@ def write_summary() -> None:
     if PRIMARY_LANGUAGE in ("python", "polyglot"):
         print(f"  python_typecheck : {PYTHON_TYPECHECKER}")
     print(f"  license          : {LICENSE_CHOICE}")
-    print(f"  databricks       : {INCLUDE_DATABRICKS}")
     print(f"  codacy           : {INCLUDE_CODACY}")
     print(f"  codecov          : {INCLUDE_CODECOV}")
     print(f"  snyk             : {INCLUDE_SNYK}")
@@ -221,7 +209,6 @@ def main() -> int:
     prune_language_files()
     prune_pyproject_variants()
     prune_integration_files()
-    prune_databricks_files()
     prune_license_files()
     remove_copier_only_files()
     remove_gitkeep_files()

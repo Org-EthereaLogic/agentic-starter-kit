@@ -206,7 +206,6 @@ The template's parameterization surface lives in `cookiecutter.json`:
   "year": "2026",
   "license": ["MIT", "Apache-2.0", "Proprietary"],
   "primary_language": ["python", "typescript", "polyglot"],
-  "include_databricks": ["no", "yes"],
   "include_codacy": ["yes", "no"],
   "include_codecov": ["yes", "no"],
   "include_snyk": ["yes", "no"],

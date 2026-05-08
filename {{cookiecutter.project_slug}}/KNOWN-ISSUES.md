@@ -137,20 +137,12 @@ remediation that actually solves each:
    *user* settings (workspace settings cannot grant network trust).
 
 2. **GitHub Codespaces "Restricted internet access"**. The
-   Codespaces web UI has a per-codespace allowlist. Fix
-   declaratively by adding a Codespaces customizations block to
-   `.devcontainer/devcontainer.json`:
-
-   ```jsonc
-   "customizations": {
-     "codespaces": {
-       "openFiles": []
-       // Codespaces firewall configuration goes here when GitHub
-       // ships the documented schema; until then, configure via
-       // the Codespaces secret/policy UI in the repo settings.
-     }
-   }
-   ```
+   Codespaces web UI has a per-codespace allowlist. Until GitHub
+   ships a documented declarative schema, configure via the
+   Codespaces UI: *Repository → Settings → Codespaces → Network
+   policy* (or the org-level equivalent for org-owned repos).
+   Per-codespace overrides land under the codespace's own *Settings
+   → Advanced* page.
 
 3. **GitHub Copilot Coding Agent firewall**. The cloud-hosted agent
    has a default-deny outbound firewall introduced in early 2026.

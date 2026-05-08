@@ -23,12 +23,20 @@ check_outbound_network() {
   #   - VS Code Insiders 'Restricted Network Access' (approve via the
   #     IDE dialog, or pre-allow in user settings).
   #   - GitHub Codespaces restricted-internet policy
-  #     (set `customizations.codespaces.firewall` in devcontainer.json).
+  #     (configure via the Codespaces UI; the declarative schema in
+  #     `customizations.codespaces.*` is not yet documented).
   #   - GitHub Copilot Coding Agent firewall (allowlist domains in
   #     `.github/copilot/firewall.yml`).
   #   - Corporate proxy blocking the container bridge network (set
   #     `HTTP_PROXY` / `HTTPS_PROXY` in `containerEnv`).
   # See KNOWN-ISSUES.md > "Dev container internet access blocked".
+  if ! command -v curl >/dev/null 2>&1; then
+    # Some minimal base images omit curl. Without it the probe would
+    # falsely report "no network" — skip and let the apt step install
+    # curl alongside jq/ripgrep/make.
+    log "curl not on PATH; skipping outbound-network probe"
+    return 0
+  fi
   if curl --max-time 5 --silent --fail --output /dev/null https://pypi.org/simple/ 2>/dev/null; then
     log "outbound network OK (pypi.org reachable)"
     return 0
@@ -37,7 +45,7 @@ check_outbound_network() {
   warn "downstream apt/uv/npm/gh installs will likely fail with cryptic errors"
   warn "common causes:"
   warn "  - VS Code 'Restricted Network Access' (approve dialog or preset in user settings)"
-  warn "  - Codespaces restricted internet (customizations.codespaces.firewall)"
+  warn "  - Codespaces restricted internet (configure via the Codespaces UI)"
   warn "  - Copilot Coding Agent firewall (.github/copilot/firewall.yml)"
   warn "  - Corporate proxy (set HTTP_PROXY/HTTPS_PROXY in containerEnv)"
   warn "see KNOWN-ISSUES.md > 'Dev container internet access blocked' for remediation"

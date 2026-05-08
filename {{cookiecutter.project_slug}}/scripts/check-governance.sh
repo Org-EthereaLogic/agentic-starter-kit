@@ -14,7 +14,9 @@ source "$SCRIPT_DIR/lib/common.sh"
 # --- Governance data source (CRIT-002 source of truth) ---
 
 GOV_RULES="${GOV_RULES:-governance-rules.yaml}"
-GOV_LOADER=("python3" "$SCRIPT_DIR/lib/governance.py" "--file" "$GOV_RULES")
+PYTHON_CMD="$(governance_python)"
+# shellcheck disable=SC2206  # intentional word-split for multi-word commands like `uv run python`
+GOV_LOADER=($PYTHON_CMD "$SCRIPT_DIR/lib/governance.py" "--file" "$GOV_RULES")
 
 if [[ ! -f "$GOV_RULES" ]]; then
   log_error "$GOV_RULES not found; cannot enforce CRIT-002"

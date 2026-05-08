@@ -13,11 +13,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
+# Source common utilities for `governance_python` helper.
+source "$SCRIPT_DIR/lib/common.sh"
+
 cd "$REPO_ROOT"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "ERROR: python3 not found; required for governance rule queries"
-  exit 1
-fi
-
-python3 "$SCRIPT_DIR/lib/governance.py" "$@"
+PYTHON_CMD="$(governance_python)"
+# shellcheck disable=SC2086  # intentional word-split for multi-word commands like `uv run python`
+$PYTHON_CMD "$SCRIPT_DIR/lib/governance.py" "$@"

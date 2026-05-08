@@ -6,13 +6,9 @@
 # security alerts.
 #
 # Action pinning policy (DIRECTIVES.md IMP-006):
-#   Most `uses:` lines below pin to a semver tag and carry a
-#   trailing `# v<x>.<y>` comment.
-#   IMP-006's full enforcement requires a commit SHA on every
-#   `uses:` line. Before the first PR against this repository,
-#   replace each `@v<n>` with the corresponding commit SHA.
-#   `scripts/check-action-pins.sh` (added in a later phase)
-#   verifies SHA pinning mechanically.
+#   Every `uses:` below is pinned to a 40-character commit SHA
+#   with a trailing `# v<x>.<y>` comment Dependabot can track.
+#   `scripts/check-action-pins.sh` enforces this mechanically.
 {% raw %}
 name: OSSF Scorecards
 
@@ -38,7 +34,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           persist-credentials: false
 
@@ -46,21 +42,21 @@ jobs:
         # ossf/scorecard-action does not publish a bare `@v2` tag — only
         # full semver tags. Pin to a published release so the workflow
         # resolves on the first push.
-        uses: ossf/scorecard-action@v2.4.3 # v2.4.3
+        uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
         with:
           results_file: results.sarif
           results_format: sarif
           publish_results: true
 
       - name: Upload SARIF artifact
-        uses: actions/upload-artifact@v4 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: SARIF
           path: results.sarif
           retention-days: 7
 
       - name: Upload SARIF to code-scanning
-        uses: github/codeql-action/upload-sarif@v3 # v3
+        uses: github/codeql-action/upload-sarif@0daab03d71ff584ef619d027a3fd9146679c5d84 # v3
         with:
           sarif_file: results.sarif
 {% endraw %}

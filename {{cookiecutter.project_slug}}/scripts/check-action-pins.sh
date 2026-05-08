@@ -74,6 +74,14 @@ sha_pin='@[0-9A-Fa-f]{40}([[:space:]]|$|#)'
 # paths are not third-party GitHub Action refs and are excluded.
 skip_prefix='^(./|docker://|/)'
 
+# Tag-pinned exceptions. The SLSA generator reusable workflow MUST
+# be referenced by a semver tag and not by a commit SHA: the trusted
+# reusable-workflow signature is anchored to the tag, not the
+# underlying commit, so a SHA pin would silently break SLSA L3
+# attestation.
+# See: https://github.com/slsa-framework/slsa-github-generator/blob/main/RUNNERS.md
+allow_tag_pin='^slsa-framework/slsa-github-generator(/|@)'
+
 findings=0
 for wf in "${workflows[@]}"; do
   # Extract `uses:` lines with their line numbers; trim leading
@@ -97,6 +105,11 @@ for wf in "${workflows[@]}"; do
 
     # Skip local, Docker, and absolute-path refs.
     if [[ "$bare" =~ $skip_prefix ]]; then
+      continue
+    fi
+
+    # Allow upstream-mandated tag pins (SLSA generator).
+    if [[ "$bare" =~ $allow_tag_pin ]]; then
       continue
     fi
 

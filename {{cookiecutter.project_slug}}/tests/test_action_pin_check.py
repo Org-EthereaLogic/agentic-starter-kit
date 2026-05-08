@@ -89,6 +89,31 @@ class ActionPinCheckTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_slsa_generator_tag_pin_is_allowed(self) -> None:
+        # The SLSA generator reusable workflow MUST be tag-pinned per
+        # upstream policy (the trusted-workflow signature is anchored
+        # to the tag, not the commit). The gate's allow-list excepts
+        # `slsa-framework/slsa-github-generator` for that reason.
+        result = _run_checker(
+            "jobs:\n"
+            "  provenance:\n"
+            "    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.0.0\n",
+            "--strict",
+        )
+
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_other_repos_do_not_inherit_slsa_exception(self) -> None:
+        result = _run_checker(
+            "jobs:\n"
+            "  test:\n"
+            "    steps:\n"
+            "      - uses: example/slsa-helper@v1\n",
+            "--strict",
+        )
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

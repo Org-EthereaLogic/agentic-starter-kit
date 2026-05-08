@@ -5,13 +5,9 @@
 # TypeScript: npm audit (production deps only).
 #
 # Action pinning policy (DIRECTIVES.md IMP-006):
-#   Most `uses:` lines below pin to a semver tag and carry a
-#   trailing `# v<x>.<y>` comment.
-#   IMP-006's full enforcement requires a commit SHA on every
-#   `uses:` line. Before the first PR against this repository,
-#   replace each `@v<n>` with the corresponding commit SHA.
-#   `scripts/check-action-pins.sh` (added in a later phase)
-#   verifies SHA pinning mechanically.
+#   Every `uses:` below is pinned to a 40-character commit SHA
+#   with a trailing `# v<x>.<y>` comment Dependabot can track.
+#   `scripts/check-action-pins.sh` enforces this mechanically.
 {% raw %}
 name: Supply-chain audit
 
@@ -32,10 +28,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@v5 # v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
 
@@ -46,7 +42,7 @@ jobs:
         run: make sync
 
       - name: pip-audit
-        uses: pypa/gh-action-pip-audit@v1.1.0 # v1.1.0 (no bare v1 tag is published)
+        uses: pypa/gh-action-pip-audit@1220774d901786e6f652ae159f7b6bc8fea6d266 # v1.1.0 (no bare v1 tag published)
         with:
           inputs: pyproject.toml
           # Set vulnerability-service to OSV (default) plus PyPA's
@@ -63,10 +59,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Node
-        uses: actions/setup-node@v4 # v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "20"
 
@@ -84,10 +80,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4 # v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@v5 # v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: "3.11"
 
@@ -103,7 +99,7 @@ jobs:
           macaron analyze -rp . -o macaron-output/
 
       - name: Upload Macaron report
-        uses: actions/upload-artifact@v4 # v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: macaron-report
           path: macaron-output/

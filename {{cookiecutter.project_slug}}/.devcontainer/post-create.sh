@@ -67,6 +67,19 @@ ensure_ai_clis() {
   if ! command -v npm >/dev/null 2>&1; then
     log "npm not on PATH — skipping npm-distributed AI CLI installs"
   else
+    # The Node devcontainer feature (nvm) sets a user-writable global prefix
+    # automatically. In plain container images the default prefix (/usr/local)
+    # is owned by root. Detect that and reconfigure to a user-local path so
+    # installs succeed without sudo.
+    local npm_prefix
+    npm_prefix=$(npm config get prefix 2>/dev/null) || npm_prefix=""
+    if [ -n "$npm_prefix" ] && [ ! -w "$npm_prefix" ]; then
+      log "npm global prefix '${npm_prefix}' not writable — reconfiguring to \$HOME/.npm-global"
+      npm config set prefix "$HOME/.npm-global"
+      mkdir -p "$HOME/.npm-global/bin"
+      export PATH="$HOME/.npm-global/bin:$PATH"
+    fi
+
     local -A npm_pkg_bin=(
       [@anthropic-ai/claude-code]=claude
       [@openai/codex]=codex

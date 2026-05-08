@@ -209,7 +209,7 @@ jobs:
 **Coverage:**
 - ✅ Both language variants
 - ✅ All license types
-- ✅ All tool inclusion combos (databricks, codacy, codecov, snyk, sbom)
+- ✅ All tool inclusion combos (codacy, codecov, snyk, sbom)
 - ✅ Validation gate passes
 
 **Effort:** 2 hours | **Impact:** High | **Blocker:** No

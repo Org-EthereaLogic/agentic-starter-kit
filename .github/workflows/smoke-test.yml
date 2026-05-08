@@ -153,7 +153,6 @@ jobs:
     strategy:
       matrix:
         license: [MIT, Apache-2.0, Proprietary]
-        include_databricks: ["yes", "no"]
         include_sbom: ["yes", "no"]
     steps:
       - uses: actions/checkout@v4
@@ -168,18 +167,17 @@ jobs:
 
       - name: Render template with variants
         run: |
-          mkdir -p /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_databricks }}-${{ matrix.include_sbom }}
-          cd /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_databricks }}-${{ matrix.include_sbom }}
+          mkdir -p /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_sbom }}
+          cd /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_sbom }}
           cookiecutter $GITHUB_WORKSPACE --no-input \
             project_name="Test Variant" \
             author_email="test@example.com" \
             license="${{ matrix.license }}" \
-            include_databricks="${{ matrix.include_databricks }}" \
             include_sbom="${{ matrix.include_sbom }}"
 
       - name: Verify structure
         run: |
-          cd /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_databricks }}-${{ matrix.include_sbom }}/test-variant
+          cd /tmp/variant-test-${{ matrix.license }}-${{ matrix.include_sbom }}/test-variant
 
           # Check required files exist
           test -f pyproject.toml || exit 1

@@ -113,14 +113,6 @@ python_typechecker:
     - "ty"
     - "mypy"
 
-include_databricks:
-  type: str
-  help: "Reserve Databricks bundle scaffolding (lands in a later release)."
-  default: "no"
-  choices:
-    - "no"
-    - "yes"
-
 include_codacy:
   type: str
   help: "Add `.codacy.yml` plus a CI job."
@@ -218,7 +210,6 @@ cookiecutter:
     license: "{{ license }}"
     primary_language: "{{ primary_language }}"
     python_typechecker: "{{ python_typechecker }}"
-    include_databricks: "{{ include_databricks }}"
     include_codacy: "{{ include_codacy }}"
     include_codecov: "{{ include_codecov }}"
     include_snyk: "{{ include_snyk }}"

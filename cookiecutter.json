@@ -9,7 +9,6 @@
   "license": ["MIT", "Apache-2.0", "Proprietary"],
   "primary_language": ["python", "typescript", "polyglot"],
   "python_typechecker": ["ty", "mypy"],
-  "include_databricks": ["no", "yes"],
   "include_codacy": ["yes", "no"],
   "include_codecov": ["yes", "no"],
   "include_snyk": ["yes", "no"],
@@ -44,11 +43,6 @@
       "__prompt__": "Python type-checker. Astral `ty` is the 2026 default; `mypy` is the opt-in fallback.",
       "ty": "Astral ty (fast, minimal config)",
       "mypy": "mypy (mature, ships scientific-deps overrides commented out)"
-    },
-    "include_databricks": {
-      "__prompt__": "Reserve Databricks bundle scaffolding (lands in a later release)",
-      "no": "skip — no Databricks files",
-      "yes": "reserve placeholder for future Databricks scaffolding"
     },
     "include_codacy": {
       "__prompt__": "Add `.codacy.yml` plus a CI job.",

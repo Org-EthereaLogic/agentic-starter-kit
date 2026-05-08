@@ -51,7 +51,10 @@ def _stub_npm_writable(directory: str) -> Path:
     return p
 
 
-def _run_ensure_ai_clis(path: str, extra_env: dict | None = None) -> subprocess.CompletedProcess:
+def _run_ensure_ai_clis(
+    path: str,
+    extra_env: dict[str, str] | None = None,
+) -> "subprocess.CompletedProcess[str]":
     """Source post-create.sh (with main stubbed out) and call ensure_ai_clis()."""
     driver = (
         # Relax strict mode in the test driver to prevent stub failures from
@@ -70,7 +73,7 @@ def _run_ensure_ai_clis(path: str, extra_env: dict | None = None) -> subprocess.
 # Tests
 # ---------------------------------------------------------------------------
 
-def test_skips_npm_installs_when_binaries_already_on_path():
+def test_skips_npm_installs_when_binaries_already_on_path() -> None:
     """All three AI CLI binaries on PATH → no npm install -g calls."""
     with tempfile.TemporaryDirectory() as d:
         _stub_npm_writable(d)
@@ -84,7 +87,7 @@ def test_skips_npm_installs_when_binaries_already_on_path():
     assert "npm install" not in result.stdout
 
 
-def test_skips_npm_install_when_npm_absent():
+def test_skips_npm_install_when_npm_absent() -> None:
     """npm not on PATH → entire npm install block is skipped."""
     with tempfile.TemporaryDirectory() as d:
         _stub(d, "gh")
@@ -95,7 +98,7 @@ def test_skips_npm_install_when_npm_absent():
     assert "npm not on PATH" in result.stdout
 
 
-def test_npm_install_failure_is_non_fatal():
+def test_npm_install_failure_is_non_fatal() -> None:
     """npm install -g failure → logs the error and continues; exits 0."""
     with tempfile.TemporaryDirectory() as d:
         # npm exits 1 for every invocation (simulates install failure).
@@ -107,7 +110,7 @@ def test_npm_install_failure_is_non_fatal():
     assert "continuing" in result.stdout
 
 
-def test_skips_copilot_extension_when_gh_builtin_available():
+def test_skips_copilot_extension_when_gh_builtin_available() -> None:
     """gh copilot --help exits 0 (built-in present) → extension install skipped."""
     with tempfile.TemporaryDirectory() as d:
         _stub_npm_writable(d)
@@ -122,7 +125,7 @@ def test_skips_copilot_extension_when_gh_builtin_available():
     assert "installing gh extension" not in result.stdout
 
 
-def test_installs_gh_copilot_extension_when_builtin_absent():
+def test_installs_gh_copilot_extension_when_builtin_absent() -> None:
     """gh copilot --help fails, extension not listed → extension install attempted."""
     with tempfile.TemporaryDirectory() as d:
         _stub_npm_writable(d)
@@ -147,7 +150,7 @@ def test_installs_gh_copilot_extension_when_builtin_absent():
     assert "installing gh extension" in result.stdout
 
 
-def test_skips_gh_copilot_when_gh_absent():
+def test_skips_gh_copilot_when_gh_absent() -> None:
     """gh not on PATH → gh-copilot block skipped entirely."""
     with tempfile.TemporaryDirectory() as d:
         _stub_npm_writable(d)

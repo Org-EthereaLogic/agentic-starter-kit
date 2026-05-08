@@ -282,6 +282,13 @@ discipline is documented in `docs/BRIEFING.md` (audience: agents and
 humans authoring template content). Every PR runs the same
 `make validate` gate that the scaffolded projects run.
 
+## Releases and changelog
+
+Tagged releases are listed on [GitHub Releases](https://github.com/Org-EthereaLogic/agentic-starter-kit/releases),
+and an offline summary lives in [`CHANGELOG.md`](./CHANGELOG.md).
+Generated projects keep their own changelog, maintained automatically
+by `release-please` against their own commit history.
+
 ## License
 
 The template itself is MIT-licensed (see [`LICENSE`](./LICENSE)). The

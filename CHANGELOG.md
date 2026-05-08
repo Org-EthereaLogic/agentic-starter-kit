@@ -24,16 +24,42 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 > corresponding [GitHub Release](https://github.com/Org-EthereaLogic/agentic-starter-kit/releases)
 > and the merged PRs. Read the linked release for the full story; this
 > file is the offline index.
+>
+> **Path conventions.** Filesystem paths below describe the **rendered
+> project** layout (`.claude/commands/`, `.devcontainer/`,
+> `docs/THREAT_MODEL.md`, …) — what an adopter sees after running
+> `cookiecutter` or `copier`. In this template repository's own
+> source tree those same paths live under
+> `{{cookiecutter.project_slug}}/`. The rendered-project view is
+> what's actionable for adopters reading release impact, so the
+> changelog uses it.
 
 ---
 
 ## [Unreleased]
 
-No unreleased changes.
+### Added
+
+- Root-level `CHANGELOG.md` (this file) seeded from GitHub Releases
+  v0.4.0–v0.7.0 in Keep-a-Changelog 1.1.0 format. Adopters can now
+  read template release history offline, on forks, or in clones
+  without a round-trip to github.com.
+  ([#98](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/98))
+
+### Fixed
+
+- `docs/THREAT_MODEL.md` `Status` column now reflects shipped
+  controls. SLSA L3 provenance, `pip-audit` / `npm audit`,
+  SHA-pinned-action verification, the MCP policy doc, and the
+  `report/audit.jsonl` audit trail were all marked `pending Phase
+  A3 / A4 / A5` even though they had landed in v0.4.0; the table
+  now reads honestly. Mirrored in `SWEBOK_GAP_REGISTER_EXTENSIONS`
+  for `GAP-EXT-004` (SLSA) and `GAP-EXT-020` (MCP).
+  ([#97](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/97))
 
 ---
 
-## [0.7.0] — 2026-05-08
+## [0.7.0] - 2026-05-08
 
 Slash-command rename plus dev-container compat hardening, surfaced by
 a three-variant build exercise (Python defaults, TypeScript minimal,
@@ -73,7 +99,7 @@ polyglot kitchen-sink) running on host **and** inside the official
 
 ---
 
-## [0.6.0] — 2026-05-08
+## [0.6.0] - 2026-05-08
 
 Three PRs since v0.5.0: one new feature and two targeted fixes.
 
@@ -106,7 +132,7 @@ Three PRs since v0.5.0: one new feature and two targeted fixes.
 
 ---
 
-## [0.5.0] — 2026-05-08
+## [0.5.0] - 2026-05-08
 
 Four template features, one security-relevant CI hardening, drops one
 no-op variable, and bumps polish across docs and tests.
@@ -157,7 +183,7 @@ no-op variable, and bumps polish across docs and tests.
 
 ---
 
-## [0.4.0] — 2026-05-06
+## [0.4.0] - 2026-05-06
 
 First stable release. All 15 roadmap issues across Phases A
 (Hardening), B (Specialization), C (Distribution), and D (Polish) are

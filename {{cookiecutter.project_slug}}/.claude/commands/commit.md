@@ -4,7 +4,7 @@ argument-hint: "[optional message hint]"
 allowed-tools: Bash, Read
 ---
 
-# gov.commit
+# commit
 
 Generate and execute a scoped conventional commit for the current
 diff.

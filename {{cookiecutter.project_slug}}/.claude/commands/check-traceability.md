@@ -3,7 +3,7 @@ description: Validate the traceability matrix against current source/test layout
 allowed-tools: Bash, Read
 ---
 
-# gov.check-traceability
+# check-traceability
 
 Runs `make check-traceability`. Wraps `scripts/check-traceability.sh`
 for ad-hoc invocation outside CI.

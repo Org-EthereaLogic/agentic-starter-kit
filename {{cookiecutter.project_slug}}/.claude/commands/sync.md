@@ -4,16 +4,16 @@ argument-hint: "[optional focus or PR number]"
 allowed-tools: Bash, Read, Write, Glob, Grep
 ---
 
-# gov.sync
+# sync
 
 Run after a PR merges to `{{ cookiecutter.default_branch_name }}`.
 Refreshes local state, prunes stale branches, verifies living
 documentation hasn't drifted, and writes an append-only sync record
 per `IMP-001`.
 
-This command is the operational counterpart to `/gov.session-log`.
-`/gov.session-log` captures what happened *during* a session;
-`/gov.sync` captures workspace state *between* sessions and
+This command is the operational counterpart to `/session-log`.
+`/session-log` captures what happened *during* a session;
+`/sync` captures workspace state *between* sessions and
 prevents staleness from accumulating commit-to-commit. It also
 closes the living-doc drift gap identified in the SWEBOK v4 §6
 Operations Control review.
@@ -86,7 +86,7 @@ For each living document, verify it still reflects current reality:
    scaffolded.
 
 For each drift finding, do not auto-fix — surface it with a
-recommendation. Drift remediation is `/gov.implement` work.
+recommendation. Drift remediation is `/implement` work.
 
 ### 4. Documentation ownership refresh
 
@@ -107,9 +107,9 @@ Write an append-only sync record under `report/`:
     default branch.
   - **Living-doc drift findings** — each finding with file path
     and suggested follow-up.
-   - **Traceability status** — matrix present/absent and any
-      validator findings.
-  - **Open items** — what needs `/gov.implement` follow-up.
+  - **Traceability status** — matrix present/absent and any
+    validator findings.
+  - **Open items** — what needs `/implement` follow-up.
 
 Never edit a prior sync record. If a finding is wrong, write a new
 record correcting it; the audit trail is the asset (`IMP-001`).
@@ -124,12 +124,12 @@ Output a short summary:
 - Sync record path.
 
 Mark anything requiring follow-up clearly so the next
-`/gov.implement` session can pick it up.
+`/implement` session can pick it up.
 
 ## Forbidden
 
-- Auto-fixing drift findings — `/gov.sync` reports,
-  `/gov.implement` fixes.
+- Auto-fixing drift findings — `/sync` reports,
+  `/implement` fixes.
 - Editing prior sync records (`IMP-001`).
 - Running on a dirty working tree.
 - Force-deleting branches with unmerged local commits.

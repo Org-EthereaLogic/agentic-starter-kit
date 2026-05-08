@@ -4,7 +4,7 @@ argument-hint: "[target-branch] (default: {{ cookiecutter.default_branch_name }}
 allowed-tools: Bash
 ---
 
-# gov.pull-request
+# pull-request
 
 Create a GitHub pull request for the current branch after verifying
 all validation gates pass.

@@ -4,7 +4,7 @@ argument-hint: "<claim, PR number, spec ID, or file path to verify>"
 allowed-tools: Read, Glob, Grep, Bash
 ---
 
-# gov.verify
+# verify
 
 Independently verify a {{ cookiecutter.project_name }} subject
 against primary evidence.

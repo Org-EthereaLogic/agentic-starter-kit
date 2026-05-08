@@ -4,7 +4,7 @@ argument-hint: "[optional session-focus hint]"
 allowed-tools: Read, Bash, Glob, Grep
 ---
 
-# gov.prime
+# prime
 
 Orient to the {{ cookiecutter.project_name }} repository before acting.
 

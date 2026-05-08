@@ -4,7 +4,7 @@ argument-hint: "<spec ID, PR number, or scope>"
 allowed-tools: Read, Glob, Grep, Bash
 ---
 
-# gov.review
+# review
 
 Review {{ cookiecutter.project_name }} changes against the canonical
 spec set and validation gates.

@@ -4,7 +4,7 @@ argument-hint: "<spec filename> <patch|minor|major> <reason>"
 allowed-tools: Read, Edit, Glob, Grep, Bash
 ---
 
-# gov.spec-bump
+# spec-bump
 
 Bump the version of a canonical document under `specs/deep_specs/`
 and add a revision-history entry. Preserves the document's

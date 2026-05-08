@@ -3,7 +3,7 @@ description: Set up the local development environment and verify the project is 
 allowed-tools: Bash, Read
 ---
 
-# gov.start
+# start
 
 Set up the local development environment and verify the project is
 functional.

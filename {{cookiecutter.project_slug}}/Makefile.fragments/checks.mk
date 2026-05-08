@@ -42,8 +42,10 @@ check-traceability:
 check-doc-drift:
 	@bash scripts/check-doc-drift.sh
 
-# IMP-006 — float-pinned `uses:` references in workflow files. Soft
-# by default (warn-only) so this can land without churning every
-# workflow at once; pass `STRICT=1` to fail the gate on any finding.
+# IMP-006 — float-pinned `uses:` references in workflow files. Now
+# strict by default — every shipped workflow is SHA-pinned and the
+# template enforces that any new `uses:` line follows suit. Pass
+# `STRICT=0` (or run the script with `--soft`) to opt into a
+# warn-only mode while iterating on a new workflow.
 check-action-pins:
-	@bash scripts/check-action-pins.sh
+	@bash scripts/check-action-pins.sh --strict

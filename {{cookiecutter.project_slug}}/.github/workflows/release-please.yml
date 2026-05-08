@@ -12,11 +12,9 @@
 # or governance surfaces.
 #
 # Action pinning policy (DIRECTIVES.md IMP-006):
-#   The `uses:` line below pins to a semver tag with a trailing
-#   `# v<x>` comment. Before the first PR against this repository,
-#   replace `@v4` with the corresponding commit SHA.
-#   `scripts/check-action-pins.sh` (added in a later phase)
-#   verifies SHA pinning mechanically.
+#   The `uses:` line below is pinned to a 40-character commit SHA
+#   with a trailing `# v<x>` comment Dependabot can track.
+#   `scripts/check-action-pins.sh` enforces this mechanically.
 #
 # Token policy:
 #   The default `GITHUB_TOKEN` is sufficient for release-please to
@@ -52,7 +50,7 @@ jobs:
       issues: write
     steps:
       - name: Run release-please
-        uses: googleapis/release-please-action@v4 # v4
+        uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
         with:
           config-file: release-please-config.json
           manifest-file: release-please-manifest.json

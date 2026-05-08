@@ -97,14 +97,23 @@ FORBIDDEN_PHRASES = {
 
 FRONTMATTER_RE = re.compile(r"\A---\n(?P<body>.+?)\n---\n", re.DOTALL)
 
+# Files that may legitimately live in commands/ but are not slash
+# commands themselves (e.g. a directory README, mirroring the pattern
+# in agents/, hooks/, skills/).
+NON_COMMAND_MARKDOWN = {"README.md"}
+
+
+def _command_files() -> list[Path]:
+    return sorted(p for p in COMMANDS_DIR.glob("*.md") if p.name not in NON_COMMAND_MARKDOWN)
+
 
 class CommandContractTests(unittest.TestCase):
     def test_expected_command_inventory_exists(self) -> None:
-        actual = {path.name for path in COMMANDS_DIR.glob("*.md")}
+        actual = {path.name for path in _command_files()}
         self.assertEqual(actual, EXPECTED_COMMANDS)
 
     def test_each_command_has_required_frontmatter_keys(self) -> None:
-        for path in sorted(COMMANDS_DIR.glob("*.md")):
+        for path in _command_files():
             match = FRONTMATTER_RE.match(path.read_text())
             self.assertIsNotNone(match, f"{path.name} is missing frontmatter")
             if match is None:

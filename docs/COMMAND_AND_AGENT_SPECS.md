@@ -15,9 +15,9 @@
 
 ## Command namespacing: this template's commands ↔ `/speckit.*`
 
-The 16 slash commands shipped with this template ship under
-unprefixed verbs (file naming `.claude/commands/<verb>.md`,
-invocation `/<verb>`). They coexist with
+The 16 slash commands shipped with this template are unprefixed
+verbs (file naming `.claude/commands/<verb>.md`, invocation
+`/<verb>`). They coexist with
 [GitHub Spec Kit](https://github.com/github/spec-kit), whose
 commands ship under `/speckit.*` (e.g., `/speckit.specify`,
 `/speckit.plan`, `/speckit.implement`). A project that adopts both

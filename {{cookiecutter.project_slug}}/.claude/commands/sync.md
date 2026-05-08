@@ -107,8 +107,8 @@ Write an append-only sync record under `report/`:
     default branch.
   - **Living-doc drift findings** — each finding with file path
     and suggested follow-up.
-   - **Traceability status** — matrix present/absent and any
-      validator findings.
+  - **Traceability status** — matrix present/absent and any
+    validator findings.
   - **Open items** — what needs `/implement` follow-up.
 
 Never edit a prior sync record. If a finding is wrong, write a new

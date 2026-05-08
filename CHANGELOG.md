@@ -1,3 +1,10 @@
+<!--
+  Keep-a-Changelog re-uses subsection headings (`Added`, `Changed`,
+  `Fixed`) under every version, which trips MD024 in markdownlint's
+  default config. Scope the suppression to this file.
+-->
+<!-- markdownlint-disable-file MD024 -->
+
 # Changelog
 
 All notable changes to **agentic-starter-kit** (the template repository

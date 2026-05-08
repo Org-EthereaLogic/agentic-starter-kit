@@ -54,7 +54,7 @@ def _stub_npm_writable(directory: str) -> Path:
 def _run_ensure_ai_clis(
     path: str,
     extra_env: dict[str, str] | None = None,
-) -> "subprocess.CompletedProcess[str]":
+) -> subprocess.CompletedProcess[str]:
     """Source post-create.sh (with main stubbed out) and call ensure_ai_clis()."""
     driver = (
         # Relax strict mode in the test driver to prevent stub failures from

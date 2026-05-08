@@ -143,11 +143,12 @@ reset_counters() {
 #   4. `python3` as a last resort — works only when the operator
 #      has PyYAML installed globally.
 #
-# Output is space-separated command words; callers should expand
-# UNQUOTED into a bash array, e.g.:
-#   PYTHON_CMD="$(governance_python)"
-#   # shellcheck disable=SC2206  # intentional word-split
-#   GOV_LOADER=($PYTHON_CMD path/to/script.py "$@")
+# Output is space-separated command words. Callers should split
+# into an array via `read -r -a` so multi-word commands (like
+# `uv run --quiet python`) are passed as individual argv entries:
+#
+#   read -r -a PYTHON_CMD <<< "$(governance_python)"
+#   "${PYTHON_CMD[@]}" path/to/script.py "$@"
 governance_python() {
   if [[ -x ".venv/bin/python" ]]; then
     echo ".venv/bin/python"

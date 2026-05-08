@@ -13,11 +13,11 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Source common utilities for `governance_python` helper.
+# Source common utilities for the `governance_python` helper.
+# shellcheck disable=SC1091  # path is dynamic via $SCRIPT_DIR; not statically resolvable
 source "$SCRIPT_DIR/lib/common.sh"
 
 cd "$REPO_ROOT"
 
-PYTHON_CMD="$(governance_python)"
-# shellcheck disable=SC2086  # intentional word-split for multi-word commands like `uv run python`
-$PYTHON_CMD "$SCRIPT_DIR/lib/governance.py" "$@"
+read -r -a _PYTHON_CMD <<< "$(governance_python)"
+"${_PYTHON_CMD[@]}" "$SCRIPT_DIR/lib/governance.py" "$@"

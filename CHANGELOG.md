@@ -38,24 +38,103 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ## [Unreleased]
 
-### Added
+No unreleased changes.
 
-- Root-level `CHANGELOG.md` (this file) seeded from GitHub Releases
-  v0.4.0–v0.7.0 in Keep-a-Changelog 1.1.0 format. Adopters can now
-  read template release history offline, on forks, or in clones
-  without a round-trip to github.com.
-  ([#98](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/98))
+---
+
+## [0.7.2] - 2026-05-08
+
+Patch release fixing a CI-workflow regression that has been silently
+breaking every Python / polyglot scaffold since v0.4.0, plus a much
+friendlier error path when the dev container's outbound network is
+blocked.
 
 ### Fixed
 
-- `docs/THREAT_MODEL.md` `Status` column now reflects shipped
-  controls. SLSA L3 provenance, `pip-audit` / `npm audit`,
+- **`Supply-chain audit` workflow now actually runs.**
+  `pypa/gh-action-pip-audit` passes its `inputs:` parameter to
+  pip-audit's `--requirement` flag, which only understands
+  `requirements.txt` format. The workflow was passing
+  `pyproject.toml` directly, failing on the first `[project]` TOML
+  header. Fix: export uv's resolved lock with
+  `uv export --no-emit-project --no-hashes --all-extras
+  --format requirements-txt --output-file requirements.audit.txt`
+  and audit the resulting file.
+  ([#100](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/100))
+- **`post-create.sh` now diagnoses outbound-network blocks up
+  front.** When VS Code's "Restricted Network Access", Codespaces'
+  restricted-internet policy, GitHub Copilot Coding Agent's
+  outbound firewall, or a corporate proxy blocks the container,
+  every downstream `apt-get`, `uv`, `npm`, and `gh` call fails with
+  a tool-specific cryptic error. The new `check_outbound_network`
+  step probes `pypi.org` with a 5-second timeout and, on failure,
+  prints the four common 2026 causes plus a pointer to
+  `KNOWN-ISSUES.md`. Non-fatal — legitimate offline flows keep
+  working.
+  ([#100](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/100))
+
+### Added
+
+- **`KNOWN-ISSUES.md` "Dev container internet access blocked"
+  entry** with declarative remediation snippets for each of the
+  four causes (VS Code dialog trust, Codespaces UI, Copilot Coding
+  Agent firewall, corporate proxy via `containerEnv`).
+  ([#100](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/100))
+
+[Full release notes](https://github.com/Org-EthereaLogic/agentic-starter-kit/releases/tag/v0.7.2)
+· [Diff: v0.7.1...v0.7.2](https://github.com/Org-EthereaLogic/agentic-starter-kit/compare/v0.7.1...v0.7.2)
+
+---
+
+## [0.7.1] - 2026-05-08
+
+Patch release addressing two adopter-blocking dev-container bugs
+surfaced when the first real project (`ai-powered-lead-gen-mvp`)
+scaffolded from v0.7.0, plus two doc-drift fixes that landed on
+the way.
+
+### Fixed
+
+- **Editor attach no longer races `make sync`.**
+  `devcontainer.json` declared `postCreateCommand` but no
+  `waitFor` directive. VS Code attached and the Python + Ruff
+  extensions tried to spawn `${workspaceFolder}/.venv/bin/python`
+  before the post-create script created it. Adding
+  `"waitFor": "postCreateCommand"` blocks editor attach until
+  post-create exits.
+  ([#99](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/99))
+- **`make sync` self-heals a non-runnable `.venv`.**
+  `uv sync` writes lockfile and metadata but does not detect that
+  `.venv/bin/python` itself is a dangling symlink (e.g. after a
+  base-image upgrade or device migration). `sync-python` now
+  removes the venv before re-syncing when
+  `.venv/bin/python --version` fails. Idempotent on fresh trees.
+  ([#99](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/99))
+- **`docs/THREAT_MODEL.md` `Status` column reflects shipped
+  controls.** SLSA L3 provenance, `pip-audit` / `npm audit`,
   SHA-pinned-action verification, the MCP policy doc, and the
-  `report/audit.jsonl` audit trail were all marked `pending Phase
-  A3 / A4 / A5` even though they had landed in v0.4.0; the table
-  now reads honestly. Mirrored in `SWEBOK_GAP_REGISTER_EXTENSIONS`
-  for `GAP-EXT-004` (SLSA) and `GAP-EXT-020` (MCP).
+  `report/audit.jsonl` audit trail were all marked
+  `pending Phase A3 / A4 / A5` even though they had landed in
+  v0.4.0; the table now reads honestly. Mirrored in
+  `docs/SWEBOK_GAP_REGISTER_EXTENSIONS.md` for `GAP-EXT-004`
+  (SLSA) and `GAP-EXT-020` (MCP).
   ([#97](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/97))
+
+### Added
+
+- **`KNOWN-ISSUES.md` "Dev container" section** documenting the
+  Ruff `ENOENT` race symptom and the stale-`.venv` symptom with
+  recovery steps for adopters whose containers were created
+  against v0.7.0.
+  ([#99](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/99))
+- **Root `CHANGELOG.md`** seeded from GitHub Releases v0.4.0 –
+  v0.7.0 in Keep-a-Changelog 1.1.0 format. Adopters can now read
+  template release history offline, on forks, or in clones
+  without a round-trip to github.com.
+  ([#98](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/98))
+
+[Full release notes](https://github.com/Org-EthereaLogic/agentic-starter-kit/releases/tag/v0.7.1)
+· [Diff: v0.7.0...v0.7.1](https://github.com/Org-EthereaLogic/agentic-starter-kit/compare/v0.7.0...v0.7.1)
 
 ---
 
@@ -270,7 +349,9 @@ releases; the build plan, methodology, and gap registers under
 
 ---
 
-[Unreleased]: https://github.com/Org-EthereaLogic/agentic-starter-kit/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/Org-EthereaLogic/agentic-starter-kit/compare/v0.7.2...HEAD
+[0.7.2]: https://github.com/Org-EthereaLogic/agentic-starter-kit/releases/tag/v0.7.2
+[0.7.1]: https://github.com/Org-EthereaLogic/agentic-starter-kit/releases/tag/v0.7.1
 [0.7.0]: https://github.com/Org-EthereaLogic/agentic-starter-kit/releases/tag/v0.7.0
 [0.6.0]: https://github.com/Org-EthereaLogic/agentic-starter-kit/releases/tag/v0.6.0
 [0.5.0]: https://github.com/Org-EthereaLogic/agentic-starter-kit/releases/tag/v0.5.0

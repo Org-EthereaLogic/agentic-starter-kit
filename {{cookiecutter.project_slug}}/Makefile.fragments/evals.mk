@@ -8,9 +8,9 @@ eval:
 ifeq ($(HAS_PROMPTFOO),yes)
 	@promptfoo eval --config evals/promptfooconfig.yaml
 else
-	@if [ -n "$$CI" ] && [ "$(HAS_NPX)" = "yes" ]; then \
+	@if [ -n "$${CI:-}" ] && [ "$(HAS_NPX)" = "yes" ]; then \
 		npx --yes promptfoo eval --config evals/promptfooconfig.yaml; \
-	elif [ -n "$$CI" ]; then \
+	elif [ -n "$${CI:-}" ]; then \
 		echo "ERROR: eval gate is required in CI — add Node/npm or promptfoo to your workflow"; \
 		exit 1; \
 	else \

@@ -113,6 +113,74 @@ before this setting landed, rebuild once
 (`Dev Containers: Rebuild Container`) so the new wait behavior
 takes effect.
 
+### Dev container internet access blocked
+
+Symptom: `post-create.sh` prints
+`WARN: no outbound HTTPS access to pypi.org from this container`,
+or downstream `apt-get update`, `uv sync`, `npm install`, `gh auth`,
+or `make sync` fail with `Could not resolve host`,
+`Connection refused`, `proxyError`, or similar. The container is
+running but cannot reach the package registries it needs.
+
+Common causes in 2026, in rough order of frequency, with the
+remediation that actually solves each:
+
+1. **VS Code "Restricted Network Access"** (VS Code 1.96+ / Insiders).
+   The IDE shows a one-shot dialog the first time the container
+   tries to reach a domain; if it was dismissed, the dialog will
+   not reappear automatically. Fix: open the command palette →
+   `Dev Containers: Show Container Log` → look for the rejected
+   domain → re-allow via *Settings → Application → Restricted
+   Network Access*. To pre-allow on every fresh build, add
+   `"workbench.experimental.remoteIndicator.showExtensionRecommendations": false`
+   and the appropriate trusted-domain settings to your VS Code
+   *user* settings (workspace settings cannot grant network trust).
+
+2. **GitHub Codespaces "Restricted internet access"**. The
+   Codespaces web UI has a per-codespace allowlist. Until GitHub
+   ships a documented declarative schema, configure via the
+   Codespaces UI: *Repository → Settings → Codespaces → Network
+   policy* (or the org-level equivalent for org-owned repos).
+   Per-codespace overrides land under the codespace's own *Settings
+   → Advanced* page.
+
+3. **GitHub Copilot Coding Agent firewall**. The cloud-hosted agent
+   has a default-deny outbound firewall introduced in early 2026.
+   Fix: create `.github/copilot/firewall.yml` with the domains the
+   agent needs to reach. At minimum:
+
+   ```yaml
+   # .github/copilot/firewall.yml
+   allowed_domains:
+     - pypi.org
+     - files.pythonhosted.org
+     - registry.npmjs.org
+     - ghcr.io
+     - github.com
+     - api.github.com
+     - objects.githubusercontent.com
+   ```
+
+   This file applies only to the cloud Copilot Coding Agent — it
+   does **not** affect a local VS Code dev container.
+
+4. **Corporate proxy on the host**. The container bridge network
+   inherits the host's resolver but not its proxy. Fix: add
+   `containerEnv` entries to `.devcontainer/devcontainer.json`:
+
+   ```jsonc
+   "containerEnv": {
+     "UV_LINK_MODE": "copy",
+     "HTTP_PROXY": "${localEnv:HTTP_PROXY}",
+     "HTTPS_PROXY": "${localEnv:HTTPS_PROXY}",
+     "NO_PROXY": "${localEnv:NO_PROXY}"
+   }
+   ```
+
+If the container is up and you only need a one-shot recovery, run
+`bash .devcontainer/post-create.sh` after granting access — it is
+idempotent.
+
 ### Stale `.venv` after a base-image upgrade
 
 Symptom: `make sync` reports success but tools that depend on

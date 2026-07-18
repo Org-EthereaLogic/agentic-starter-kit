@@ -122,7 +122,8 @@ class GovernanceRules:
         comma-separated ``rule`` string (marker_scan, governance_check,
         hooks_test, action_pins) or a ``rules`` YAML list (audit). Both
         shapes are accepted, and a mis-authored scalar ``rules`` is
-        tolerated like a comma string. An unrecognised gate name — or a
+        tolerated like a comma string. If a gate (incorrectly) defines
+        both keys, ``rules`` wins deterministically. An unrecognised gate name — or a
         defined gate whose ids don't resolve — still yields an empty
         list; callers that must tell those two cases apart check
         :meth:`has_enforcement_gate` first.

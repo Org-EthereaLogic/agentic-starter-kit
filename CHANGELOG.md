@@ -110,6 +110,24 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
   and that the `core.hooksPath` install wiring is checked in (repo-state
   facts only, so a fresh render / CI checkout stays green).
 
+### Fixed
+
+- **`--gate audit` lookup is no longer dead.**
+  `GovernanceRules.get_for_enforcement_gate()` only read the
+  comma-separated `rule` string key, but the `audit` entry in
+  `governance-rules.yaml` uses a `rules:` YAML list, so the gate
+  always resolved to zero directives and
+  `scripts/lib/governance.py --gate audit` exited 1 with
+  `ERROR: Unknown gate: audit` even though the gate exists. The
+  loader now accepts both key shapes (and tolerates a mis-authored
+  scalar `rules` value instead of char-splitting it); `rule`-string
+  gates (`marker_scan`, `governance_check`, `hooks_test`,
+  `action_pins`) are unaffected. The `--gate` CLI now distinguishes an
+  unknown gate name from a gate that is defined but resolves to no
+  known directives, via a new `has_enforcement_gate()` check, rather
+  than reporting both as `Unknown gate`.
+  ([#103](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/103))
+
 ---
 
 ## [0.7.2] - 2026-05-08

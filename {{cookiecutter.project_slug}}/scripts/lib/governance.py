@@ -116,7 +116,16 @@ class GovernanceRules:
     def get_for_enforcement_gate(self, gate_name: str) -> list[dict[str, Any]]:
         """Get directives enforced by a specific validation gate.
 
-        Supports: marker_scan, governance_check, hooks_test, etc.
+        Supports: marker_scan, governance_check, hooks_test, audit, etc.
+
+        A gate entry may express its directive ids as either a
+        comma-separated ``rule`` string (marker_scan, governance_check,
+        hooks_test, action_pins) or a ``rules`` YAML list (audit). Both
+        shapes are accepted, and a mis-authored scalar ``rules`` is
+        tolerated like a comma string. An unrecognised gate name — or a
+        defined gate whose ids don't resolve — still yields an empty
+        list; callers that must tell those two cases apart check
+        :meth:`has_enforcement_gate` first.
         """
         validation_gates = self.data.get("validation_gates", {})
         gate_info = validation_gates.get(gate_name, {})
@@ -124,8 +133,26 @@ class GovernanceRules:
         if not gate_info:
             return []
 
-        rule_ids = gate_info.get("rule", "").split(", ") if gate_info.get("rule") else []
+        raw = gate_info.get("rules", gate_info.get("rule"))
+        if isinstance(raw, list):
+            rule_ids = [str(rid).strip() for rid in raw]
+        elif isinstance(raw, str):
+            rule_ids = [rid.strip() for rid in raw.split(",") if rid.strip()]
+        else:
+            rule_ids = []
+
         return [self.directives[rid] for rid in rule_ids if rid in self.directives]
+
+    def has_enforcement_gate(self, gate_name: str) -> bool:
+        """True if ``gate_name`` is defined under ``validation_gates``.
+
+        Distinct from :meth:`get_for_enforcement_gate`, which returns a
+        gate's *resolved* directives: a gate can be defined yet resolve
+        to an empty list (e.g. every listed id is a typo). Callers use
+        this to distinguish an unknown gate name from a defined-but-empty
+        one instead of conflating both as "unknown".
+        """
+        return gate_name in self.data.get("validation_gates", {})
 
     def get_for_ci_integration(self) -> dict[str, list[dict[str, Any]]]:
         """Get directives organized for CI/CD integration.
@@ -308,9 +335,16 @@ def main() -> None:
         sys.exit(0)
 
     if args.gate:
+        if not rules.has_enforcement_gate(args.gate):
+            print(f"ERROR: Unknown gate: {args.gate}", file=sys.stderr)
+            sys.exit(1)
         gate_rules = rules.get_for_enforcement_gate(args.gate)
         if not gate_rules:
-            print(f"ERROR: Unknown gate: {args.gate}", file=sys.stderr)
+            print(
+                f"ERROR: Gate '{args.gate}' is defined but resolves to no "
+                "known directives (check its rule/rules ids)",
+                file=sys.stderr,
+            )
             sys.exit(1)
         if args.json:
             print(json.dumps(gate_rules, indent=2))

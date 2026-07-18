@@ -168,6 +168,11 @@ def gate_rules(tmp_path: Path) -> Path:
                 rules:
                   - CRIT-001
                   - IMP-001
+              scalar_gate:
+                rules: CRIT-001
+              empty_gate:
+                rules:
+                  - BOGUS-999
             """
         )
     )
@@ -188,10 +193,29 @@ def test_get_for_enforcement_gate_rules_list_shape(gate_rules: Path) -> None:
     assert [d["id"] for d in directives] == ["CRIT-001", "IMP-001"]
 
 
+def test_get_for_enforcement_gate_scalar_rules_shape(gate_rules: Path) -> None:
+    """A mis-authored scalar ``rules`` value is tolerated, not char-split."""
+    rules = GovernanceRules(rules_file=gate_rules)
+    directives = rules.get_for_enforcement_gate("scalar_gate")
+    assert [d["id"] for d in directives] == ["CRIT-001"]
+
+
 def test_get_for_enforcement_gate_unknown_gate_returns_empty(gate_rules: Path) -> None:
     """A gate name absent from validation_gates still yields an empty list."""
     rules = GovernanceRules(rules_file=gate_rules)
     assert rules.get_for_enforcement_gate("nonexistent") == []
+
+
+def test_has_enforcement_gate_distinguishes_unknown_from_empty(gate_rules: Path) -> None:
+    """A defined-but-empty gate is 'known' even though it resolves to []."""
+    rules = GovernanceRules(rules_file=gate_rules)
+    # Defined gate whose only id (BOGUS-999) resolves to no directive.
+    assert rules.has_enforcement_gate("empty_gate") is True
+    assert rules.get_for_enforcement_gate("empty_gate") == []
+    # Genuinely absent gate name.
+    assert rules.has_enforcement_gate("nonexistent") is False
+    # Normal populated gate.
+    assert rules.has_enforcement_gate("string_gate") is True
 
 
 def test_get_for_enforcement_gate_against_shipped_rules() -> None:

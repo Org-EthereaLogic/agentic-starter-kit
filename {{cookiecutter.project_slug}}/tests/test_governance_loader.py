@@ -129,6 +129,95 @@ def test_loader_works_against_shipped_rules() -> None:
     assert rules.get_marker_regex().startswith(r"\b(")
 
 
+@pytest.fixture
+def gate_rules(tmp_path: Path) -> Path:
+    """Minimal YAML covering both validation_gates key shapes.
+
+    ``string_gate`` uses the comma-separated ``rule`` string (the
+    shape used by marker_scan, governance_check, hooks_test, and
+    action_pins). ``list_gate`` uses the ``rules`` YAML list (the
+    shape used by audit). Kept separate from ``synthetic_rules`` so
+    these additions don't perturb the counts/sections asserted
+    elsewhere.
+    """
+    rules = tmp_path / "governance-rules.yaml"
+    rules.write_text(
+        textwrap.dedent(
+            """\
+            critical:
+              count: 2
+            important:
+              count: 1
+            recommended:
+              count: 0
+            directives:
+              - id: CRIT-001
+                class: Critical
+                title: First critical directive
+              - id: CRIT-002
+                class: Critical
+                title: Second critical directive
+              - id: IMP-001
+                class: Important
+                title: First important directive
+
+            validation_gates:
+              string_gate:
+                rule: "CRIT-001, CRIT-002"
+              list_gate:
+                rules:
+                  - CRIT-001
+                  - IMP-001
+            """
+        )
+    )
+    return rules
+
+
+def test_get_for_enforcement_gate_rule_string_shape(gate_rules: Path) -> None:
+    """A gate whose entry uses the comma-string ``rule`` key resolves in order."""
+    rules = GovernanceRules(rules_file=gate_rules)
+    directives = rules.get_for_enforcement_gate("string_gate")
+    assert [d["id"] for d in directives] == ["CRIT-001", "CRIT-002"]
+
+
+def test_get_for_enforcement_gate_rules_list_shape(gate_rules: Path) -> None:
+    """A gate whose entry uses the YAML-list ``rules`` key also resolves."""
+    rules = GovernanceRules(rules_file=gate_rules)
+    directives = rules.get_for_enforcement_gate("list_gate")
+    assert [d["id"] for d in directives] == ["CRIT-001", "IMP-001"]
+
+
+def test_get_for_enforcement_gate_unknown_gate_returns_empty(gate_rules: Path) -> None:
+    """A gate name absent from validation_gates still yields an empty list."""
+    rules = GovernanceRules(rules_file=gate_rules)
+    assert rules.get_for_enforcement_gate("nonexistent") == []
+
+
+def test_get_for_enforcement_gate_against_shipped_rules() -> None:
+    """The real governance-rules.yaml resolves both gate key shapes.
+
+    Regression test for issue #103: the ``audit`` gate uses ``rules:``
+    (a YAML list) while ``hooks_test`` uses ``rule:`` (a comma string).
+    Both must resolve to their directives.
+    """
+    real = PROJECT_ROOT / "governance-rules.yaml"
+    assert real.exists(), "governance-rules.yaml must ship in every rendered project"
+    rules = GovernanceRules(rules_file=real)
+
+    audit_directives = rules.get_for_enforcement_gate("audit")
+    assert {d["id"] for d in audit_directives} == {
+        "CRIT-004",
+        "CRIT-005",
+        "IMP-001",
+        "IMP-003",
+        "IMP-005",
+    }
+
+    hooks_test_directives = rules.get_for_enforcement_gate("hooks_test")
+    assert [d["id"] for d in hooks_test_directives] == ["CRIT-008"]
+
+
 def test_missing_sections_return_empty_lists(tmp_path: Path) -> None:
     """Sparse YAML must not crash the loader."""
     rules_file = tmp_path / "sparse.yaml"

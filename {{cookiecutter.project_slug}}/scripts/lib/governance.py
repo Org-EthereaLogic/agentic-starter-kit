@@ -116,7 +116,13 @@ class GovernanceRules:
     def get_for_enforcement_gate(self, gate_name: str) -> list[dict[str, Any]]:
         """Get directives enforced by a specific validation gate.
 
-        Supports: marker_scan, governance_check, hooks_test, etc.
+        Supports: marker_scan, governance_check, hooks_test, audit, etc.
+
+        A gate entry may express its directive ids as either a
+        comma-separated ``rule`` string (marker_scan, governance_check,
+        hooks_test, action_pins) or a ``rules`` YAML list (audit). Both
+        shapes are accepted; an unrecognised gate name still resolves
+        to an empty list.
         """
         validation_gates = self.data.get("validation_gates", {})
         gate_info = validation_gates.get(gate_name, {})
@@ -124,7 +130,11 @@ class GovernanceRules:
         if not gate_info:
             return []
 
-        rule_ids = gate_info.get("rule", "").split(", ") if gate_info.get("rule") else []
+        if "rules" in gate_info:
+            rule_ids = list(gate_info.get("rules") or [])
+        else:
+            rule_ids = gate_info.get("rule", "").split(", ") if gate_info.get("rule") else []
+
         return [self.directives[rid] for rid in rule_ids if rid in self.directives]
 
     def get_for_ci_integration(self) -> dict[str, list[dict[str, Any]]]:

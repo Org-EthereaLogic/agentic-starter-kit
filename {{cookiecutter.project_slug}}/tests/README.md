@@ -95,7 +95,10 @@ python3 tests/test_command_contracts.py
 
 - Framework: `unittest`
 - Coverage: skill inventory, frontmatter keys, reviewed prose
-  regressions, and `check-governance.sh` skill-frontmatter behavior
+  regressions, `check-governance.sh` skill-frontmatter behavior, and
+  the CRIT-002 regression that a corrupt `governance-rules.yaml` (a
+  crashing governance loader) makes `check-governance.sh` exit
+  non-zero with a diagnostic instead of vacuously passing
 
 Run with:
 

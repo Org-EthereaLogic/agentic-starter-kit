@@ -228,6 +228,26 @@ class SkillContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("does not match filename", result.stderr)
 
+    def test_governance_check_fails_loudly_on_corrupt_rules_file(self) -> None:
+        # Regression test for the CRIT-002 vacuous-gate bug: a crashing
+        # governance loader (e.g. corrupt governance-rules.yaml) must not
+        # silently empty out required_files/required_agents/required_skills/
+        # optional_dirs and let the script sail through to "governance-check
+        # OK". It must exit non-zero and name the failing loader invocation.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            _create_minimal_project(tmp_path)
+            rules = tmp_path / "governance-rules.yaml"
+            # Unterminated flow sequence: invalid YAML that makes
+            # yaml.safe_load raise, so the loader's very first
+            # invocation (--list-required-files) exits non-zero.
+            rules.write_text("required_files: [unterminated, flow, sequence\n")
+            result = _run_governance_check(tmp_path)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("governance loader failed", result.stderr)
+        self.assertNotIn("governance-check OK", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

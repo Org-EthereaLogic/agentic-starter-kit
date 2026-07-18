@@ -174,6 +174,10 @@ Or directly:
 node --test tests/test_example.ts
 ```
 
+`npm test` runs the same `node --test` suites over `tests/` (equivalent
+to `make test-typescript`), so any of the three commands above exercise
+the same file set.
+
 ## Troubleshooting
 
 ### "WARN: eslint not installed"

@@ -40,6 +40,22 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ### Fixed
 
+- **`npm test` no longer reports "No test files found" on a freshly
+  rendered TypeScript or polyglot scaffold
+  ([#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106)).**
+  `package.json`'s `test`, `test:watch`, and `coverage` scripts now
+  invoke Node's built-in `node --test` (with `--watch` /
+  `--experimental-test-coverage` respectively) directly against the
+  template's `tests/*.test.js`, `tests/test_*.js`, `tests/*.test.cjs`,
+  and `tests/test_*.cjs` suites instead of `vitest run`, whose default
+  include glob never matched this template's `node:test`-style files.
+  The unused, version-mismatched `vitest` / `@vitest/coverage-v8`
+  devDependencies are removed. The `test-typescript` Makefile recipe's
+  `find` patterns also gained a `test_*.cjs` alternative so `make test`
+  picks up `tests/test_audit_hooks.cjs`, which none of its previous
+  three patterns matched — so `npm test` and `make test` now agree on
+  the same file set.
+
 - **Governance review no longer silently passes malformed enforcement
   inputs ([#108](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/108)).**
   Its required artifacts, agents, skills, marker surfaces, and marker patterns

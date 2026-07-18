@@ -35,9 +35,9 @@ typecheck-typescript:
 test-typescript:
 {% if cookiecutter.primary_language in ("typescript", "polyglot") %}
 	@if [ "$(HAS_NODE)" = "yes" ] && [ -d tests ]; then \
-		if files="$$(find tests -type f \( -name '*.test.js' -o -name 'test_*.js' -o -name '*.test.cjs' \) 2>/dev/null)"; then \
+		if files="$$(find tests -type f \( -name '*.test.js' -o -name 'test_*.js' -o -name '*.test.cjs' -o -name 'test_*.cjs' \) 2>/dev/null)"; then \
 			if [ -n "$$files" ]; then \
-				find tests -type f \( -name '*.test.js' -o -name 'test_*.js' -o -name '*.test.cjs' \) -exec node --test {} +; \
+				find tests -type f \( -name '*.test.js' -o -name 'test_*.js' -o -name '*.test.cjs' -o -name 'test_*.cjs' \) -exec node --test {} +; \
 			else \
 				echo "WARN: no JS test files found"; \
 			fi; \

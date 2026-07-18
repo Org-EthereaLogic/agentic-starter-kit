@@ -305,7 +305,7 @@ its own already directs newcomers to the right guide.
 | Feature | Python | TypeScript |
 |---------|--------|------------|
 | Build Tool | uv / pip | npm / yarn |
-| Test Runner | pytest | vitest |
+| Test Runner | pytest | node --test |
 | Linter | ruff | eslint |
 | Type Checker | mypy | tsc |
 | Formatter | ruff | prettier |

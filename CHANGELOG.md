@@ -38,6 +38,18 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ## [Unreleased]
 
+### Fixed
+
+- **Governance review no longer silently passes malformed enforcement
+  inputs ([#108](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/108)).**
+  Its required artifacts, agents, skills, marker surfaces, and marker patterns
+  now come from `governance-rules.yaml`; malformed traceability collections,
+  invalid UTF-8 marker surfaces, and empty rules YAML now produce explicit
+  diagnostics. GOV-004 accepts only a `hooks.PreToolUse` registration whose
+  matcher is `Bash` and whose nested `command` hook invokes the exact
+  `.claude/hooks/pre-tool-use.js` path with Node; wrong events, matchers,
+  hook types, and command/path decoys no longer satisfy the check.
+
 ### Security
 
 - **Git-layer protected-branch enforcement is now the primary CRIT-008

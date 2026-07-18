@@ -238,10 +238,10 @@ def test_configured_enforcement_datasets_control_checks(tmp_path: Path) -> None:
     )
     findings = run_all(tmp_path)
     messages = {finding.message for finding in findings}
-    assert "required file missing: custom-required.txt" in messages
-    assert "optional directory not yet present: custom-optional" in messages
-    assert "required agent missing: custom/agent.md" in messages
-    assert "required skill missing: custom/skill.md" in messages
+    assert "required file missing: custom-required.txt" in messages  # nosec B101
+    assert "optional directory not yet present: custom-optional" in messages  # nosec B101
+    assert "required agent missing: custom/agent.md" in messages  # nosec B101
+    assert "required skill missing: custom/skill.md" in messages  # nosec B101
 
 
 def test_gov_001_scans_around_invalid_utf8(tmp_path: Path) -> None:
@@ -250,7 +250,9 @@ def test_gov_001_scans_around_invalid_utf8(tmp_path: Path) -> None:
     target.parent.mkdir()
     target.write_bytes(b"before\xffBADMARK after\n")
     findings = check_gov_001(tmp_path)
-    assert [(finding.location, finding.line) for finding in findings] == [("docs/mixed.md", 1)]
+    assert [(finding.location, finding.line) for finding in findings] == [  # nosec B101
+        ("docs/mixed.md", 1)
+    ]
 
 
 @pytest.mark.parametrize("content", ["", "# comments only\n", "required_files: [\n"])
@@ -262,8 +264,8 @@ def test_bad_rules_yaml_is_a_clean_error(
     captured = capsys.readouterr()
     payload = json.loads(captured.out)
     assert code == 1
-    assert payload["findings"][0]["location"] == "governance-rules.yaml"
-    assert "Traceback" not in captured.out + captured.err
+    assert payload["findings"][0]["location"] == "governance-rules.yaml"  # nosec B101
+    assert "Traceback" not in captured.out + captured.err  # nosec B101
 
 
 @pytest.mark.parametrize(
@@ -280,7 +282,7 @@ def test_gov_010_reports_malformed_criteria(
     specs = tmp_path / "specs"
     specs.mkdir()
     (specs / "traceability.json").write_text(json.dumps(payload), encoding="utf-8")
-    assert message in check_gov_010(tmp_path)[0].message
+    assert message in check_gov_010(tmp_path)[0].message  # nosec B101
 
 
 def test_gov_011_reports_scalar_collections_without_character_iteration(tmp_path: Path) -> None:
@@ -289,7 +291,7 @@ def test_gov_011_reports_scalar_collections_without_character_iteration(tmp_path
     payload = {"criteria": [{"id": "AC-1", "source": "missing.py", "tests": "test_x.py", "evidence": "report.txt"}]}
     (specs / "traceability.json").write_text(json.dumps(payload), encoding="utf-8")
     findings = check_gov_011(tmp_path)
-    assert [finding.message for finding in findings] == [
+    assert [finding.message for finding in findings] == [  # nosec B101
         "criterion AC-1 field 'source' must be a list",
         "criterion AC-1 field 'tests' must be a list",
         "criterion AC-1 field 'evidence' must be a list",
@@ -384,7 +386,7 @@ def test_gov_004_requires_structural_pre_tool_registration(
     path = tmp_path / ".claude" / "settings.json"
     path.parent.mkdir(parents=True)
     path.write_text(json.dumps(settings), encoding="utf-8")
-    assert (check_gov_004(tmp_path) == []) is passes
+    assert (check_gov_004(tmp_path) == []) is passes  # nosec B101
 
 
 def test_gov_012_accepts_paths_relative_to_markdown_file(tmp_path: Path) -> None:

@@ -132,20 +132,23 @@ def check_gov_001(root: Path, rules: GovernanceRules | None = None) -> list[Find
         if not target.exists():
             continue
         for file in _walk_text_files(target):
-            text = _read_text(file)
-            if not text:
-                continue
-            for lineno, line in enumerate(text.splitlines(), start=1):
-                match = marker_re.search(line)
-                if match:
-                    findings.append(
-                        _make(
-                            "GOV-001",
-                            f"stub marker '{match.group(0)}' found",
-                            location=str(file.relative_to(root)),
-                            line=lineno,
-                        )
-                    )
+            findings.extend(_marker_findings(root, file, marker_re))
+    return findings
+
+
+def _marker_findings(root: Path, file: Path, marker_re: re.Pattern[str]) -> list[Finding]:
+    findings: list[Finding] = []
+    for lineno, line in enumerate(_read_text(file).splitlines(), start=1):
+        match = marker_re.search(line)
+        if match:
+            findings.append(
+                _make(
+                    "GOV-001",
+                    f"stub marker '{match.group(0)}' found",
+                    location=str(file.relative_to(root)),
+                    line=lineno,
+                )
+            )
     return findings
 
 
@@ -172,22 +175,28 @@ def check_gov_002(root: Path, rules: GovernanceRules | None = None) -> list[Find
                 )
             )
 
+    deep_specs_warning = _deep_specs_warning(root)
+    if deep_specs_warning:
+        findings.append(deep_specs_warning)
+    return findings
+
+
+def _deep_specs_warning(root: Path) -> Finding | None:
     deep_specs = root / "specs" / "deep_specs"
-    if deep_specs.is_dir() and not any(
+    has_spec = deep_specs.is_dir() and any(
         path.is_file()
         and path.suffix == ".md"
         and len(path.relative_to(deep_specs).parts) <= 2
         for path in deep_specs.rglob("*.md")
-    ):
-        findings.append(
-            _make(
-                "GOV-002",
-                "specs/deep_specs contains no .md files yet",
-                severity=Severity.WARNING,
-                location="specs/deep_specs",
-            )
-        )
-    return findings
+    )
+    if not deep_specs.is_dir() or has_spec:
+        return None
+    return _make(
+        "GOV-002",
+        "specs/deep_specs contains no .md files yet",
+        severity=Severity.WARNING,
+        location="specs/deep_specs",
+    )
 
 
 # --- GOV-003 — .mcp.json structure ----------------------------------
@@ -229,15 +238,19 @@ def _invokes_pre_tool_hook(command: str) -> bool:
         tokens = shlex.split(command, comments=True, posix=True)
     except ValueError:
         return False
-    while tokens and "=" in tokens[0] and not tokens[0].startswith(("=", "-")):
-        name, _, _value = tokens[0].partition("=")
-        if not name.replace("_", "a").isalnum() or name[0].isdigit():
-            break
-        tokens.pop(0)
+    tokens = _without_env_assignments(tokens)
     if len(tokens) < 2:
         return False
     runtime = Path(tokens[0]).name
     return runtime in {"node", "nodejs"} and tokens[1] == ".claude/hooks/pre-tool-use.js"
+
+
+def _without_env_assignments(tokens: list[str]) -> list[str]:
+    for index, token in enumerate(tokens):
+        name, separator, _value = token.partition("=")
+        if not separator or not name.isidentifier():
+            return tokens[index:]
+    return []
 
 
 def check_gov_004(root: Path) -> list[Finding]:

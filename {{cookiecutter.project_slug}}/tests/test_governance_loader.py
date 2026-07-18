@@ -173,6 +173,10 @@ def gate_rules(tmp_path: Path) -> Path:
               empty_gate:
                 rules:
                   - BOGUS-999
+              both_keys_gate:
+                rule: "CRIT-001, CRIT-002"
+                rules:
+                  - IMP-001
             """
         )
     )
@@ -198,6 +202,17 @@ def test_get_for_enforcement_gate_scalar_rules_shape(gate_rules: Path) -> None:
     rules = GovernanceRules(rules_file=gate_rules)
     directives = rules.get_for_enforcement_gate("scalar_gate")
     assert [d["id"] for d in directives] == ["CRIT-001"]
+
+
+def test_get_for_enforcement_gate_rules_wins_over_rule(gate_rules: Path) -> None:
+    """When a gate (incorrectly) defines both keys, ``rules`` wins.
+
+    The precedence is deterministic and documented in the loader
+    docstring; this test pins it so a refactor cannot silently flip it.
+    """
+    rules = GovernanceRules(rules_file=gate_rules)
+    directives = rules.get_for_enforcement_gate("both_keys_gate")
+    assert [d["id"] for d in directives] == ["IMP-001"]
 
 
 def test_get_for_enforcement_gate_unknown_gate_returns_empty(gate_rules: Path) -> None:

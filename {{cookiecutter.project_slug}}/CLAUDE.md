@@ -61,7 +61,8 @@ of each.
 - `CRIT-005` — PASS claims require dual evidence.
 - `CRIT-006` — No simulated data when real data is available.
 - `CRIT-007` — No `--no-verify` on commits.
-- `CRIT-008` — Protected-branch hook is registered and tested.
+- `CRIT-008` — Git-layer protected-branch guards are installed and
+  tested; the agent-layer hook provides defense in depth.
 
 ## Standard workflow — Plan / Act / Verify / Report
 
@@ -84,7 +85,8 @@ Detailed in `AGENTS.md`. Compressed:
 | `.claude/commands/` | Slash-command definitions. Each is a Markdown file with YAML frontmatter declaring `description`, `argument-hint`, and `allowed-tools`. |
 | `.claude/agents/` | Curated subagent definitions with frontmatter declaring `name`, `description`, `model`, `memory`. |
 | `.claude/skills/` | Progressive-disclosure capability packs. Single Markdown files with frontmatter declaring `name`, `description`, and a `paths` glob list that gates lazy loading. |
-| `.claude/hooks/pre-tool-use.js` | Layer 4 runtime hook. Blocks forbidden Bash patterns (`CRIT-008`). |
+| `.githooks/` | Primary Layer 4 protected-branch guards, installed through `core.hooksPath` (`CRIT-008`). |
+| `.claude/hooks/pre-tool-use.js` | Agent-facing Layer 4 defense in depth. Blocks recognized forbidden Bash patterns early. |
 | `.claude/settings.json` | Hook registration. Registers `pre-tool-use.js` on `PreToolUse:Bash`. |
 | `.mcp.json` | MCP server registration for this project. Ships a read-only filesystem/git baseline plus a token-scoped GitHub entry; see `docs/MCP_POLICY.md` before changing any entry. |
 

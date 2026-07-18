@@ -20,7 +20,7 @@ include Makefile.fragments/quality.mk
 include Makefile.fragments/clean.mk
 
 # Aggregate language-specific targets
-.PHONY: lint typecheck test coverage validate help{% if cookiecutter.include_promptfoo == "yes" %} eval{% endif %}
+.PHONY: lint typecheck test coverage validate help hooks-install{% if cookiecutter.include_promptfoo == "yes" %} eval{% endif %}
 
 lint: lint-python lint-typescript
 	@echo "lint: complete"
@@ -46,7 +46,8 @@ help:
 	@echo "  check-traceability   Validate specs/traceability.json (GOV-010, GOV-011)"
 	@echo "  check-doc-drift      Verify path references in docs/specs are real (GOV-012)"
 	@echo "  check-action-pins    Warn on float-pinned GitHub Actions \`uses:\` lines (IMP-006)"
-	@echo "  hooks-test           Run the runtime-hook regression suite (CRIT-008)"
+	@echo "  hooks-install        Wire core.hooksPath to .githooks (git-layer CRIT-008 boundary)"
+	@echo "  hooks-test           Run the hook regression suites (CRIT-008: git-layer + agent-layer)"
 	@echo "  lint                 Run language linter(s)"
 	@echo "  typecheck            Run language type-checker(s)"
 	@echo "  test                 Run the test suite"

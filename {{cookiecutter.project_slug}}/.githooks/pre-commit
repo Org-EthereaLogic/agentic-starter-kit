@@ -1,0 +1,64 @@
+#!/bin/sh
+# .githooks/pre-commit — git-layer protected-branch guard (CRIT-008)
+#
+# PRIMARY enforced CRIT-008 boundary. Unlike the Claude Code
+# PreToolUse:Bash hook (.claude/hooks/pre-tool-use.js), which inspects
+# the proposed command STRING before the shell expands/aliases/word-
+# splits it, this hook runs AFTER shell resolution: git invokes it no
+# matter how the `git commit` was spelled (eval, exec, \git,
+# git${IFS}commit, bash -cl, sudo, …). It therefore cannot be dodged
+# by shell syntax. See .githooks/README.md for the honest boundary
+# (this is an operator-integrity control, not a sandbox).
+#
+# Installed via `git config core.hooksPath .githooks` (make hooks-install).
+# POSIX sh, no Node/Python dependency, so it is never pruned for any
+# primary_language.
+
+set -u
+
+# Protected set: the render-time default branch plus the legacy `master`.
+# This file IS Jinja-rendered (.githooks/* is not in cookiecutter.json
+# _copy_without_render), so the literal below renders to the chosen
+# branch name (e.g. `main`).
+protected="{{ cookiecutter.default_branch_name }} master"
+
+# Resolve the current branch. `git symbolic-ref --short HEAD` is the
+# canonical lookup; fall back to `rev-parse --abbrev-ref HEAD`. Fail
+# CLOSED if neither yields a name (a broken lookup must not silently
+# allow a commit that might land on a protected branch).
+branch="$(git symbolic-ref --short HEAD 2>/dev/null)" || branch=""
+if [ -z "$branch" ]; then
+	branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" || branch=""
+fi
+if [ -z "$branch" ]; then
+	printf '%s\n' \
+		"pre-commit: BLOCKED — cannot resolve the current branch; refusing to commit (fail-closed, CRIT-008)." >&2
+	exit 1
+fi
+
+for p in $protected; do
+	if [ "$branch" = "$p" ]; then
+		printf '%s\n' \
+			"pre-commit: BLOCKED — direct commit on protected branch '$branch' is forbidden (CRIT-008)." \
+			"           Create a feature branch first, e.g.: git switch -c feat/<slug>" >&2
+		exit 1
+	fi
+done
+
+# Guard passed. Chain to the pre-commit framework when it is present so
+# the configured hooks (ruff, governance-check, marker-scan, …) keep
+# running: `core.hooksPath` makes git ignore `.git/hooks`, where
+# `pre-commit install` writes its shim, so without this chain the
+# framework would be silently disabled. `hook-impl` is the same
+# entrypoint the framework's installed shim calls. When pre-commit is
+# absent (fresh clone / test temp repo), this is a clean no-op — the
+# guard's PASS path never depends on the framework being installed.
+if command -v pre-commit >/dev/null 2>&1 && [ -f .pre-commit-config.yaml ]; then
+	exec pre-commit hook-impl \
+		--config=.pre-commit-config.yaml \
+		--hook-type=pre-commit \
+		--skip-on-missing-config \
+		-- "$@"
+fi
+
+exit 0

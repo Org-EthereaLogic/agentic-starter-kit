@@ -12,8 +12,9 @@
 git init
 git checkout -b feat/initial
 make sync         # ← required: install language-specific dependencies
+make hooks-install # wire the primary protected-branch boundary
 make validate     # run the full pre-merge gate
-make hooks-test   # exercise the protected-branch runtime hook
+make hooks-test   # exercise git-layer and agent-layer hooks
 ```
 
 {% if cookiecutter.primary_language == 'python' -%}
@@ -84,7 +85,7 @@ This project ships a **five-layer agentic governance stack**:
 | 1 | Navigation | `CLAUDE.md`, `AGENTS.md`, `GEMINI.md` |
 | 2 | Constitutional | `CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md` |
 | 3 | Agent specialization | `.claude/agents/*.md`, `.claude/commands/*.md` |
-| 4 | Runtime enforcement | `.claude/hooks/pre-tool-use.js`, `.claude/settings.json` |
+| 4 | Runtime enforcement | `.githooks/*`, `.claude/hooks/pre-tool-use.js`, `.claude/settings.json` |
 | 5 | External validation | `Makefile`, `scripts/*.sh`, `.github/workflows/ci.yml` |
 
 Layers are defense in depth — each layer assumes the others might
@@ -100,7 +101,7 @@ classes.
 |---|---|
 | `CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md` | Constitutional layer (tier 1–3 authority) |
 | `CLAUDE.md`, `AGENTS.md`, `GEMINI.md` | Navigation for AI coding tools |
-| `.claude/` | Agent specialization (commands, agents, hooks) and runtime enforcement (settings.json + pre-tool-use.js) |
+| `.githooks/`, `.claude/` | Primary git-layer enforcement plus agent specialization and defense-in-depth hooks |
 | `Makefile`, `scripts/`, `.github/workflows/` | External validation |
 | `tests/` | Test suite, including the runtime-hook regression |
 | `docs/` | SWEBOK-anchored documentation (architecture, operations, security program, threat model, …) — populated as the project matures |

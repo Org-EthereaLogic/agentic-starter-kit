@@ -35,7 +35,8 @@ Multiple new projects starting simultaneously; dev teams need quick onboarding w
 1. **Layer 1**: Navigation (CLAUDE.md, AGENTS.md, GEMINI.md)
 2. **Layer 2**: Constitutional foundation (CONSTITUTION.md, DIRECTIVES.md, SECURITY.md)
 3. **Layer 3**: Agent specialization (commands, agents, hooks in `.claude/`)
-4. **Layer 4**: Runtime enforcement (pre-tool-use.js hook)
+4. **Layer 4**: Runtime enforcement (`.githooks/` primary boundary;
+   `.claude/hooks/pre-tool-use.js` agent-layer defense in depth)
 5. **Layer 5**: External validation (Makefile, scripts, CI workflows)
 
 ## Rationale

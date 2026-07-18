@@ -160,22 +160,51 @@ blocks Bash commands containing `--no-verify`. CI inspects every
 commit's metadata for hook-bypass markers (when CI provides them)
 and fails the build on detection.
 
-### CRIT-008 — Protected-branch hook is registered and tested
+### CRIT-008 — Protected-branch enforcement (git layer primary, agent layer defense-in-depth)
 
-**Statement.** `.claude/settings.json` registers
-`.claude/hooks/pre-tool-use.js` on `PreToolUse:Bash`. The hook test
-suite (`tests/test_pre_tool_use_hook.py` for Python projects,
-`tests/test_pre_tool_use_hook.js` for TypeScript projects) passes
-on every commit.
+**Statement.** The **primary** enforced boundary is the git-layer
+hook: the checked-in `.githooks/pre-commit`, `.githooks/pre-merge-commit`,
+and `.githooks/pre-push` scripts, installed via
+`git config core.hooksPath .githooks` (`make hooks-install`). They block,
+on a protected branch (the render-time default branch plus `master`):
+direct commits and `--amend` (via `pre-commit`); merge commits from a
+non-fast-forward, conflict-free `git merge` (via `pre-merge-commit`; a
+conflicted merge is finished by a `git commit` that `pre-commit` catches);
+and all pushes (via `pre-push`). They resolve the real destination
+**after** the shell has expanded, aliased, and word-split the command, so
+they cannot be dodged by shell idioms (`eval`, `exec`, `\git`,
+`git${IFS}push`, `bash -cl`, `sudo`/`doas`, `stdbuf`/`setsid`, `&`
+chains). The Claude Code hook `.claude/hooks/pre-tool-use.js` (registered
+on `PreToolUse:Bash` in `.claude/settings.json`) remains as **best-effort
+defense-in-depth** — a fast, agent-facing early block, **not** the
+guarantee.
 
-**Rationale.** The runtime hook is Layer 4's only mechanism for
-preventing forbidden agent actions before they happen. An
-unregistered or untested hook is no hook at all; the regression
-suite is the hook's contract.
+**Rationale.** A command-string matcher inspects the proposed command
+*before* the shell resolves it, so shell syntax can defeat it (issue
+[#102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102)).
+Enforcement at the git layer runs *after* shell resolution and is the
+real boundary. **Honest scope:** git hooks are an operator-integrity
+control, not a sandbox. Two limitations are documented rather than
+overclaimed: (1) git invokes **no** commit-time hook for a conflict-free
+`cherry-pick`/`revert`/`rebase`/`am` replaying commits directly onto a
+**local** protected branch, so the git layer does not stop those landing
+locally — the backstops are `pre-push` (blocks pushing the result to the
+protected remote), the agent-layer hook (blocks the porcelain/`eval`/
+`\git` forms an agent would issue), and **server-side branch protection**
+(the true backstop); and (2) the hooks do not defend against a maliciously
+mutated `.git/hooks`, a user who deliberately unsets `core.hooksPath`, or
+`--no-verify`.
 
-**Enforcement.** `make hooks-test` runs on every PR. The
-governance check (`CRIT-002`) verifies the registration in
-`settings.json`.
+**Enforcement.** `make hooks-install` wires `core.hooksPath`;
+`make hooks-test` runs on every PR and exercises both layers — the
+language-neutral `tests/test_git_hooks.sh` (git layer, every shell
+idiom against a temp repo, plus the `pre-merge-commit` merge block and
+the cherry-pick-lands-locally-but-push-blocked backstop) and
+`tests/test_pre_tool_use_hook.py`/`.js` (agent layer). The governance
+check (`CRIT-002`) verifies the `settings.json` registration, that
+`.githooks/pre-commit`, `.githooks/pre-merge-commit`, and
+`.githooks/pre-push` exist and are executable, and that the
+`core.hooksPath` install wiring is present.
 
 ---
 
@@ -213,7 +242,8 @@ format. CI rejects PRs whose merge commit does not conform.
 **Statement.** Working branches are named `<type>/<slug>` —
 e.g., `feat/auth-rfc`, `fix/race-condition`,
 `chore/scaffold-phase-3`. Direct work on the default branch is
-forbidden by the runtime hook (`CRIT-008`).
+forbidden by the git-layer guards and agent-layer defense in depth
+(`CRIT-008`).
 
 **Rationale.** Branch names are the second-most-visible artifact
 of a project's hygiene (after commit messages). Predictable names

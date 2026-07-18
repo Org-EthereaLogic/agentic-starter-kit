@@ -38,7 +38,77 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ## [Unreleased]
 
-No unreleased changes.
+### Security
+
+- **Git-layer protected-branch enforcement is now the primary CRIT-008
+  boundary.** New checked-in git hooks `.githooks/pre-commit`,
+  `.githooks/pre-merge-commit`, and `.githooks/pre-push` (POSIX `sh`,
+  language-neutral) block, on a protected branch (the render-time default
+  branch plus `master`): direct commits and `--amend` (`pre-commit`),
+  merge commits from a non-fast-forward conflict-free `git merge`
+  (`pre-merge-commit`), and all pushes (`pre-push`). Because they run
+  **after** the shell resolves the command, they cannot be dodged by the
+  shell idioms that defeat a command-string matcher — `eval`, `exec`,
+  `\git`, `git${IFS}push`, `bash -cl`, `sudo`/`doas`, `stdbuf`/`setsid`,
+  and `&` chains — the bypass classes issue
+  [#102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102)
+  showed a string-layer hook cannot fully close. `pre-push` also blocks
+  refspec pushes (`feat/x:main`), `--all`/`--mirror`, implicit-upstream
+  pushes, and deletes of a protected ref.
+- **Honest coverage scope is documented, not overclaimed.** Git invokes
+  **no** commit-time hook for a conflict-free
+  `cherry-pick`/`revert`/`rebase`/`am` replaying commits directly onto a
+  **local** protected branch, so the git layer does not stop those
+  landing locally. The backstops — documented in `.githooks/README.md`,
+  `DIRECTIVES.md`, and `docs/THREAT_MODEL.md`, and exercised by
+  `tests/test_git_hooks.sh` — are `pre-push` (blocks pushing the result
+  to the protected remote), the agent-layer hook (blocks the porcelain/
+  `eval`/`\git` forms an agent would issue), and server-side branch
+  protection (the true backstop).
+- **`.claude/hooks/pre-tool-use.js` is re-labeled defense-in-depth.**
+  The Claude Code `PreToolUse:Bash` hook (including the issue #102
+  regex hardening) is retained as a fast, agent-facing early block, but
+  is now documented as best-effort — **not** the CRIT-008 guarantee.
+  Its header, `.claude/hooks/README.md`, `DIRECTIVES.md` CRIT-008,
+  `governance-rules.yaml`, and `docs/THREAT_MODEL.md` all name the
+  git-layer hook as the enforced boundary and document the honest scope
+  (an operator-integrity control, not a sandbox: a user can unset
+  `core.hooksPath`; server-side branch protection is the real backstop).
+
+### Added
+
+- **`make hooks-install`** wires the boundary idempotently
+  (`git config core.hooksPath .githooks`) and is a prerequisite of
+  `make hooks-test` (hence `make validate`). It is also wired into
+  `.devcontainer/post-create.sh` and surfaced in the cookiecutter
+  post-generation "Next steps". `core.hooksPath` supersedes
+  `pre-commit install`; the hooks **chain** to `pre-commit hook-impl`
+  when the framework is present so its hooks keep running.
+- **`.claude/hooks/pre-tool-use.js` gains two agent-layer wrapper
+  classes** (defense-in-depth for `pre-merge-commit`): `eval
+  '<payload>'`/`eval "<payload>"` is peeled and its payload recursively
+  evaluated, and a leading backslash on the command token (`\git`) is
+  stripped before the git check — so `eval 'git cherry-pick …'` and
+  `\git merge …` on a protected branch are caught early, while read-only
+  and non-git payloads still pass.
+- **`tests/test_git_hooks.sh`** — a language-neutral POSIX `sh`
+  regression suite (never pruned, run unconditionally by
+  `make hooks-test`) that installs the hooks in a throwaway temp repo
+  with a local bare remote and asserts every bypass idiom is blocked on
+  a protected target while feature-branch commits/pushes still succeed.
+  It also asserts `git merge --no-ff` (and its `eval`/`\git` spellings)
+  into a protected branch is blocked by `pre-merge-commit`, that a
+  feature-branch merge still succeeds, and — for the documented git
+  limitation — that a `cherry-pick`/`revert` onto a protected branch
+  lands locally but the subsequent push is blocked by `pre-push`. Idioms
+  whose wrapper is absent or non-interactive (`setsid`, `sudo`, `doas`)
+  are skipped with a recorded reason, never assumed-pass.
+- **`.githooks/README.md`** documenting the hooks, the install, the
+  pre-commit-framework chaining, and the honest boundary.
+- `scripts/check-governance.sh` now asserts the `.githooks` hooks
+  (`pre-commit`, `pre-merge-commit`, `pre-push`) exist and are executable
+  and that the `core.hooksPath` install wiring is checked in (repo-state
+  facts only, so a fresh render / CI checkout stays green).
 
 ---
 

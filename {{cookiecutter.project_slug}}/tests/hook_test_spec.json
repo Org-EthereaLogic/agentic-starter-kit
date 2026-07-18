@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source of truth for pre-tool-use.js hook regression tests. Both test_pre_tool_use_hook.py and test_pre_tool_use_hook.js iterate this spec — update HERE first, then tests stay in sync automatically. Each entry: name (unique id), class (bypass class 1-8 per .claude/hooks/README.md, 0 = baseline), branch (initial repo branch; null = skip git setup), command (Bash payload command) or tool_name+tool_input (non-Bash payload) or fixture (filename under tests/fixtures/), expected_exit (0 = allow, 2 = block), check_stderr (case-insensitive substring required in stderr; null = no message check), description (human-readable).",
+  "_comment": "Single source of truth for pre-tool-use.js hook regression tests. Both test_pre_tool_use_hook.py and test_pre_tool_use_hook.js iterate this spec — update HERE first, then tests stay in sync automatically. Each entry: name (unique id), class (bypass class 1-19 per .claude/hooks/README.md, 0 = baseline), branch (initial repo branch; null = skip git setup, hook runs in a non-git temp dir), command (Bash payload command) or tool_name+tool_input (non-Bash payload) or fixture (filename under tests/fixtures/), expected_exit (0 = allow, 2 = block), check_stderr (case-insensitive substring required in stderr; null = no message check), description (human-readable). Classes 9-15 close the seven CRIT-008 bypass classes documented in issue #102; classes 16-17 close the two residual bypasses found at the test gate (c-not-last nested-shell clusters and the `sudo` wrapper); classes 18-19 close two wrapper idioms found at the merge-family test gate (`eval '<payload>'` and the backslash-escaped `\\git` command token) that bypass the commit-producing detection — agent-layer defense-in-depth for the git-layer pre-merge-commit boundary.",
   "tests": [
     {
       "name": "refspec_to_protected_blocks",
@@ -125,6 +125,231 @@
       "description": "Baseline: empty Bash command is a no-op",
       "branch": "feat/x",
       "command": "",
+      "expected_exit": 0,
+      "check_stderr": null
+    },
+    {
+      "name": "push_head_on_protected_blocks",
+      "class": 9,
+      "description": "Class 9: `git push origin HEAD` while HEAD is protected — HEAD refspec normalized to current branch",
+      "branch": "{{ cookiecutter.default_branch_name }}",
+      "command": "git push origin HEAD",
+      "expected_exit": 2,
+      "check_stderr": "{{ cookiecutter.default_branch_name }}"
+    },
+    {
+      "name": "push_head_on_feature_allows",
+      "class": 9,
+      "description": "Class 9 guard: `git push origin HEAD` from a feature branch stays allowed (no false positive)",
+      "branch": "feat/x",
+      "command": "git push origin HEAD",
+      "expected_exit": 0,
+      "check_stderr": null
+    },
+    {
+      "name": "single_ampersand_chain_blocks",
+      "class": 10,
+      "description": "Class 10: single `&` job-control separator still splits into subcommands",
+      "branch": "feat/x",
+      "command": "true & git push origin {{ cookiecutter.default_branch_name }}",
+      "expected_exit": 2,
+      "check_stderr": "{{ cookiecutter.default_branch_name }}"
+    },
+    {
+      "name": "nested_shell_combined_flags_blocks",
+      "class": 11,
+      "description": "Class 11: `bash -lc \"git push ...\"` combined short-flag nested shell is re-evaluated",
+      "branch": "feat/x",
+      "command": "bash -lc \"git push origin {{ cookiecutter.default_branch_name }}\"",
+      "expected_exit": 2,
+      "check_stderr": "nested"
+    },
+    {
+      "name": "nested_shell_semicolon_payload_blocks",
+      "class": 12,
+      "description": "Class 12: quoted nested-shell payload with an inner `;` stays intact until re-evaluated",
+      "branch": "feat/x",
+      "command": "bash -c 'git push origin {{ cookiecutter.default_branch_name }}; true'",
+      "expected_exit": 2,
+      "check_stderr": "nested"
+    },
+    {
+      "name": "wrapper_env_git_push_blocks",
+      "class": 13,
+      "description": "Class 13: `env` wrapper around git push is peeled before the git check",
+      "branch": "feat/x",
+      "command": "env git push origin {{ cookiecutter.default_branch_name }}",
+      "expected_exit": 2,
+      "check_stderr": "{{ cookiecutter.default_branch_name }}"
+    },
+    {
+      "name": "wrapper_command_git_push_blocks",
+      "class": 13,
+      "description": "Class 13: `command` wrapper around git push is peeled before the git check",
+      "branch": "feat/x",
+      "command": "command git push origin {{ cookiecutter.default_branch_name }}",
+      "expected_exit": 2,
+      "check_stderr": "{{ cookiecutter.default_branch_name }}"
+    },
+    {
+      "name": "wrapper_nice_git_push_blocks",
+      "class": 13,
+      "description": "Class 13: `nice` wrapper around git push is peeled before the git check",
+      "branch": "feat/x",
+      "command": "nice git push origin {{ cookiecutter.default_branch_name }}",
+      "expected_exit": 2,
+      "check_stderr": "{{ cookiecutter.default_branch_name }}"
+    },
+    {
+      "name": "wrapper_xargs_git_push_blocks",
+      "class": 13,
+      "description": "Class 13: `xargs` wrapper around git push is peeled before the git check",
+      "branch": "feat/x",
+      "command": "xargs git push origin {{ cookiecutter.default_branch_name }}",
+      "expected_exit": 2,
+      "check_stderr": "{{ cookiecutter.default_branch_name }}"
+    },
+    {
+      "name": "broad_push_branches_blocks",
+      "class": 14,
+      "description": "Class 14: `--branches` broad push mode blocks like `--all`",
+      "branch": "feat/x",
+      "command": "git push --branches origin",
+      "expected_exit": 2,
+      "check_stderr": "--branches"
+    },
+    {
+      "name": "commit_fail_closed_on_lookup_failure",
+      "class": 15,
+      "description": "Class 15: `git commit` with a failed current-branch lookup fails closed (non-git dir)",
+      "branch": null,
+      "command": "git commit -m x",
+      "expected_exit": 2,
+      "check_stderr": "could not resolve current branch"
+    },
+    {
+      "name": "push_fail_closed_on_lookup_failure",
+      "class": 15,
+      "description": "Class 15: `git push` with a failed current-branch lookup fails closed (non-git dir)",
+      "branch": null,
+      "command": "git push",
+      "expected_exit": 2,
+      "check_stderr": "could not resolve current branch"
+    },
+    {
+      "name": "non_git_in_non_git_dir_allows",
+      "class": 15,
+      "description": "Class 15 guard: fail-closed is scoped to git commands — a plain `ls` in a non-git dir stays allowed",
+      "branch": null,
+      "command": "ls -la",
+      "expected_exit": 0,
+      "check_stderr": null
+    },
+    {
+      "name": "nested_shell_c_not_last_bash_cl_blocks",
+      "class": 16,
+      "description": "Class 16: `bash -cl \"git push ...\"` — combined short-flag cluster where `c` is NOT the last letter is still recognized as a `-c` nested shell",
+      "branch": "feat/x",
+      "command": "bash -cl \"git push origin {{ cookiecutter.default_branch_name }}\"",
+      "expected_exit": 2,
+      "check_stderr": "nested"
+    },
+    {
+      "name": "nested_shell_c_not_last_sh_ci_blocks",
+      "class": 16,
+      "description": "Class 16: `sh -ci \"git push ...\"` — `c`-not-last cluster on sh is recognized as a `-c` nested shell",
+      "branch": "feat/x",
+      "command": "sh -ci \"git push origin {{ cookiecutter.default_branch_name }}\"",
+      "expected_exit": 2,
+      "check_stderr": "nested"
+    },
+    {
+      "name": "nested_shell_c_not_last_feature_allows",
+      "class": 16,
+      "description": "Class 16 guard: `bash -cl \"git push origin feat/x\"` to a feature branch stays allowed (no false positive on the widened cluster pattern)",
+      "branch": "feat/x",
+      "command": "bash -cl \"git push origin feat/x\"",
+      "expected_exit": 0,
+      "check_stderr": null
+    },
+    {
+      "name": "wrapper_sudo_git_push_blocks",
+      "class": 17,
+      "description": "Class 17: `sudo git push origin <protected>` — sudo is peeled as a trivial wrapper before the git check",
+      "branch": "feat/x",
+      "command": "sudo git push origin {{ cookiecutter.default_branch_name }}",
+      "expected_exit": 2,
+      "check_stderr": "{{ cookiecutter.default_branch_name }}"
+    },
+    {
+      "name": "wrapper_sudo_flag_arg_git_push_blocks",
+      "class": 17,
+      "description": "Class 17: `sudo -u ci git push origin <protected>` — sudo's `-u <user>` arg-taking option is consumed so the wrapper still peels to git",
+      "branch": "feat/x",
+      "command": "sudo -u ci git push origin {{ cookiecutter.default_branch_name }}",
+      "expected_exit": 2,
+      "check_stderr": "{{ cookiecutter.default_branch_name }}"
+    },
+    {
+      "name": "wrapper_sudo_non_git_allows",
+      "class": 17,
+      "description": "Class 17 guard: `sudo systemctl restart nginx` is a non-git target — wrapper peeling must not over-block it",
+      "branch": "feat/x",
+      "command": "sudo systemctl restart nginx",
+      "expected_exit": 0,
+      "check_stderr": null
+    },
+    {
+      "name": "eval_cherry_pick_on_protected_blocks",
+      "class": 18,
+      "description": "Class 18: `eval 'git cherry-pick x'` while HEAD is protected — eval's quoted payload is extracted and recursively evaluated so the commit-producing subcommand is caught",
+      "branch": "{{ cookiecutter.default_branch_name }}",
+      "command": "eval 'git cherry-pick abc123'",
+      "expected_exit": 2,
+      "check_stderr": "cherry-pick"
+    },
+    {
+      "name": "eval_merge_on_protected_blocks",
+      "class": 18,
+      "description": "Class 18: `eval \"git merge feat/x\"` while HEAD is protected — double-quoted eval payload is likewise extracted and re-evaluated",
+      "branch": "{{ cookiecutter.default_branch_name }}",
+      "command": "eval \"git merge feat/x\"",
+      "expected_exit": 2,
+      "check_stderr": "merge"
+    },
+    {
+      "name": "eval_git_status_on_protected_allows",
+      "class": 18,
+      "description": "Class 18 guard: `eval 'git status'` on protected is read-only — extracting and re-evaluating the payload must not over-block a non-mutating git command",
+      "branch": "{{ cookiecutter.default_branch_name }}",
+      "command": "eval 'git status'",
+      "expected_exit": 0,
+      "check_stderr": null
+    },
+    {
+      "name": "eval_non_git_allows",
+      "class": 18,
+      "description": "Class 18 guard: `eval 'npm run build'` is a non-git payload — eval peeling must not over-block it",
+      "branch": "{{ cookiecutter.default_branch_name }}",
+      "command": "eval 'npm run build'",
+      "expected_exit": 0,
+      "check_stderr": null
+    },
+    {
+      "name": "backslash_git_merge_on_protected_blocks",
+      "class": 19,
+      "description": "Class 19: `\\git merge feat` while HEAD is protected — a single leading backslash on the command token is stripped before the git check",
+      "branch": "{{ cookiecutter.default_branch_name }}",
+      "command": "\\git merge feat/x",
+      "expected_exit": 2,
+      "check_stderr": "merge"
+    },
+    {
+      "name": "backslash_git_status_on_feature_allows",
+      "class": 19,
+      "description": "Class 19 guard: `\\git status` on a feature branch stays allowed — backslash normalization must not over-block a non-mutating command off a protected branch",
+      "branch": "feat/x",
+      "command": "\\git status",
       "expected_exit": 0,
       "check_stderr": null
     }

@@ -272,7 +272,8 @@ authoritative register. The high-impact directives are:
   the "agent says tests pass without running them" failure mode.
 - **CRIT-007** No `--no-verify` on commits. Pre-commit hooks catch
   regressions; bypassing them is a silent quality regression.
-- **CRIT-008** Protected-branch hook is registered and tested.
+- **CRIT-008** Git-layer protected-branch guards are installed and
+  tested, with the agent-layer hook retained as defense in depth.
   This is the directive that makes Layer 4 mechanically auditable
   by Layer 5.
 - **IMP-001** Append-only `report/`. Implements P5 at the file-

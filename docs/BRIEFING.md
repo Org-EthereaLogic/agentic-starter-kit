@@ -33,7 +33,7 @@ Every project the template scaffolds carries these five layers:
 | 1 | Navigation | Tells agents where to look first | `CLAUDE.md`, `AGENTS.md`, `GEMINI.md` |
 | 2 | Constitutional | The decision-making contract | `CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md` |
 | 3 | Agent specialization | Curated subagents and slash commands | `.claude/agents/*.md`, `.claude/commands/*.md` |
-| 4 | Runtime enforcement | Hooks that block bad actions before they happen | `.claude/hooks/pre-tool-use.js`, `.claude/settings.json`, `tests/test_pre_tool_use_hook.py` |
+| 4 | Runtime enforcement | Git-layer protected-branch guards plus agent-facing defense in depth | `.githooks/*`, `.claude/hooks/pre-tool-use.js`, `.claude/settings.json`, `tests/test_git_hooks.sh` |
 | 5 | External validation | CI gates that audit independently | `.github/workflows/ci.yml`, `Makefile`, `scripts/*.sh` |
 
 The layers are **defense in depth**. Each layer assumes the others
@@ -103,9 +103,10 @@ DIRECTIVES.md codifies **eighteen rules** in three classes:
   a recorded seed.
 - **CRIT-007** No `--no-verify` on commits. Pre-commit hooks catch
   regressions; bypassing them is a silent quality regression.
-- **CRIT-008** Protected-branch hook is registered and tested.
-  `.claude/settings.json` registers `.claude/hooks/pre-tool-use.js`
-  on `PreToolUse:Bash`. The hook test suite passes.
+- **CRIT-008** Protected-branch enforcement is installed and tested.
+  `core.hooksPath` points to the checked-in `.githooks/` guards;
+  `.claude/settings.json` also registers `.claude/hooks/pre-tool-use.js`
+  on `PreToolUse:Bash` as defense in depth. Both hook suites pass.
 
 ### IMPORTANT (6) — failure is a review block
 
@@ -250,8 +251,8 @@ The template is complete when:
 3. `cookiecutter . --no-input -o /tmp/test-output` produces a
    directory where `cd /tmp/test-output/<slug> && make validate`
    passes (after `make sync` and `pre-commit install`).
-4. `make hooks-test` passes — the protected-branch hook regression
-   suite is green for both Python and TypeScript path.
+4. `make hooks-test` passes — the language-neutral git-layer suite and
+   the agent-layer suite are green for both language paths.
 5. `scripts/check-traceability.sh` runs cleanly (the seed traceability
    artifact resolves all references).
 6. The methodology essay (`METHODOLOGY.md`) is internally consistent

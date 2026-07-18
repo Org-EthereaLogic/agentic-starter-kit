@@ -1,0 +1,84 @@
+#!/bin/sh
+# .githooks/pre-push — git-layer protected-branch guard (CRIT-008)
+#
+# PRIMARY enforced CRIT-008 boundary for pushes. git feeds this hook,
+# on stdin, one line per ref being pushed:
+#
+#     <local ref> <local sha> <remote ref> <remote sha>
+#
+# git has already resolved the REAL destination ref by the time the
+# hook runs, so this covers every spelling that defeats a command-
+# string matcher: `git push origin HEAD` (HEAD resolved to the concrete
+# remote ref), `git push origin feat/x:main` (refspec), `git push
+# --all`/`--mirror` (one stdin line per ref), and implicit-upstream
+# pushes. It also blocks DELETES of a protected ref. It cannot be
+# dodged by eval/exec/\git/git${IFS}push/bash -cl/sudo/… because those
+# still run real `git`, which invokes this hook regardless.
+#
+# Installed via `git config core.hooksPath .githooks` (make hooks-install).
+# POSIX sh, no Node/Python dependency, so it is never pruned for any
+# primary_language. See .githooks/README.md for the honest boundary.
+
+set -u
+
+# Protected set: the render-time default branch plus legacy `master`.
+# This file IS Jinja-rendered (.githooks/* is not in _copy_without_render).
+protected="{{ cookiecutter.default_branch_name }} master"
+
+# Capture stdin once so we can both inspect it and (if the framework is
+# present) re-feed it to the chained pre-commit invocation. Command
+# substitution strips the trailing newline; we re-add exactly one below.
+stdin="$(cat)"
+
+blocked=0
+# A here-doc (not a pipe) feeds the loop, so `blocked` set inside the
+# loop persists in the current shell. Empty stdin => the single read
+# yields empty fields => `continue` => nothing blocked (allow).
+while read -r localref localsha remoteref remotesha; do
+	# Skip blank lines (e.g. the empty-stdin case: nothing is pushed).
+	[ -n "${remoteref:-}" ] || continue
+
+	# Strip the refs/heads/ prefix from the destination ref. Match the
+	# remaining path against the protected set using EXACT string equality
+	# (never substring, never basename), so `feat/x:mainline` does NOT match
+	# `main`, and a legitimately named branch like `release/main` or
+	# `dependabot/master` is NOT over-blocked. git always sends the fully-
+	# qualified destination ref, so the exact stripped-path match suffices.
+	dest="${remoteref#refs/heads/}"
+
+	for p in $protected; do
+		if [ "$dest" = "$p" ]; then
+			# A delete (localsha all-zeros) of a protected ref is blocked
+			# too — removing a protected branch is exactly what CRIT-008
+			# guards against.
+			printf '%s\n' \
+				"pre-push: BLOCKED — push to protected branch '$p' (ref '$remoteref') is forbidden (CRIT-008)." \
+				"          Open a pull request from a feature branch instead." >&2
+			blocked=1
+			break
+		fi
+	done
+	[ "$blocked" -eq 0 ] || break
+done <<EOF
+$stdin
+EOF
+
+if [ "$blocked" -ne 0 ]; then
+	exit 1
+fi
+
+# Guard passed. Chain to the pre-commit framework (pre-push stage) when
+# present, re-feeding the captured stdin so the framework's pre-push
+# hooks (check-traceability, check-doc-drift, …) keep running under
+# core.hooksPath. Clean no-op when pre-commit is absent (fresh clone /
+# test temp repo): the guard's PASS path never depends on the framework.
+if command -v pre-commit >/dev/null 2>&1 && [ -f .pre-commit-config.yaml ]; then
+	printf '%s\n' "$stdin" | pre-commit hook-impl \
+		--config=.pre-commit-config.yaml \
+		--hook-type=pre-push \
+		--skip-on-missing-config \
+		-- "$@"
+	exit $?
+fi
+
+exit 0

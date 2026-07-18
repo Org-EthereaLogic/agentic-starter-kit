@@ -66,7 +66,16 @@ if [[ -f ".mcp.json" ]]; then
 fi
 
 # --- Hook content checks (CRIT-008) ---
+#
+# CRIT-008 is enforced at two layers. Assert the presence/wiring of both
+# as repo-state facts only (files exist, are executable, and the install
+# wiring is checked in). Deliberately do NOT read the live
+# `git config core.hooksPath` value: on a fresh render / CI checkout the
+# operator has not run `make hooks-install` yet, and governance-check
+# must stay green there. The runtime wiring is exercised by the
+# hooks-test suite (tests/test_git_hooks.sh), not by this static check.
 
+# Agent-layer defense-in-depth: the Claude Code PreToolUse:Bash hook.
 hook_path=".claude/hooks/pre-tool-use.js"
 check_file_not_empty "$hook_path" || true
 
@@ -75,6 +84,27 @@ if [[ -f "$settings_path" ]]; then
   if ! grep -q "pre-tool-use.js" "$settings_path"; then
     log_error "$settings_path does not register pre-tool-use.js"
   fi
+fi
+
+# Git-layer primary boundary: the checked-in git hooks must exist and be
+# executable (git will not run a non-executable hook).
+for githook in .githooks/pre-commit .githooks/pre-merge-commit .githooks/pre-push; do
+  if [[ ! -f "$githook" ]]; then
+    log_error "$githook missing (git-layer CRIT-008 boundary)"
+  elif [[ ! -x "$githook" ]]; then
+    log_error "$githook is not executable (git will not run it)"
+  fi
+done
+
+# The core.hooksPath install wiring must be checked in (Makefile
+# fragment), so `make hooks-install` can wire the boundary reproducibly.
+hooks_mk="Makefile.fragments/hooks.mk"
+if [[ -f "$hooks_mk" ]]; then
+  if ! grep -q "core.hooksPath" "$hooks_mk" || ! grep -q "\.githooks" "$hooks_mk"; then
+    log_error "$hooks_mk does not wire core.hooksPath to .githooks (hooks-install)"
+  fi
+else
+  log_error "$hooks_mk missing; cannot verify core.hooksPath install wiring"
 fi
 
 # --- Layer 3 agent inventory (Phase B1) ---

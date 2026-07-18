@@ -11,7 +11,8 @@ make sync
 # 2. Run validation to verify everything works
 make validate
 
-# 3. Verify the protected-branch hook is active
+# 3. Install and verify protected-branch enforcement
+make hooks-install
 make hooks-test
 ```
 
@@ -131,9 +132,10 @@ The key rules affecting day-to-day work:
 │   │   └── governance.py       # Governance rules loader
 │   └── check-*.sh              # Validation scripts
 │
+├── .githooks/                  # Primary protected-branch guards
 └── .claude/                    # Agent & hook configuration
-    ├── settings.json           # Hook registration
-    └── hooks/pre-tool-use.js   # Protected-branch enforcement
+    ├── settings.json           # Agent-layer hook registration
+    └── hooks/pre-tool-use.js   # Defense-in-depth early block
 ```
 
 ## Troubleshooting

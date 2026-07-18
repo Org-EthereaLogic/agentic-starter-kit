@@ -17,6 +17,8 @@ SKILLS_DIR = REPO_ROOT / ".claude" / "skills"
 GOVERNANCE_CHECK = REPO_ROOT / "scripts" / "check-governance.sh"
 GOVERNANCE_LIB = REPO_ROOT / "scripts" / "lib"
 GOVERNANCE_RULES = REPO_ROOT / "governance-rules.yaml"
+GIT_HOOKS = REPO_ROOT / ".githooks"
+HOOKS_MAKEFILE = REPO_ROOT / "Makefile.fragments" / "hooks.mk"
 
 EXPECTED_SKILLS = {
     "audit-trail-tail.md",
@@ -114,6 +116,11 @@ def _create_minimal_project(root: Path) -> None:
     # them at run time.
     shutil.copy2(GOVERNANCE_RULES, root / "governance-rules.yaml")
     shutil.copytree(GOVERNANCE_LIB, root / "scripts" / "lib")
+    shutil.copytree(GIT_HOOKS, root / ".githooks")
+    _write_text(
+        root / "Makefile.fragments" / "hooks.mk",
+        HOOKS_MAKEFILE.read_text(),
+    )
 
 
 def _run_governance_check(project_root: Path) -> subprocess.CompletedProcess[str]:

@@ -45,7 +45,7 @@ make hooks-test
 └── .claude/                    # Agent configuration
     ├── settings.json           # Hook registration
     └── hooks/
-        └── pre-tool-use.js     # Protected-branch enforcement
+        └── pre-tool-use.js     # Agent-layer defense in depth
 ```
 
 ## Common Commands

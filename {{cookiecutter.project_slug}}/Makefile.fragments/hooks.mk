@@ -70,4 +70,3 @@ hooks-test: hooks-install
 	@# that defeats the string-layer hook. Isolated from any ambient git
 	@# config so it exercises its own temp repos deterministically.
 	env GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_SYSTEM=/dev/null sh tests/test_git_hooks.sh
-

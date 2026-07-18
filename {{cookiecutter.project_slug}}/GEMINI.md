@@ -57,7 +57,8 @@ overridden by deadlines, operator instructions, or context.
 - `CRIT-005` — PASS claims require dual evidence.
 - `CRIT-006` — No simulated data when real data is available.
 - `CRIT-007` — No `--no-verify` on commits.
-- `CRIT-008` — Protected-branch hook is registered and tested.
+- `CRIT-008` — Git-layer protected-branch guards are installed and
+  tested; the agent-layer hook provides defense in depth.
 
 See `DIRECTIVES.md` for full statements, rationales, and
 enforcement mechanisms.

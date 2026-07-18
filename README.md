@@ -26,7 +26,7 @@ Every project the template scaffolds carries five layers:
 | 1 | Navigation | Tells agents where to look first | `CLAUDE.md`, `AGENTS.md`, `GEMINI.md` |
 | 2 | Constitutional | The decision-making contract | `CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md` |
 | 3 | Agent specialization | Curated subagents and slash commands | `.claude/agents/*.md`, `.claude/commands/*.md` |
-| 4 | Runtime enforcement | Hooks that block bad actions before they happen | `.claude/hooks/pre-tool-use.js`, `.claude/settings.json`, `tests/test_pre_tool_use_hook.{py,js}` |
+| 4 | Runtime enforcement | Git-layer protected-branch guards plus agent-facing defense in depth | `.githooks/*`, `.claude/hooks/pre-tool-use.js`, `.claude/settings.json`, `tests/test_git_hooks.sh` |
 | 5 | External validation | CI gates that audit independently | `.github/workflows/ci.yml`, `Makefile`, `scripts/*.sh` |
 
 Planned later phases add a complete documentation set anchored to
@@ -195,7 +195,8 @@ make sync                  # install Python and/or Node deps via pre-commit + pi
 make validate              # run all five layers' verification — marker scan,
                            # governance check, traceability, doc drift, hooks test
 make governance-review     # run only the GOV-NNN validator (text output)
-make hooks-test            # exercise the protected-branch runtime hook test suite
+make hooks-install         # wire core.hooksPath to the checked-in git hooks
+make hooks-test            # exercise git-layer and agent-layer hook suites
 ```
 
 `governance-review` (Phase C2, issue #20) emits stable `GOV-NNN`

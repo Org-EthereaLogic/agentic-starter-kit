@@ -22,7 +22,7 @@ pipx install uv         # or: pip install --user uv
 # Node 20+ from your package manager (brew, apt, dnf).
 {% endif %}
 make sync               # install dependencies (language-specific)
-pre-commit install --hook-type pre-commit --hook-type pre-push  # install both local Git hook stages
+make hooks-install      # install the checked-in git-layer boundary
 make validate           # confirm the scaffold is healthy
 make hooks-test         # exercise the protected-branch hook
 ```
@@ -48,9 +48,9 @@ If `make validate` is clean, you are ready to contribute.
   Breaking changes go in the footer as `BREAKING CHANGE: …` (or
   append `!` after the type, e.g. `feat!: drop python 3.10`).
 - **No commits to `{{ cookiecutter.default_branch_name }}` or
-  `master`** (`CRIT-008`). The Layer 4 runtime hook
-  (`.claude/hooks/pre-tool-use.js`) blocks this. Phase 11 of the
-  upstream build verifies the block.
+  `master`** (`CRIT-008`). Checked-in `.githooks/` guards provide the
+  primary boundary; `.claude/hooks/pre-tool-use.js` blocks recognized
+  agent commands early as defense in depth. Phase 11 verifies both.
 - **No `--no-verify`** (`CRIT-007`). Pre-commit hooks catch
   regressions; bypassing them is a silent quality regression in
   itself.

@@ -142,7 +142,8 @@ cannot bypass them for a single change.
 - `CRIT-005` — PASS claims require dual evidence.
 - `CRIT-006` — No simulated data when real data is available.
 - `CRIT-007` — No `--no-verify` on commits.
-- `CRIT-008` — Protected-branch hook is registered and tested.
+- `CRIT-008` — Git-layer protected-branch guards are installed and
+  tested; the agent-layer hook provides defense in depth.
 
 The Important directives (`IMP-NNN`) and Recommended directives
 (`REC-NNN`) carry softer enforcement. See `DIRECTIVES.md` for the

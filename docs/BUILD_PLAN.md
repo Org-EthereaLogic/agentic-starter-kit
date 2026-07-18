@@ -61,18 +61,21 @@ correct directive IDs from Phase 1.
 
 | File | Notes |
 |---|---|
-| `{{cookiecutter.project_slug}}/.claude/hooks/pre-tool-use.js` | Full govforge-grade implementation (the version distilled in prior turns). Parameterize the protected branch list to read from `cookiecutter.default_branch_name` plus the literal `master`. Block: direct push to protected, refspec push to protected, broad push modes (`--all`, `--mirror`) when on protected, commit on protected, commit-producing subcommands (`git commit-tree` etc.), nested shell escapes, chained subcommands using `&&`/`;`/`\|\|`/backticks/`$()` that include a banned action. |
+| `{{cookiecutter.project_slug}}/.githooks/{pre-commit,pre-merge-commit,pre-push}` | Primary CRIT-008 boundary. POSIX `sh`; installed through `core.hooksPath`; resolves branch and destination refs after shell processing. Document the client-side and replay-operation limitations. |
+| `{{cookiecutter.project_slug}}/.claude/hooks/pre-tool-use.js` | Agent-facing defense in depth. Parameterize the protected branch list and block recognized protected-branch operations early without claiming to be the primary guarantee. |
 | `{{cookiecutter.project_slug}}/.claude/hooks/README.md` | Explains what the hook does, how to test it, and the rule that any new bypass class needs a test added before the bypass is fixed. |
+| `{{cookiecutter.project_slug}}/.githooks/README.md` | Explains installation, pre-commit-framework chaining, the coverage map, and the honest boundary. |
 | `{{cookiecutter.project_slug}}/.claude/settings.json` | Registers the hook on `PreToolUse:Bash`. JSON, not JSON-with-comments. |
 | `{{cookiecutter.project_slug}}/tests/test_pre_tool_use_hook.py` | Python test suite (Python path). One test per payload class. Uses `subprocess.run` to invoke `node .claude/hooks/pre-tool-use.js` with stdin per Claude Code hook protocol. Asserts exit code and stderr. |
 | `{{cookiecutter.project_slug}}/tests/test_pre_tool_use_hook.js` | TypeScript-path equivalent using vitest or node:test. Same coverage as Python. |
+| `{{cookiecutter.project_slug}}/tests/test_git_hooks.sh` | Language-neutral real-git regression suite for the primary boundary. |
 
 **Phase 3 gate:**
 
 ```bash
 cd {{cookiecutter.project_slug}}
-node .claude/hooks/pre-tool-use.js < tests/fixtures/protected-push.json
-# expect: exit 2 with stderr describing the block
+git init && make hooks-install && make hooks-test
+# expect: git-layer and agent-layer suites pass
 ```
 
 For both Python and TS path, the test suite runs with at least
@@ -86,7 +89,7 @@ For both Python and TS path, the test suite runs with at least
 |---|---|
 | `{{cookiecutter.project_slug}}/Makefile` | Targets: `help`, `sync`, `marker-scan`, `governance-check`, `check-traceability`, `check-doc-drift`, `lint`, `typecheck`, `test`, `coverage`, `validate`, `hooks-test`, `codacy-local`, `snyk-local`, `sbom`, `clean`. `validate` aggregates the gates per CRIT-001/002/008 plus traceability + drift. Conditional language blocks via Jinja2 (`{% if cookiecutter.primary_language in ("python", "polyglot") %}…{% endif %}`). |
 | `{{cookiecutter.project_slug}}/scripts/marker-scan.sh` | Bash, `set -euo pipefail`. Concatenated regex (so script doesn't match itself). Surfaces canonical: `specs/`, `.claude/`, `CLAUDE.md`, `AGENTS.md`, `docs/`. Uses `rg` with `grep` fallback. |
-| `{{cookiecutter.project_slug}}/scripts/check-governance.sh` | Bash. Verifies required files (CONSTITUTION, DIRECTIVES, SECURITY, AGENTS, CLAUDE, README, plus at least one spec under `specs/deep_specs/`). Verifies `.claude/hooks/pre-tool-use.js` is non-empty and `.claude/settings.json` registers it. Verifies required folders: `docs/`, `specs/deep_specs/`, `specs/security-requirements/`, `report/`. |
+| `{{cookiecutter.project_slug}}/scripts/check-governance.sh` | Bash. Verifies required files and folders, the executable `.githooks` guards and `core.hooksPath` wiring, plus the agent-layer hook and its `.claude/settings.json` registration. |
 | `{{cookiecutter.project_slug}}/scripts/check-traceability.sh` | Bash + jq. Reads `specs/traceability.json`. For each acceptance criterion: confirm referenced source globs match at least one file; confirm referenced test globs match at least one file; confirm referenced evidence artifact exists. Surface unmapped criteria and orphaned tests. |
 | `{{cookiecutter.project_slug}}/scripts/check-doc-drift.sh` | Bash. Greps every relative path-like token in `docs/*.md` and `specs/**/*.md` and verifies it exists. Initial mode: warn (exit 0 with output). After stabilization: block. |
 | `{{cookiecutter.project_slug}}/scripts/generate-sbom.sh` | Bash. Conditional on `include_sbom`. CycloneDX for Python (`cyclonedx-py`) or for Node (`@cyclonedx/cyclonedx-npm`), polyglot path runs both. Output to `sbom/` directory. |

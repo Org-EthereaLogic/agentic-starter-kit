@@ -242,7 +242,8 @@ format. CI rejects PRs whose merge commit does not conform.
 **Statement.** Working branches are named `<type>/<slug>` —
 e.g., `feat/auth-rfc`, `fix/race-condition`,
 `chore/scaffold-phase-3`. Direct work on the default branch is
-forbidden by the runtime hook (`CRIT-008`).
+forbidden by the git-layer guards and agent-layer defense in depth
+(`CRIT-008`).
 
 **Rationale.** Branch names are the second-most-visible artifact
 of a project's hygiene (after commit messages). Predictable names

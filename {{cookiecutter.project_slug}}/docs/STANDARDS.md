@@ -69,8 +69,8 @@ paths on every commit:
 
 - Layer 1 navigation: `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, `README.md`
 - Layer 2 constitutional: `CONSTITUTION.md`, `DIRECTIVES.md`, `SECURITY.md`
-- Layer 4 runtime: `.claude/settings.json`, `.claude/hooks/pre-tool-use.js`,
-  `.mcp.json`
+- Layer 4 runtime: `.githooks/`, `.claude/settings.json`,
+  `.claude/hooks/pre-tool-use.js`, `.mcp.json`
 - Reference docs: `docs/MCP_POLICY.md`
 
 The legacy governance check also emits non-blocking warnings when the
@@ -108,10 +108,10 @@ write `{ "mcpServers": {} }` rather than removing the key.
 
 **Severity:** error · **Replaces:** `scripts/check-governance.sh` (hook section) · **Directive:** `CRIT-008`
 
-`.claude/hooks/pre-tool-use.js` must exist, be non-empty, and be
-referenced from `.claude/settings.json`. The runtime hook is the
-last line of defence against forbidden Bash patterns on the
-protected branch.
+The executable `.githooks/pre-commit`, `.githooks/pre-merge-commit`,
+and `.githooks/pre-push` guards and their `core.hooksPath` install
+wiring must exist. `.claude/hooks/pre-tool-use.js` must remain
+registered as agent-facing defense in depth.
 
 **Fix:** restore the hook file and ensure
 `.claude/settings.json.hooks.PreToolUse` registers it on `Bash`.

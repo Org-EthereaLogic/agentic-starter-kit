@@ -30,12 +30,16 @@ then shipped opportunistically alongside Phase C.**
 
 Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 
-**Current state (2026-05-06):** all roadmap and post-roadmap work
-is merged. The first batch of follow-on optimization work has been
+**Current state (2026-07-18):** all roadmap and post-roadmap work
+is merged, and the v0.7.x release-hardening batch (#87–#101) plus a
+July governance-hardening batch (#102/#112, #103/#113) have since
+shipped. The first batch of follow-on optimization work remains
 filed as issues [#69–#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue)
 in `Sprint: Backlog`, sourced from
-[`docs/OPTIMIZATION_ROADMAP.md`](OPTIMIZATION_ROADMAP.md). Sprint 1
-(2026-05-06 → 2026-05-19) is empty pending a planning pull.
+[`docs/OPTIMIZATION_ROADMAP.md`](OPTIMIZATION_ROADMAP.md); Sprint 1
+(2026-05-06 → 2026-05-19) was never populated and its window has
+closed. The optimization backlog (O5, O8–O12) is still the next
+planning pull.
 
 ---
 
@@ -112,6 +116,21 @@ the kit. All shipped via v0.4 + v0.4.1.
 | [#45](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/45) | Convention drift between starter-kit defaults and product baseline | tooling | ✅ |
 | [#66](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/66) | v0.4.0 `make validate` silently skips lint/typecheck/test gates | tooling | ✅ |
 
+## Post-roadmap fixes (July 2026)
+
+Governance-hardening batch discovered after the v0.7.x release
+series. Both close tracked issues.
+
+| Issue | PR | Title | Area | Status |
+| --- | --- | --- | --- | --- |
+| [#102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102) | [#112](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/112) | Enforce CRIT-008 at the git layer; agent-layer hook as defense-in-depth | hooks | ✅ |
+| [#103](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/103) | [#113](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/113) | `--gate audit` lookup dead: accept both `rule` string and `rules` list | tooling | ✅ |
+
+> The broader v0.7.x release-hardening batch (#87–#101: CI action
+> pinning, dev-container compatibility, THREAT_MODEL drift, CHANGELOG
+> seeding, slash-command de-prefixing) is recorded per-version in the
+> root [`CHANGELOG.md`](../CHANGELOG.md) rather than re-tabled here.
+
 ## Sprint tracking
 
 Project #6 carries a `Sprint` single-select field with these slots:
@@ -157,4 +176,14 @@ job is to be readable from the repo at a glance.
   as #69–#74 against Project #6 (`Sprint: Backlog`); shipped items
   from `docs/OPTIMIZATION_ROADMAP.md` (#1–#4, #6, #7) annotated
   with status notes inline in that doc.
+- Updated 2026-07-18 (post-merge sync): current-state advanced from
+  2026-05-06 to 2026-07-18; recorded the July governance-hardening
+  fixes (#102/#112, #103/#113) and referenced the v0.7.x batch
+  (#87–#101) to the root CHANGELOG. Workspace hygiene in the same
+  sync: pruned two merged worktrees/branches
+  (`claude/code-review-ultra-1a5298`,
+  `claude/crit-008-hook-bypass-77710f`) and cleared ADWS scratch
+  (`_adws_tmp/`, `artifacts/`). `--gate audit` / `--gate hooks_test`
+  / `--gate nonexistent` and the governance-loader suite (15 tests)
+  verified green on `main` before recording.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

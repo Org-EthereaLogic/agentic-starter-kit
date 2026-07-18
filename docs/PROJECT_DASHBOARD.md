@@ -30,17 +30,16 @@ then shipped opportunistically alongside Phase C.**
 
 Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 
-**Current state (2026-07-18):** all roadmap and post-roadmap work
-is merged, and the v0.7.x release-hardening batch (#87–#101) plus a
-July governance-hardening batch (#102/#112, #103/#113 with the #115
-precedence-pin follow-up, and #104/#118 closing the vacuous CRIT-002
-gate) have since shipped. The first batch of follow-on optimization work remains
-filed as issues [#69–#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue)
-in `Sprint: Backlog`, sourced from
-[`docs/OPTIMIZATION_ROADMAP.md`](OPTIMIZATION_ROADMAP.md); Sprint 1
-(2026-05-06 → 2026-05-19) was never populated and its window has
-closed. The optimization backlog (O5, O8–O12) is still the next
-planning pull.
+**Current state (2026-07-18):** all roadmap work and the original
+optimization set (#69–#74) are merged. The v0.7.x release-hardening
+batch (#87–#101) and the July governance-hardening batch have also
+shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
+#104/#118, and #108/#123. The current follow-on queue is
+[#105–#111, #119, and #122](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering test-gate correctness, devcontainer behavior, shell
+portability, template pruning, and remaining governance-loader
+robustness. Sprint 1 (2026-05-06 → 2026-05-19) was never populated
+and its window has closed.
 
 ---
 
@@ -85,20 +84,20 @@ planning pull.
 | --- | --- | --- | --- | --- | --- | --- |
 | D1 | [#24](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/24) | Examples gallery / vignettes | — | Low | 2 | ✅ |
 
-## Backlog — Optimization roadmap (filed 2026-05-06)
+## Completed optimization roadmap (filed 2026-05-06)
 
 Sourced from `docs/OPTIMIZATION_ROADMAP.md`. The other six items
-in that doc (#1–#4, #6, #7) shipped during Phases A–C; only the
-six below remain open.
+in that doc (#1–#4, #6, #7) shipped during Phases A–C; the six
+follow-on issues below closed on 2026-05-07.
 
 | ID | Issue | Title | Lev | Eff | Status |
 | --- | --- | --- | --- | --- | --- |
-| O5 | [#69](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/69) | Consolidate Python/TypeScript hook test maintenance | High | 1 | 📋 |
-| O8 | [#70](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/70) | Integration test for post-gen hook file pruning | Medium | 1 | 📋 |
-| O9 | [#71](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/71) | Jinja2 filter library for template-side helpers | Low | 1 | 📋 |
-| O10 | [#72](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/72) | Extract governance rules to data-driven config | Medium | 1 | 📋 |
-| O11 | [#73](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/73) | Language-specific quickstart guides | Medium | 1 | 📋 |
-| O12 | [#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/74) | Language/tool comparison matrix in README | Low | 1 | 📋 |
+| O5 | [#69](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/69) | Consolidate Python/TypeScript hook test maintenance | High | 1 | ✅ |
+| O8 | [#70](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/70) | Integration test for post-gen hook file pruning | Medium | 1 | ✅ |
+| O9 | [#71](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/71) | Jinja2 filter library for template-side helpers | Low | 1 | ✅ |
+| O10 | [#72](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/72) | Extract governance rules to data-driven config | Medium | 1 | ✅ |
+| O11 | [#73](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/73) | Language-specific quickstart guides | Medium | 1 | ✅ |
+| O12 | [#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/74) | Language/tool comparison matrix in README | Low | 1 | ✅ |
 
 ## Post-roadmap fixes (May 5–6, 2026)
 
@@ -127,6 +126,7 @@ series. All close tracked issues.
 | [#102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102) | [#112](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/112) | Enforce CRIT-008 at the git layer; agent-layer hook as defense-in-depth | hooks | ✅ |
 | [#103](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/103) | [#113](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/113) | `--gate audit` lookup dead: accept both `rule` string and `rules` list | tooling | ✅ |
 | [#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104) | [#118](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/118) | CRIT-002 gate passed vacuously when the governance loader crashed (process-substitution masked the exit code) | tooling | ✅ |
+| [#108](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/108) | [#123](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/123) | Eliminate `governance_review` false negatives for rule-data drift, malformed traceability, invalid UTF-8, empty YAML, and structural hook registration | governance | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
@@ -218,4 +218,22 @@ job is to be readable from the repo at a glance.
   vacuous OK; `test_skill_contracts.py -k governance` 4/4) — GitHub
   Actions remains billing-locked, so the merge was gated on local
   validation as with #115.
+- Updated 2026-07-18 (fourth post-merge sync): recorded
+  [#108](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/108)/[#123](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/123)
+  and its review-fix commit. The merged validator now reads shared
+  enforcement data from `governance-rules.yaml`, reports malformed
+  inputs explicitly, scans through invalid UTF-8, and validates the
+  complete `PreToolUse:Bash` command-hook structure. Codacy's 20
+  pytest-assert false positives were suppressed at the exact test
+  lines and all five new complexity findings were refactored below
+  threshold; Codacy reanalysis passed. Fresh post-merge Linux/Bash 5
+  validation passed 126 rendered tests and all `make validate` gates.
+  GitHub-hosted Actions and Copilot review remained unable to
+  start because the organization account is billing-locked. Workspace
+  hygiene removed the merged #123 worktree and local branch and
+  pruned its already-deleted remote-tracking ref. Live issue refresh
+  also corrected #69–#74 from stale backlog entries to completed and
+  identified #105–#111, #119, and #122 as the current open follow-on
+  queue. Project-field refresh was not run because the current GitHub
+  token lacks `read:project`.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

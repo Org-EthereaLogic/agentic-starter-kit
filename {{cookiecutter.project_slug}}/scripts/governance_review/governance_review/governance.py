@@ -52,7 +52,7 @@ def _marker_from_pair(pair: object, index: int) -> str:
             f"'prohibited_markers.pattern_pairs[{index}]' must contain "
             "two non-empty strings"
         )
-    return pair[0] + pair[1]
+    return str(pair[0]) + str(pair[1])
 
 
 @dataclass(frozen=True)

@@ -34,7 +34,7 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
-#104/#118, and #108/#123. The current follow-on queue is
+plus #104/#118 and #108/#123. The current follow-on queue is
 [#105–#111, #119, and #122](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
 covering test-gate correctness, devcontainer behavior, shell
 portability, template pruning, and remaining governance-loader

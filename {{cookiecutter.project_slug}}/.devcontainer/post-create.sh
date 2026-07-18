@@ -156,6 +156,28 @@ ensure_ai_clis() {
   fi
 }
 
+install_git_hooks() {
+  # Wire the git-layer protected-branch boundary (CRIT-008): point
+  # core.hooksPath at the checked-in .githooks dir so .githooks/pre-commit
+  # and pre-push run on every commit/push. Idempotent (git config
+  # overwrites the same key). Log-and-continue on failure like every
+  # other step. Literal `.githooks` — this file is copied without Jinja
+  # rendering, so no branch-name interpolation is available or needed.
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    log "not a git work tree yet; skipping git-hook wiring (run 'make hooks-install' after 'git init')"
+    return 0
+  fi
+  if [ ! -d .githooks ]; then
+    log ".githooks not present; skipping git-hook wiring"
+    return 0
+  fi
+  if git config core.hooksPath .githooks; then
+    log "git-layer hooks wired: core.hooksPath -> .githooks (CRIT-008)"
+  else
+    log "git config core.hooksPath failed (continuing — run 'make hooks-install' manually)"
+  fi
+}
+
 run_sync_if_possible() {
   if [ ! -f Makefile ]; then
     return 0
@@ -172,6 +194,7 @@ main() {
   ensure_apt_packages
   ensure_uv
   ensure_ai_clis
+  install_git_hooks
   run_sync_if_possible
   log "post-create complete"
 }

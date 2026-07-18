@@ -198,6 +198,7 @@ def write_summary() -> None:
     print("Next steps:")
     print("  cd <project>")
     print("  git init && git checkout -b feat/initial")
+    print("  make hooks-install   # wire the git-layer protected-branch boundary (CRIT-008)")
     print("  make sync")
     print("  make validate")
     print("  make hooks-test")

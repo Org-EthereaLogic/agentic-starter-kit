@@ -158,25 +158,63 @@ directives:
 
   - id: CRIT-008
     class: Critical
-    title: Protected-branch hook is registered and tested
+    title: Protected-branch enforcement (git-layer primary + agent-layer defense-in-depth)
     statement: |
-      .claude/settings.json registers .claude/hooks/pre-tool-use.js
-      on PreToolUse:Bash. The hook test suite
-      (tests/test_pre_tool_use_hook.py for Python,
-      tests/test_pre_tool_use_hook.js for TypeScript) passes on
-      every commit.
+      The PRIMARY enforced boundary is the git-layer hook: the
+      checked-in .githooks/pre-commit, .githooks/pre-merge-commit, and
+      .githooks/pre-push scripts, installed via
+      `git config core.hooksPath .githooks` (`make hooks-install`). On a
+      protected branch (the render-time default branch plus `master`)
+      they block: direct commits and --amend (pre-commit); merge commits
+      from a non-fast-forward conflict-free `git merge` (pre-merge-commit;
+      a conflicted merge is finished by a `git commit` that pre-commit
+      catches); and all pushes (pre-push). They run AFTER the shell
+      resolves the command, so they cannot be dodged by shell idioms
+      (eval, exec, \git, git${IFS}push, bash -cl, sudo/doas,
+      stdbuf/setsid, & chains). The agent-layer hook
+      .claude/hooks/pre-tool-use.js (registered on PreToolUse:Bash in
+      .claude/settings.json) remains as best-effort defense-in-depth —
+      a fast, agent-facing early block, NOT the guarantee. Both layers
+      are exercised: the language-neutral tests/test_git_hooks.sh (git
+      layer) and tests/test_pre_tool_use_hook.py/.js (agent layer).
     rationale: |
-      The runtime hook is Layer 4's only mechanism for preventing
-      forbidden agent actions before they happen. An unregistered or
-      untested hook is no hook at all.
+      A command-string matcher inspects the proposed command before the
+      shell expands/aliases/word-splits it, so shell syntax can defeat
+      it (issue #102). Enforcement at the git layer runs after shell
+      resolution and is the real boundary. Honest scope: git hooks are
+      an operator-integrity control, not a sandbox. Documented (not
+      overclaimed) limitations: (1) git invokes NO commit-time hook for a
+      conflict-free cherry-pick/revert/rebase/am replaying commits onto a
+      LOCAL protected branch, so the git layer does not stop those
+      landing locally — backstopped by pre-push (blocks pushing the
+      result to the protected remote), the agent-layer hook, and
+      server-side branch protection (the true backstop); and (2) the
+      hooks do not defend against a maliciously mutated .git/hooks, a
+      user who deliberately unsets core.hooksPath, or --no-verify.
     enforcement:
       type: mixed
       components:
+        - type: hook
+          location: .githooks/pre-push
+          note: git-layer primary boundary (push)
+        - type: hook
+          location: .githooks/pre-commit
+          note: git-layer primary boundary (commit / --amend)
+        - type: hook
+          location: .githooks/pre-merge-commit
+          note: git-layer primary boundary (non-ff conflict-free merge commit)
+        - type: hook
+          location: .claude/hooks/pre-tool-use.js
+          note: agent-layer defense-in-depth
         - type: script
           script: make hooks-test
           target: every PR
         - type: governance_check
-          verifies: registration in settings.json
+          verifies: >-
+            settings.json registers pre-tool-use.js; .githooks/pre-commit,
+            pre-merge-commit, and pre-push exist and are executable;
+            core.hooksPath install wiring is present in
+            Makefile.fragments/hooks.mk
       when_fails: build break
     enabled: true
 
@@ -407,7 +445,21 @@ enforcement_by_type:
       location: .claude/hooks/pre-tool-use.js
       event: PreToolUse:Bash
     - id: CRIT-008
+      location: .githooks/pre-push
+      note: git-layer primary boundary (push); installed via core.hooksPath
+      test: make hooks-test
+    - id: CRIT-008
+      location: .githooks/pre-commit
+      note: git-layer primary boundary (commit / --amend); installed via core.hooksPath
+      test: make hooks-test
+    - id: CRIT-008
+      location: .githooks/pre-merge-commit
+      note: git-layer primary boundary (non-ff conflict-free merge commit); installed via core.hooksPath
+      test: make hooks-test
+    - id: CRIT-008
       location: .claude/hooks/pre-tool-use.js
+      event: PreToolUse:Bash
+      note: agent-layer defense-in-depth (fast early block, not the guarantee)
       test: make hooks-test
 
   reviewer:
@@ -489,6 +541,9 @@ required_files:
   - GEMINI.md
   - .claude/settings.json
   - .claude/hooks/pre-tool-use.js
+  - .githooks/pre-commit
+  - .githooks/pre-merge-commit
+  - .githooks/pre-push
   - .mcp.json
   - docs/MCP_POLICY.md
 

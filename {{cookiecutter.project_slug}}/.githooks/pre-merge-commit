@@ -1,0 +1,76 @@
+#!/bin/sh
+# .githooks/pre-merge-commit — git-layer protected-branch guard (CRIT-008)
+#
+# Companion to .githooks/pre-commit. Git invokes THIS hook (not
+# pre-commit) when a merge creates a merge commit automatically — i.e. a
+# non-fast-forward merge with no conflicts (`git merge --no-ff`, or any
+# merge that must record a merge commit). `git commit` only runs the
+# pre-commit hook; a merge that lands a commit without a `git commit`
+# invocation would slip past pre-commit entirely, so this hook closes
+# that path with the SAME protected-branch check.
+#
+# Because git invokes the hook itself, this guard cannot be dodged by
+# ANY shell spelling of the merge (`eval 'git merge …'`, `\git merge …`,
+# `git${IFS}merge`, `bash -cl "git merge …"`, sudo/…): the shell idiom
+# is irrelevant once real `git` decides to record a merge commit.
+#
+# NOTE ON SCOPE: git does NOT invoke any commit-time hook for
+# conflict-free `cherry-pick`/`revert`/`rebase`/`am` replaying commits
+# directly onto the current branch, so those are NOT blocked here at the
+# git layer — see .githooks/README.md for the honest coverage map and the
+# pre-push + agent-layer + server-side backstops. A CONFLICTED merge
+# stops and is completed by a later `git commit`, which pre-commit
+# catches.
+#
+# Installed via `git config core.hooksPath .githooks` (make hooks-install).
+# POSIX sh, no Node/Python dependency, so it is never pruned for any
+# primary_language.
+
+set -u
+
+# Protected set: the render-time default branch plus the legacy `master`.
+# This file IS Jinja-rendered (.githooks/* is not in cookiecutter.json
+# _copy_without_render), so the literal below renders to the chosen
+# branch name (e.g. `main`).
+protected="{{ cookiecutter.default_branch_name }} master"
+
+# Resolve the current branch (the merge destination). `git symbolic-ref
+# --short HEAD` is the canonical lookup; fall back to `rev-parse
+# --abbrev-ref HEAD`. Fail CLOSED if neither yields a name (a broken
+# lookup must not silently allow a merge that might land on a protected
+# branch).
+branch="$(git symbolic-ref --short HEAD 2>/dev/null)" || branch=""
+if [ -z "$branch" ]; then
+	branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" || branch=""
+fi
+if [ -z "$branch" ]; then
+	printf '%s\n' \
+		"pre-merge-commit: BLOCKED — cannot resolve the current branch; refusing to merge (fail-closed, CRIT-008)." >&2
+	exit 1
+fi
+
+for p in $protected; do
+	if [ "$branch" = "$p" ]; then
+		printf '%s\n' \
+			"pre-merge-commit: BLOCKED — direct merge into protected branch '$branch' is forbidden (CRIT-008)." \
+			"                 Open a pull request and merge via the forge instead." >&2
+		exit 1
+	fi
+done
+
+# Guard passed. Chain to the pre-commit framework's pre-merge-commit
+# stage when it is present, so any configured pre-merge-commit hooks keep
+# running under core.hooksPath (which makes git ignore .git/hooks, where
+# `pre-commit install` writes its shim). `hook-impl` is the same
+# entrypoint the framework's installed shim calls. When pre-commit is
+# absent (fresh clone / test temp repo), this is a clean no-op — the
+# guard's PASS path never depends on the framework being installed.
+if command -v pre-commit >/dev/null 2>&1 && [ -f .pre-commit-config.yaml ]; then
+	exec pre-commit hook-impl \
+		--config=.pre-commit-config.yaml \
+		--hook-type=pre-merge-commit \
+		--skip-on-missing-config \
+		-- "$@"
+fi
+
+exit 0

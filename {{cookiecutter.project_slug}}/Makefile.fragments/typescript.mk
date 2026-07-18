@@ -35,9 +35,16 @@ typecheck-typescript:
 test-typescript:
 {% if cookiecutter.primary_language in ("typescript", "polyglot") %}
 	@if [ "$(HAS_NODE)" = "yes" ] && [ -d tests ]; then \
-		find tests -name '*.test.js' -o -name 'test_*.js' | head -1 >/dev/null && \
-		find tests -name '*.test.js' -o -name 'test_*.js' | xargs -r node --test || \
-		echo "WARN: no JS test files found"; \
+		if files="$$(find tests -type f \( -name '*.test.js' -o -name 'test_*.js' -o -name '*.test.cjs' \) 2>/dev/null)"; then \
+			if [ -n "$$files" ]; then \
+				find tests -type f \( -name '*.test.js' -o -name 'test_*.js' -o -name '*.test.cjs' \) -exec node --test {} +; \
+			else \
+				echo "WARN: no JS test files found"; \
+			fi; \
+		else \
+			echo "ERROR: failed to scan tests/ for JS test files" >&2; \
+			exit 1; \
+		fi; \
 	fi
 {% else %}
 	@echo "test-typescript: not applicable (TypeScript not in primary_language)"

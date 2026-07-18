@@ -10,12 +10,14 @@ from __future__ import annotations
 
 import json
 import re
+import shlex
 import shutil
 import subprocess
 from collections.abc import Callable, Iterator
 from pathlib import Path
 
 from .finding import Finding, Severity
+from .governance import GovernanceRules, GovernanceRulesError
 from .registry import CheckSpec, find
 
 CheckFn = Callable[[Path], list[Finding]]
@@ -53,8 +55,8 @@ def _make(
 
 def _read_text(path: Path) -> str:
     try:
-        return path.read_text(encoding="utf-8")
-    except (OSError, UnicodeDecodeError):
+        return path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
         return ""
 
 
@@ -90,21 +92,6 @@ def _frontmatter(text: str) -> dict[str, str]:
 # --- GOV-001 — stub markers -----------------------------------------
 
 
-# Build the marker regex from concatenated halves so this file itself
-# can pass a marker scan against its own source tree. The bash version
-# uses the same trick.
-_M = ["TO" + "DO", "FIX" + "ME", "TB" + "D", "PLACE" + "HOLDER"]
-_MARKER_RE = re.compile(r"\b(" + "|".join(_M) + r")\b")
-
-_MARKER_SURFACES = (
-    "specs",
-    ".claude",
-    "CLAUDE.md",
-    "AGENTS.md",
-    "GEMINI.md",
-    "docs",
-)
-
 # Skip vendored / build directories that may legitimately contain the
 # marker words. Mirrors what `rg` would do via .gitignore.
 _MARKER_SKIP_DIRS = {
@@ -134,9 +121,13 @@ def _walk_text_files(root: Path) -> Iterator[Path]:
         yield path
 
 
-def check_gov_001(root: Path) -> list[Finding]:
+def check_gov_001(root: Path, rules: GovernanceRules | None = None) -> list[Finding]:
+    rules = rules or GovernanceRules.load(root)
+    marker_re = re.compile(
+        r"\b(" + "|".join(re.escape(marker) for marker in rules.markers) + r")\b"
+    )
     findings: list[Finding] = []
-    for surface in _MARKER_SURFACES:
+    for surface in rules.marker_surfaces:
         target = root / surface
         if not target.exists():
             continue
@@ -145,7 +136,7 @@ def check_gov_001(root: Path) -> list[Finding]:
             if not text:
                 continue
             for lineno, line in enumerate(text.splitlines(), start=1):
-                match = _MARKER_RE.search(line)
+                match = marker_re.search(line)
                 if match:
                     findings.append(
                         _make(
@@ -161,37 +152,16 @@ def check_gov_001(root: Path) -> list[Finding]:
 # --- GOV-002 — required files ---------------------------------------
 
 
-_REQUIRED_FILES = (
-    "CONSTITUTION.md",
-    "DIRECTIVES.md",
-    "SECURITY.md",
-    "README.md",
-    "CLAUDE.md",
-    "AGENTS.md",
-    "GEMINI.md",
-    ".claude/settings.json",
-    ".claude/hooks/pre-tool-use.js",
-    ".mcp.json",
-    "docs/MCP_POLICY.md",
-)
-
-_OPTIONAL_DIRS = (
-    "docs",
-    "specs/deep_specs",
-    "specs/security-requirements",
-    "report",
-)
-
-
-def check_gov_002(root: Path) -> list[Finding]:
+def check_gov_002(root: Path, rules: GovernanceRules | None = None) -> list[Finding]:
+    rules = rules or GovernanceRules.load(root)
     findings: list[Finding] = []
-    for rel in _REQUIRED_FILES:
+    for rel in rules.required_files:
         if not (root / rel).is_file():
             findings.append(
                 _make("GOV-002", f"required file missing: {rel}", location=rel)
             )
 
-    for rel in _OPTIONAL_DIRS:
+    for rel in rules.optional_dirs:
         if not (root / rel).is_dir():
             findings.append(
                 _make(
@@ -253,6 +223,23 @@ def check_gov_003(root: Path) -> list[Finding]:
 # --- GOV-004 — pre-tool-use hook -----------------------------------
 
 
+def _invokes_pre_tool_hook(command: str) -> bool:
+    """Return whether a simple command actually invokes the shipped hook."""
+    try:
+        tokens = shlex.split(command, comments=True, posix=True)
+    except ValueError:
+        return False
+    while tokens and "=" in tokens[0] and not tokens[0].startswith(("=", "-")):
+        name, _, _value = tokens[0].partition("=")
+        if not name.replace("_", "a").isalnum() or name[0].isdigit():
+            break
+        tokens.pop(0)
+    if len(tokens) < 2:
+        return False
+    runtime = Path(tokens[0]).name
+    return runtime in {"node", "nodejs"} and tokens[1] == ".claude/hooks/pre-tool-use.js"
+
+
 def check_gov_004(root: Path) -> list[Finding]:
     findings: list[Finding] = []
     hook = root / ".claude" / "hooks" / "pre-tool-use.js"
@@ -269,12 +256,41 @@ def check_gov_004(root: Path) -> list[Finding]:
     # Missing hook is already reported by GOV-002.
 
     if settings.is_file():
-        text = _read_text(settings)
-        if "pre-tool-use.js" not in text:
+        try:
+            data = json.loads(_read_text(settings))
+        except json.JSONDecodeError as exc:
             findings.append(
                 _make(
                     "GOV-004",
-                    ".claude/settings.json does not register pre-tool-use.js",
+                    f".claude/settings.json is not valid JSON: {exc.msg}",
+                    location=".claude/settings.json",
+                    line=exc.lineno,
+                )
+            )
+            return findings
+        hooks = data.get("hooks") if isinstance(data, dict) else None
+        pre_tool_use = hooks.get("PreToolUse") if isinstance(hooks, dict) else None
+        commands: list[str] = []
+        if isinstance(pre_tool_use, list):
+            for registration in pre_tool_use:
+                if not isinstance(registration, dict) or registration.get("matcher") != "Bash":
+                    continue
+                hooks = registration.get("hooks")
+                if not isinstance(hooks, list):
+                    continue
+                for nested in hooks:
+                    if (
+                        isinstance(nested, dict)
+                        and nested.get("type") == "command"
+                        and isinstance(nested.get("command"), str)
+                    ):
+                        commands.append(nested["command"])
+        if not any(_invokes_pre_tool_hook(command) for command in commands):
+            findings.append(
+                _make(
+                    "GOV-004",
+                    ".claude/settings.json does not structurally register "
+                    "pre-tool-use.js under hooks.PreToolUse",
                     location=".claude/settings.json",
                 )
             )
@@ -284,14 +300,6 @@ def check_gov_004(root: Path) -> list[Finding]:
 # --- GOV-005 / GOV-006 / GOV-007 — agents --------------------------
 
 
-_REQUIRED_AGENTS = (
-    "lead-software-engineer.md",
-    "sdlc-technical-writer.md",
-    "test-automator.md",
-    "ux-delight-specialist.md",
-    "security-reviewer.md",
-    "governance-auditor.md",
-)
 _AGENT_KEYS = ("name", "description", "model", "memory")
 
 
@@ -304,16 +312,16 @@ def _iter_frontmatter_files(base: Path) -> Iterator[tuple[Path, dict[str, str]]]
         yield path, _frontmatter(_read_text(path))
 
 
-def check_gov_005(root: Path) -> list[Finding]:
-    base = root / ".claude" / "agents"
+def check_gov_005(root: Path, rules: GovernanceRules | None = None) -> list[Finding]:
+    rules = rules or GovernanceRules.load(root)
     findings: list[Finding] = []
-    for name in _REQUIRED_AGENTS:
-        if not (base / name).is_file():
+    for rel in rules.required_agents:
+        if not (root / rel).is_file():
             findings.append(
                 _make(
                     "GOV-005",
-                    f"required agent missing: .claude/agents/{name}",
-                    location=f".claude/agents/{name}",
+                    f"required agent missing: {rel}",
+                    location=rel,
                 )
             )
     return findings
@@ -354,24 +362,19 @@ def check_gov_007(root: Path) -> list[Finding]:
 # --- GOV-008 / GOV-009 — skills ------------------------------------
 
 
-_REQUIRED_SKILLS = (
-    "run-validate.md",
-    "audit-trail-tail.md",
-    "traceability-update.md",
-)
 _SKILL_KEYS = ("name", "description", "paths")
 
 
-def check_gov_008(root: Path) -> list[Finding]:
-    base = root / ".claude" / "skills"
+def check_gov_008(root: Path, rules: GovernanceRules | None = None) -> list[Finding]:
+    rules = rules or GovernanceRules.load(root)
     findings: list[Finding] = []
-    for name in _REQUIRED_SKILLS:
-        if not (base / name).is_file():
+    for rel in rules.required_skills:
+        if not (root / rel).is_file():
             findings.append(
                 _make(
                     "GOV-008",
-                    f"required skill missing: .claude/skills/{name}",
-                    location=f".claude/skills/{name}",
+                    f"required skill missing: {rel}",
+                    location=rel,
                 )
             )
     return findings
@@ -413,7 +416,7 @@ def check_gov_010(root: Path) -> list[Finding]:
     if not matrix.is_file():
         return []
     try:
-        json.loads(_read_text(matrix))
+        data = json.loads(_read_text(matrix))
     except json.JSONDecodeError as exc:
         return [
             _make(
@@ -423,6 +426,27 @@ def check_gov_010(root: Path) -> list[Finding]:
                 line=exc.lineno,
             )
         ]
+
+    if not isinstance(data, dict):
+        return [_make("GOV-010", "specs/traceability.json root must be an object", location="specs/traceability.json")]
+    criteria = data.get("criteria")
+    if not isinstance(criteria, list):
+        return [
+            _make(
+                "GOV-010",
+                "specs/traceability.json field 'criteria' must be a list",
+                location="specs/traceability.json",
+            )
+        ]
+    for index, criterion in enumerate(criteria):
+        if not isinstance(criterion, dict):
+            return [
+                _make(
+                    "GOV-010",
+                    f"specs/traceability.json criteria[{index}] must be an object",
+                    location="specs/traceability.json",
+                )
+            ]
 
     schema_error = _validate_traceability_schema(root)
     if schema_error is not None:
@@ -478,7 +502,30 @@ def check_gov_011(root: Path) -> list[Finding]:
         if not isinstance(criterion, dict):
             continue
         cid = criterion.get("id", "<unknown>")
-        for glob in criterion.get("source", []):
+        collections: dict[str, list[object]] = {}
+        for field in ("source", "tests", "evidence"):
+            value = criterion.get(field, [])
+            if not isinstance(value, list):
+                findings.append(
+                    _make(
+                        "GOV-011",
+                        f"criterion {cid} field '{field}' must be a list",
+                        location="specs/traceability.json",
+                    )
+                )
+                collections[field] = []
+            else:
+                collections[field] = value
+        for glob in collections["source"]:
+            if not isinstance(glob, str):
+                findings.append(
+                    _make(
+                        "GOV-011",
+                        f"criterion {cid} source entry must be a string",
+                        location="specs/traceability.json",
+                    )
+                )
+                continue
             if not _glob_resolves(root, glob):
                 findings.append(
                     _make(
@@ -487,7 +534,16 @@ def check_gov_011(root: Path) -> list[Finding]:
                         location="specs/traceability.json",
                     )
                 )
-        for glob in criterion.get("tests", []):
+        for glob in collections["tests"]:
+            if not isinstance(glob, str):
+                findings.append(
+                    _make(
+                        "GOV-011",
+                        f"criterion {cid} tests entry must be a string",
+                        location="specs/traceability.json",
+                    )
+                )
+                continue
             if not _glob_resolves(root, glob):
                 findings.append(
                     _make(
@@ -496,7 +552,16 @@ def check_gov_011(root: Path) -> list[Finding]:
                         location="specs/traceability.json",
                     )
                 )
-        for path in criterion.get("evidence", []):
+        for path in collections["evidence"]:
+            if not isinstance(path, str):
+                findings.append(
+                    _make(
+                        "GOV-011",
+                        f"criterion {cid} evidence entry must be a string",
+                        location="specs/traceability.json",
+                    )
+                )
+                continue
             if not (root / path).exists():
                 findings.append(
                     _make(
@@ -574,8 +639,28 @@ ALL_CHECKS: tuple[tuple[str, CheckFn], ...] = (
 
 def run_all(root: Path, *, only: set[str] | None = None) -> list[Finding]:
     out: list[Finding] = []
+    try:
+        rules = GovernanceRules.load(root)
+    except GovernanceRulesError as exc:
+        return [
+            _make(
+                "GOV-002",
+                str(exc),
+                severity=Severity.ERROR,
+                location="governance-rules.yaml",
+            )
+        ]
     for cid, fn in ALL_CHECKS:
         if only is not None and cid not in only:
             continue
-        out.extend(fn(root))
+        if cid == "GOV-001":
+            out.extend(check_gov_001(root, rules))
+        elif cid == "GOV-002":
+            out.extend(check_gov_002(root, rules))
+        elif cid == "GOV-005":
+            out.extend(check_gov_005(root, rules))
+        elif cid == "GOV-008":
+            out.extend(check_gov_008(root, rules))
+        else:
+            out.extend(fn(root))
     return out

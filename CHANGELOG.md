@@ -138,10 +138,12 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
   loader-driven array empty, every affected check was skipped, and
   the script still reached `report_status` and printed
   `governance-check OK`. All four loads now capture the loader's raw
-  output into a plain variable first (matching the pattern already
-  used in `scripts/marker-scan.sh`), fail loudly with a diagnostic
+  output into a plain variable first, guard it with `if ! var="$(...)"`
+  so the loader's exit code propagates, fail loudly with a diagnostic
   naming the exact loader invocation, and exit non-zero before any
-  downstream check or the success line can run.
+  downstream check or the success line can run. (`scripts/marker-scan.sh`
+  retains an unguarded `done < <(...)` read for `--list-marker-surfaces`
+  with a milder instance of the same risk; it is tracked separately.)
   ([#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104))
 
 ---

@@ -34,12 +34,13 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
-plus #104/#118 and #108/#123. The current follow-on queue is
-[#105–#111, #119, and #122](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering test-gate correctness, devcontainer behavior, shell
-portability, template pruning, and remaining governance-loader
-robustness. Sprint 1 (2026-05-06 → 2026-05-19) was never populated
-and its window has closed.
+plus #104/#118, #108/#123, and #105/#121. The current follow-on queue is
+[#106, #107, #109, #110, #111, and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering the fresh-scaffold npm/vitest test glob (#106), devcontainer
+post-create behavior (#107), shell-script correctness & portability
+(#109), template pruning (#110), refactoring/optimization (#111), and
+the `marker-scan.sh` vacuous-pass follow-up (#119). Sprint 1
+(2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
 
@@ -127,12 +128,20 @@ series. All close tracked issues.
 | [#103](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/103) | [#113](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/113) | `--gate audit` lookup dead: accept both `rule` string and `rules` list | tooling | ✅ |
 | [#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104) | [#118](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/118) | CRIT-002 gate passed vacuously when the governance loader crashed (process-substitution masked the exit code) | tooling | ✅ |
 | [#108](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/108) | [#123](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/123) | Eliminate `governance_review` false negatives for rule-data drift, malformed traceability, invalid UTF-8, empty YAML, and structural hook registration | governance | ✅ |
+| [#105](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/105) | [#121](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/121) | `test-typescript` swallowed a failing `node --test` exit code (`\|\| echo` bound to the whole `&&` chain), so a red JS suite passed `make test` / `make validate`; rewritten with a three-way `find` guard (scan error → loud failure, no matches → WARN + exit 0, matches → run and propagate) | ci / tooling | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
 > — `marker-scan.sh` retains an unguarded `done < <(...)` read for
 > `--list-marker-surfaces` with a milder instance of the same
 > vacuous-pass risk (`Sprint: Backlog`).
+
+> Follow-up filed during the #105 work:
+> [#122](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/122)
+> — the `pipefail`/`find`-traversal-error residual in the first-cut
+> fix. Independently flagged by CodeRabbit at PR review and hardened
+> directly in #121 (three-way `find` guard), so #122 closed with the
+> merge rather than becoming standalone backlog.
 
 > The broader v0.7.x release-hardening batch (#87–#101: CI action
 > pinning, dev-container compatibility, THREAT_MODEL drift, CHANGELOG
@@ -236,4 +245,24 @@ job is to be readable from the repo at a glance.
   identified #105–#111, #119, and #122 as the current open follow-on
   queue. Project-field refresh was not run because the current GitHub
   token lacks `read:project`.
+- Updated 2026-07-18 (fifth post-merge sync): recorded
+  [#105](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/105)/[#121](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/121)
+  — the `test-typescript` recipe swallowed a failing `node --test`
+  exit code (`|| echo` bound to the whole `&&` chain), so a red JS
+  suite passed `make test`/`make validate`. Fixed with a three-way
+  `find` guard: a scan error fails loud (`ERROR` + non-zero exit), no
+  matching files → WARN + exit 0, and matches run
+  `find … -exec node --test {} +` (propagating a real failure).
+  Produced end-to-end through the ADWS pipeline (PROMOTE, 7/7 gates).
+  Follow-up
+  [#122](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/122)
+  (the residual's `pipefail`/`find`-error variant) was filed, then
+  independently flagged by CodeRabbit at PR review and hardened in the
+  same PR — so it closed with #121 rather than becoming backlog.
+  Validated locally by rendering the template and driving
+  `make test-typescript` across the failing / no-files / passing /
+  `*.test.cjs` / unreadable-`tests/`-subdir cases (exit 2 / 0 / 0 / 0 /
+  2); GitHub Actions remains billing-locked, so the merge was gated on
+  local validation as with the prior batches. Open follow-on queue
+  refreshed to #106, #107, #109, #110, #111, #119.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

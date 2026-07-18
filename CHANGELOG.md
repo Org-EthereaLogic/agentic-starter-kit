@@ -153,15 +153,19 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
   swallowed and the recipe exited 0 (and mis-printed the "no test
   files found" message on a genuine failure). Because `make test` and
   `make validate` aggregate `test-typescript`, a red JavaScript suite
-  passed CI. The recipe now uses an explicit grouped-`find` existence
-  check (inside the `if` condition, so a "no matches" status can't
-  trip errexit) to choose between WARN-and-exit-0 (genuinely no test
-  files) and running `find tests -type f \( ... \) -exec node --test
-  {} +`, whose exit status now propagates on a real failure. The
-  GNU-only `xargs -r` was dropped for POSIX portability, and
-  `*.test.cjs` discovery was added — deliberately without a matching
-  `test_*.cjs` pattern — so `tests/test_audit_hooks.cjs` (still owned
-  by `hooks.mk`) is never picked up.
+  passed CI. The recipe now separates the three outcomes explicitly: it
+  captures the `find` result inside the `if` condition (errexit-exempt)
+  and branches on find's own exit status, so a **scan failure**
+  (e.g. an unreadable `tests/` subdirectory) fails loudly
+  (`ERROR: failed to scan tests/…`, non-zero exit) instead of being
+  mistaken for "no test files"; **no matching files** prints
+  WARN-and-exits-0; and **matches present** run
+  `find tests -type f \( ... \) -exec node --test {} +`, whose exit
+  status propagates a real failure. The GNU-only `xargs -r` was dropped
+  for POSIX portability, and `*.test.cjs` discovery was added —
+  deliberately without a matching `test_*.cjs` pattern — so
+  `tests/test_audit_hooks.cjs` (still owned by `hooks.mk`) is never
+  picked up.
   ([#105](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/105))
 
 ---

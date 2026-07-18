@@ -15,7 +15,7 @@ contracts live in the individual `.md` files.
 | `test-automator` | Test strategy | Authoring tests, hook regression suites, evidence-quality enforcement. |
 | `ux-delight-specialist` | Operator surface | CLI output, dashboard, error ergonomics, empty/loading states. |
 | `python-pro` *(Python or polyglot path only)* | Typed Python | `pyproject.toml`, `uv`, ruff, `{{ cookiecutter.python_typechecker }}`. |
-| `typescript-pro` *(TypeScript or polyglot path only)* | Typed TypeScript | `package.json`, `tsconfig.json`, ESLint, vitest. |
+| `typescript-pro` *(TypeScript or polyglot path only)* | Typed TypeScript | `package.json`, `tsconfig.json`, ESLint, node --test. |
 | `security-reviewer` | Security verification | Threat-model, SBOM triage, secrets policy, attack-surface review. |
 | `governance-auditor` | Scaffold audit | Read-only audit of the five-layer governance stack; drives `governance-review` CLI. |
 

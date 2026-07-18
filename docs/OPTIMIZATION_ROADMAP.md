@@ -163,7 +163,7 @@ when only one was touched.
 ```
 Makefile                    # base rules
 Makefile.python            # python-specific (lint, typecheck, test)
-Makefile.typescript        # typescript-specific (eslint, tsc, vitest)
+Makefile.typescript        # typescript-specific (eslint, tsc, node --test)
 Makefile.common            # shared (marker-scan, governance-check)
 ```
 

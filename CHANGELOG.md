@@ -145,6 +145,24 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
   retains an unguarded `done < <(...)` read for `--list-marker-surfaces`
   with a milder instance of the same risk; it is tracked separately.)
   ([#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104))
+- **`Makefile.fragments/typescript.mk`'s `test-typescript` recipe no
+  longer reports success on a failing JS test.** The recipe chained
+  `find ... | head -1 >/dev/null && find ... | xargs -r node --test ||
+  echo "WARN: no JS test files found"`; the trailing `|| echo` bound
+  to the whole `&&` chain, so a real `node --test` failure was
+  swallowed and the recipe exited 0 (and mis-printed the "no test
+  files found" message on a genuine failure). Because `make test` and
+  `make validate` aggregate `test-typescript`, a red JavaScript suite
+  passed CI. The recipe now uses an explicit grouped-`find` existence
+  check (inside the `if` condition, so a "no matches" status can't
+  trip errexit) to choose between WARN-and-exit-0 (genuinely no test
+  files) and running `find tests -type f \( ... \) -exec node --test
+  {} +`, whose exit status now propagates on a real failure. The
+  GNU-only `xargs -r` was dropped for POSIX portability, and
+  `*.test.cjs` discovery was added — deliberately without a matching
+  `test_*.cjs` pattern — so `tests/test_audit_hooks.cjs` (still owned
+  by `hooks.mk`) is never picked up.
+  ([#105](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/105))
 
 ---
 

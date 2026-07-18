@@ -34,12 +34,13 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
-plus #104/#118, #108/#123, and #105/#121. The current follow-on queue is
-[#106, #107, #109, #110, #111, and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering the fresh-scaffold npm/vitest test glob (#106), devcontainer
-post-create behavior (#107), shell-script correctness & portability
-(#109), template pruning (#110), refactoring/optimization (#111), and
-the `marker-scan.sh` vacuous-pass follow-up (#119). Sprint 1
+plus #104/#118, #108/#123, #105/#121, and #106/#126. The current
+follow-on queue is
+[#107, #109, #110, #111, and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering devcontainer post-create behavior (#107), shell-script
+correctness & portability (#109), template pruning (#110),
+refactoring/optimization (#111), and the `marker-scan.sh`
+vacuous-pass follow-up (#119). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
@@ -265,4 +266,39 @@ job is to be readable from the repo at a glance.
   2); GitHub Actions remains billing-locked, so the merge was gated on
   local validation as with the prior batches. Open follow-on queue
   refreshed to #106, #107, #109, #110, #111, #119.
+- Updated 2026-07-18 (sixth post-merge sync): recorded
+  [#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106)/[#126](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/126)
+  — `npm test` on a fresh scaffold ran `vitest run`, whose default
+  include glob never matches the template's node:test suites
+  (`tests/test_*.js` / `test_*.cjs`), failing with "No test files
+  found" while `make test` passed. Fixed by pointing
+  `test`/`test:watch`/`coverage` at `node --test` with quoted
+  recursive `'tests/**/…'` globs (expanded by Node's own glob engine,
+  matching the Makefile `find`'s recursion) and dropping the unused,
+  version-mismatched vitest devDependencies. The fix uncovered and
+  closed a second latent gap: the `test-typescript` recipe's `find`
+  patterns missed `test_*.cjs`, so `make test` had silently skipped
+  `tests/test_audit_hooks.cjs`. Docs aligned end-to-end (READMEs,
+  QUICKSTART-TYPESCRIPT with an exact runner-equivalence statement
+  incl. the dot-directory caveat, cookiecutter.json prompt text,
+  scaffold agent docs, BUILD_PLAN, EXAMPLES, OPTIMIZATION_ROADMAP).
+  Produced end-to-end through the ADWS pipeline as two gated jobs
+  (job_20260718_0006 PROMOTE-with-warnings; audit-driven follow-up
+  job_20260718_0007 PROMOTE, drift-grader 4/4 satisfied), with an
+  independent post-promote audit between them whose findings
+  (top-level-only npm globs vs recursive `find`; an overclaiming
+  Quickstart equivalence sentence; residual operational vitest
+  references) were all resolved in the second commit; evidence trees
+  retained at `artifacts/job_20260718_000{6,7}/`. Validated locally
+  pre-merge on rendered typescript + polyglot scaffolds (49/49 both
+  runners; injected failing top-level and nested tests exit non-zero
+  under both) and spot-checked post-merge on `main` (render + both
+  runners green). GitHub Actions remains billing-locked (all jobs
+  fail at start with 0 steps, incl. on `main`), so the merge was
+  gated on local validation as with the prior batches. Workspace
+  hygiene in the same sync: merged branch deleted local+remote with
+  its stale remote-tracking ref pruned, ADWS transfer scratch
+  (`_to_delete/`) removed, and the stale zero-byte `.git/index.lock`
+  (held open read-only by a desktop app, no live git process)
+  removed per the F-10 checklist before applying the patches.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

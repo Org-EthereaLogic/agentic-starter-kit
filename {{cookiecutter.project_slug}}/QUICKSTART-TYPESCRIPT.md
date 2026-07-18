@@ -164,15 +164,20 @@ test("example test", () => {
 });
 ```
 
-Run with:
-```bash
-make test-typescript
-```
-
-Or directly:
+`.ts` files like this are not discovered by `npm test` or
+`make test-typescript` (see below); run them directly:
 ```bash
 node --test tests/test_example.ts
 ```
+
+For `.js`/`.cjs` tests, `npm test` and `make test-typescript` discover
+the same recursive set of files under `tests/` (including nested
+subdirectories), with one caveat: `make test-typescript`'s `find`-based
+discovery also descends into dot-prefixed directories (e.g.
+`tests/.hidden/`), while `npm test`'s `node --test` glob does not match
+dot-prefixed path segments — a `.js`/`.cjs` test placed under such a
+directory runs under `make test-typescript` but not under `npm test`.
+Neither runner picks up `.ts` test files.
 
 ## Troubleshooting
 

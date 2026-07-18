@@ -40,6 +40,43 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ### Fixed
 
+- **`npm test` no longer reports "No test files found" on a freshly
+  rendered TypeScript or polyglot scaffold
+  ([#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106)).**
+  `package.json`'s `test`, `test:watch`, and `coverage` scripts now
+  invoke Node's built-in `node --test` (with `--watch` /
+  `--experimental-test-coverage` respectively) directly against the
+  template's `tests/*.test.js`, `tests/test_*.js`, `tests/*.test.cjs`,
+  and `tests/test_*.cjs` suites instead of `vitest run`, whose default
+  include glob never matched this template's `node:test`-style files.
+  The unused, version-mismatched `vitest` / `@vitest/coverage-v8`
+  devDependencies are removed. The `test-typescript` Makefile recipe's
+  `find` patterns also gained a `test_*.cjs` alternative so `make test`
+  picks up `tests/test_audit_hooks.cjs`, which none of its previous
+  three patterns matched — so `npm test` and `make test` now agree on
+  the same file set.
+
+- **Follow-up correction to the #106 fix found in post-promote audit
+  ([#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106)).**
+  `npm test`, `npm run test:watch`, and `npm run coverage` now use
+  quoted `'tests/**/...'` glob patterns so `node --test`'s own glob
+  engine discovers `.js`/`.cjs` test files recursively, matching the
+  `test-typescript` Makefile recipe's recursive `find`-based
+  discovery — a nested file such as `tests/nested/test_nested.cjs`
+  now runs under both `npm test` and `make test-typescript`.
+  `QUICKSTART-TYPESCRIPT.md`'s runner-equivalence sentence no longer
+  implies the `node --test tests/test_example.ts` example is covered
+  by `npm test` or `make test-typescript` (neither runner picks up
+  `.ts` files), and now scopes its `.js`/`.cjs` equivalence claim to
+  note that `make test-typescript`'s `find`-based discovery still
+  descends into dot-prefixed directories (e.g. `tests/.hidden/`)
+  while `npm test`'s `node --test` glob does not match dot-prefixed
+  path segments. The remaining operational `vitest` references in
+  `.claude/agents/typescript-pro.md`, `.claude/agents/test-automator.md`,
+  `.claude/agents/README.md`, and `docs/OPTIMIZATION_ROADMAP.md`'s
+  shipped Makefile-fragment-system line are corrected to
+  `node --test`.
+
 - **Governance review no longer silently passes malformed enforcement
   inputs ([#108](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/108)).**
   Its required artifacts, agents, skills, marker surfaces, and marker patterns

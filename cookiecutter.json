@@ -36,7 +36,7 @@
     "primary_language": {
       "__prompt__": "Primary language path. Drives which build files survive post-render pruning.",
       "python": "Python only — pyproject.toml, ty/mypy, pytest",
-      "typescript": "TypeScript only — package.json, tsconfig.json, vitest",
+      "typescript": "TypeScript only — package.json, tsconfig.json, node:test",
       "polyglot": "Both — keep Python and TypeScript build glue side by side"
     },
     "python_typechecker": {

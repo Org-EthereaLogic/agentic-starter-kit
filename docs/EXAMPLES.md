@@ -448,8 +448,8 @@ Three transitions tell the Day-1 → Day-7 story:
    source globs, test globs, and evidence artifact that prove it.
 3. **`coverage` appears.** Day-1 has no test surface beyond the
    hook regression suite; Day-7 has feature tests measured by
-   `pytest --cov` + `vitest --coverage` and uploaded by
-   `codecov.yaml`'s CI job.
+   `pytest --cov` + `node --test --experimental-test-coverage`
+   (npm's `coverage` script) and uploaded by `codecov.yaml`'s CI job.
 
 The runtime-hook regression (`hooks-test`) does **not** grow or
 shrink between Day 1 and Day 7 — it ships locked at 18 fixtures

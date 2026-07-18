@@ -67,7 +67,7 @@ correct directive IDs from Phase 1.
 | `{{cookiecutter.project_slug}}/.githooks/README.md` | Explains installation, pre-commit-framework chaining, the coverage map, and the honest boundary. |
 | `{{cookiecutter.project_slug}}/.claude/settings.json` | Registers the hook on `PreToolUse:Bash`. JSON, not JSON-with-comments. |
 | `{{cookiecutter.project_slug}}/tests/test_pre_tool_use_hook.py` | Python test suite (Python path). One test per payload class. Uses `subprocess.run` to invoke `node .claude/hooks/pre-tool-use.js` with stdin per Claude Code hook protocol. Asserts exit code and stderr. |
-| `{{cookiecutter.project_slug}}/tests/test_pre_tool_use_hook.js` | TypeScript-path equivalent using vitest or node:test. Same coverage as Python. |
+| `{{cookiecutter.project_slug}}/tests/test_pre_tool_use_hook.js` | TypeScript-path equivalent using node:test (`node --test`). Same coverage as Python. |
 | `{{cookiecutter.project_slug}}/tests/test_git_hooks.sh` | Language-neutral real-git regression suite for the primary boundary. |
 
 **Phase 3 gate:**
@@ -106,7 +106,7 @@ fully-scaffolded) project.
 | File | Notes |
 |---|---|
 | `{{cookiecutter.project_slug}}/pyproject.toml` | Conditional Python path. Pins ruff, mypy, pytest, pytest-cov, pre-commit. uv-managed dep groups. |
-| `{{cookiecutter.project_slug}}/package.json` | Conditional TS path. Pins typescript, eslint, vitest, @vitest/coverage-v8, prettier (optional). |
+| `{{cookiecutter.project_slug}}/package.json` | Conditional TS path. Pins typescript, eslint, prettier (optional). Test/coverage scripts run Node's built-in `node --test` / `--experimental-test-coverage` directly against the `tests/` suites — no vitest dependency ([#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106)). |
 | `{{cookiecutter.project_slug}}/tsconfig.json` | TS path. `"strict": true`, `"noUncheckedIndexedAccess": true`. |
 | `{{cookiecutter.project_slug}}/.gitignore` | Per prior turn's content. |
 | `{{cookiecutter.project_slug}}/.editorconfig` | Per prior turn's content. |

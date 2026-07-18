@@ -1,6 +1,6 @@
 ---
 name: test-automator
-description: "Use this agent for test strategy, test implementation, and evidence-quality assurance in {{ cookiecutter.project_name }} — pytest / vitest suites, fixtures, hook regression tests, and validation gates. Owns the dual-evidence rule (CRIT-005). Not for production code or threat modeling."
+description: "Use this agent for test strategy, test implementation, and evidence-quality assurance in {{ cookiecutter.project_name }} — pytest / node --test suites, fixtures, hook regression tests, and validation gates. Owns the dual-evidence rule (CRIT-005). Not for production code or threat modeling."
 model: opus
 memory: project
 tools: Read, Write, Edit, Glob, Grep, Bash

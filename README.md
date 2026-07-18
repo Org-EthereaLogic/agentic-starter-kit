@@ -176,7 +176,7 @@ can decide before running the template instead of inspecting
 | Linter | [`ruff`](https://docs.astral.sh/ruff/) | [`eslint`](https://eslint.org/) | both |
 | Formatter | `ruff format` | [`prettier`](https://prettier.io/) | both |
 | Type checker | [`ty`](https://github.com/astral-sh/ty) (default) or [`mypy`](https://mypy.readthedocs.io/) — selected by `python_typechecker` | `tsc --noEmit` | Python checker per `python_typechecker` **and** `tsc` |
-| Test runner | [`pytest`](https://docs.pytest.org/) (`pytest-cov` for coverage) | [`vitest`](https://vitest.dev/) (`@vitest/coverage-v8` for coverage) | both |
+| Test runner | [`pytest`](https://docs.pytest.org/) (`pytest-cov` for coverage) | Node's built-in [`node --test`](https://nodejs.org/api/test.html) (`--experimental-test-coverage` for coverage) | both |
 | SBOM (when `include_sbom=yes`) | `cyclonedx-py environment` → `sbom/sbom-python.cdx.json` | `@cyclonedx/cyclonedx-npm` → `sbom/sbom-node.cdx.json` | both files emitted |
 
 `polyglot` ships the union: every file listed for `python` *and*

@@ -20,9 +20,9 @@ make hooks-test   # exercise git-layer and agent-layer hooks
 {% if cookiecutter.primary_language == 'python' -%}
 - `make sync` installs Python dev tools (`ruff`, `{{ cookiecutter.python_typechecker }}`, `pytest`, etc.) and must run first
 {%- elif cookiecutter.primary_language == 'typescript' -%}
-- `make sync` installs Node dev tools (`eslint`, `prettier`, `typescript`, `vitest`, etc.) and must run first
+- `make sync` installs Node dev tools (`eslint`, `prettier`, `typescript`, etc.) and must run first; tests run via Node's built-in `node --test`, no extra test-runner package required
 {%- else -%}
-- `make sync` installs dev tools for both stacks — Python (`ruff`, `{{ cookiecutter.python_typechecker }}`, `pytest`) and Node (`eslint`, `prettier`, `typescript`, `vitest`) — and must run first
+- `make sync` installs dev tools for both stacks — Python (`ruff`, `{{ cookiecutter.python_typechecker }}`, `pytest`) and Node (`eslint`, `prettier`, `typescript`) — and must run first; Node tests run via Node's built-in `node --test`, no extra test-runner package required
 {%- endif %}
 - `make validate` aggregates all governance checks and is the canonical pre-merge gate
 - If `make validate` is clean, the scaffold is healthy. Each gate's failure surfaces a specific file or pattern needing attention

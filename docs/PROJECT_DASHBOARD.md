@@ -33,7 +33,8 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 **Current state (2026-07-18):** all roadmap and post-roadmap work
 is merged, and the v0.7.x release-hardening batch (#87–#101) plus a
 July governance-hardening batch (#102/#112, #103/#113 with the #115
-precedence-pin follow-up) have since shipped. The first batch of follow-on optimization work remains
+precedence-pin follow-up, and #104/#118 closing the vacuous CRIT-002
+gate) have since shipped. The first batch of follow-on optimization work remains
 filed as issues [#69–#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue)
 in `Sprint: Backlog`, sourced from
 [`docs/OPTIMIZATION_ROADMAP.md`](OPTIMIZATION_ROADMAP.md); Sprint 1
@@ -119,12 +120,19 @@ the kit. All shipped via v0.4 + v0.4.1.
 ## Post-roadmap fixes (July 2026)
 
 Governance-hardening batch discovered after the v0.7.x release
-series. Both close tracked issues.
+series. All close tracked issues.
 
 | Issue | PR | Title | Area | Status |
 | --- | --- | --- | --- | --- |
 | [#102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102) | [#112](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/112) | Enforce CRIT-008 at the git layer; agent-layer hook as defense-in-depth | hooks | ✅ |
 | [#103](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/103) | [#113](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/113) | `--gate audit` lookup dead: accept both `rule` string and `rules` list | tooling | ✅ |
+| [#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104) | [#118](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/118) | CRIT-002 gate passed vacuously when the governance loader crashed (process-substitution masked the exit code) | tooling | ✅ |
+
+> Follow-up filed during the #118 review:
+> [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
+> — `marker-scan.sh` retains an unguarded `done < <(...)` read for
+> `--list-marker-surfaces` with a milder instance of the same
+> vacuous-pass risk (`Sprint: Backlog`).
 
 > The broader v0.7.x release-hardening batch (#87–#101: CI action
 > pinning, dev-container compatibility, THREAT_MODEL drift, CHANGELOG
@@ -195,4 +203,19 @@ job is to be readable from the repo at a glance.
   billing issue — every workflow run (incl. CodeQL) fails at job
   start until billing is resolved; merges in this batch were gated
   on local validation instead.
+- Updated 2026-07-18 (third post-merge sync): recorded
+  [#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104)/[#118](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/118)
+  (guards all four governance-loader reads in `check-governance.sh`
+  with capture-first `if ! var="$(...)"` so a loader crash fails
+  loudly instead of vacuously passing CRIT-002; adds a corrupt-rules
+  regression test). Review of #118 corrected an over-claim about
+  `marker-scan.sh` and filed follow-up
+  [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
+  for the same-class risk there. Workspace hygiene in the same sync:
+  cleared local ADWS scratch (`_to_delete/`, `artifacts/`) and
+  deleted the merged branch local+remote. Validated locally (healthy
+  path exit 0; corrupt-YAML path exit 1 with diagnostic and no
+  vacuous OK; `test_skill_contracts.py -k governance` 4/4) — GitHub
+  Actions remains billing-locked, so the merge was gated on local
+  validation as with #115.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

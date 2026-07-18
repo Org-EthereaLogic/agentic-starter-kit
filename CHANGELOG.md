@@ -127,6 +127,24 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
   known directives, via a new `has_enforcement_gate()` check, rather
   than reporting both as `Unknown gate`.
   ([#103](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/103))
+- **`scripts/check-governance.sh` no longer vacuously passes CRIT-002
+  when the governance loader crashes.** The script filled its
+  `required_files`, `required_agents`, `required_skills`, and
+  `optional_dirs` arrays from `while read` loops over process
+  substitutions piping `scripts/lib/governance.py --list-...`. Under
+  `set -euo pipefail`, a process substitution's exit status is
+  invisible to the enclosing loop, so a loader crash (corrupt
+  `governance-rules.yaml`, missing PyYAML) silently left every
+  loader-driven array empty, every affected check was skipped, and
+  the script still reached `report_status` and printed
+  `governance-check OK`. All four loads now capture the loader's raw
+  output into a plain variable first, guard it with `if ! var="$(...)"`
+  so the loader's exit code propagates, fail loudly with a diagnostic
+  naming the exact loader invocation, and exit non-zero before any
+  downstream check or the success line can run. (`scripts/marker-scan.sh`
+  retains an unguarded `done < <(...)` read for `--list-marker-surfaces`
+  with a milder instance of the same risk; it is tracked separately.)
+  ([#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104))
 
 ---
 

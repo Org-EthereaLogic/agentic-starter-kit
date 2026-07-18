@@ -42,14 +42,34 @@ frontmatter_value() {
 }
 
 # --- Strictly required files (Layer 1 + Layer 2 + Layer 4) ---
-# Loaded from governance-rules.yaml ▸ required_files. The read-loop
-# below replaces an inline bash array; `mapfile` would be cleaner
-# but is bash 4+ and these scripts target bash 3.2 (macOS default).
+# Loaded from governance-rules.yaml ▸ required_files. `mapfile` would
+# be cleaner but is bash 4+ and these scripts target bash 3.2 (macOS
+# default), so each of the four loader-fed lists below is captured
+# into a plain variable first, then parsed line-by-line into an
+# array. Capturing first (rather than reading directly from a
+# `done < <(...)` process substitution) matters under
+# `set -euo pipefail`: a process substitution's exit status is
+# invisible to the enclosing `while` loop, so a governance loader
+# crash (corrupt governance-rules.yaml, missing PyYAML) would
+# silently leave the array empty and every loader-driven check would
+# be skipped instead of failing — this is what let CRIT-002 pass
+# vacuously (see CHANGELOG.md, issue #104). The `if ! var="$(...)"`
+# guard form propagates the loader's exit code and lets the script
+# log a diagnostic naming the exact failing invocation before
+# exiting non-zero. (`scripts/marker-scan.sh` captures its
+# `--marker-regex` read into a plain variable, but its
+# `--list-marker-surfaces` read still uses the unguarded
+# `done < <(...)` form and carries a milder instance of this same
+# vacuous-pass risk — tracked separately, not fixed here.)
 
+if ! required_files_raw="$("${GOV_LOADER[@]}" --list-required-files)"; then
+  log_error "governance loader failed: ${GOV_LOADER[*]} --list-required-files"
+  exit 1
+fi
 required_files=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && required_files+=("$line")
-done < <("${GOV_LOADER[@]}" --list-required-files)
+done <<< "$required_files_raw"
 
 for f in "${required_files[@]}"; do
   check_file_exists "$f" || true
@@ -115,10 +135,14 @@ fi
 # polyglot path keeps both, single-language paths keep one (this
 # language-conditional check stays here, not in YAML).
 
+if ! required_agents_raw="$("${GOV_LOADER[@]}" --list-required-agents)"; then
+  log_error "governance loader failed: ${GOV_LOADER[*]} --list-required-agents"
+  exit 1
+fi
 required_agents=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && required_agents+=("$line")
-done < <("${GOV_LOADER[@]}" --list-required-agents)
+done <<< "$required_agents_raw"
 
 for f in "${required_agents[@]}"; do
   check_file_exists "$f" || true
@@ -148,10 +172,14 @@ fi
 # list that gates lazy loading). Loaded from
 # governance-rules.yaml ▸ required_skills.
 
+if ! required_skills_raw="$("${GOV_LOADER[@]}" --list-required-skills)"; then
+  log_error "governance loader failed: ${GOV_LOADER[*]} --list-required-skills"
+  exit 1
+fi
 required_skills=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && required_skills+=("$line")
-done < <("${GOV_LOADER[@]}" --list-required-skills)
+done <<< "$required_skills_raw"
 
 for f in "${required_skills[@]}"; do
   check_file_exists "$f" || true
@@ -178,10 +206,14 @@ fi
 # --- Optionally required (later phases populate) ---
 # Loaded from governance-rules.yaml ▸ optional_dirs.
 
+if ! optional_dirs_raw="$("${GOV_LOADER[@]}" --list-optional-dirs)"; then
+  log_error "governance loader failed: ${GOV_LOADER[*]} --list-optional-dirs"
+  exit 1
+fi
 optional_dirs=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && optional_dirs+=("$line")
-done < <("${GOV_LOADER[@]}" --list-optional-dirs)
+done <<< "$optional_dirs_raw"
 
 for d in "${optional_dirs[@]}"; do
   check_dir_exists "$d" || log_warn "optional directory not yet present: $d"

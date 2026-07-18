@@ -32,8 +32,8 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 
 **Current state (2026-07-18):** all roadmap and post-roadmap work
 is merged, and the v0.7.x release-hardening batch (#87–#101) plus a
-July governance-hardening batch (#102/#112, #103/#113) have since
-shipped. The first batch of follow-on optimization work remains
+July governance-hardening batch (#102/#112, #103/#113 with the #115
+precedence-pin follow-up) have since shipped. The first batch of follow-on optimization work remains
 filed as issues [#69–#74](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue)
 in `Sprint: Backlog`, sourced from
 [`docs/OPTIMIZATION_ROADMAP.md`](OPTIMIZATION_ROADMAP.md); Sprint 1
@@ -186,4 +186,13 @@ job is to be readable from the repo at a glance.
   (`_adws_tmp/`, `artifacts/`). `--gate audit` / `--gate hooks_test`
   / `--gate nonexistent` and the governance-loader suite (15 tests)
   verified green on `main` before recording.
+- Updated 2026-07-18 (second post-merge sync): recorded
+  [#115](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/115)
+  (pins `rules`-over-`rule` precedence for both-keys gate entries;
+  governance-loader suite now 16 tests), closing out the #103 review
+  feedback. Both feature branches deleted local+remote after merge.
+  Operational note: GitHub Actions is currently locked by an org
+  billing issue — every workflow run (incl. CodeQL) fails at job
+  start until billing is resolved; merges in this batch were gated
+  on local validation instead.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

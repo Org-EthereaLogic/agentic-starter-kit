@@ -6,7 +6,7 @@ import json
 import os
 import shutil
 import stat
-import subprocess
+import subprocess  # nosec B404 - tests exercise repo-local scripts
 import sys
 import tempfile
 import unittest
@@ -55,7 +55,7 @@ class ValidationScriptTests(unittest.TestCase):
                 ]
             }
             (specs / "traceability.json").write_text(json.dumps(matrix))
-            passed = subprocess.run(
+            passed = subprocess.run(  # nosec B603 - fixed argv, repo-local scripts
                 [BASH, "scripts/check-traceability.sh"],
                 cwd=root,
                 capture_output=True,
@@ -64,7 +64,7 @@ class ValidationScriptTests(unittest.TestCase):
             )
             matrix["criteria"][0]["tests"] = ["missing files/*.txt"]
             (specs / "traceability.json").write_text(json.dumps(matrix))
-            failed = subprocess.run(
+            failed = subprocess.run(  # nosec B603 - fixed argv, repo-local scripts
                 [BASH, "scripts/check-traceability.sh"],
                 cwd=root,
                 capture_output=True,
@@ -88,7 +88,7 @@ class ValidationScriptTests(unittest.TestCase):
             (docs / ".hidden.md").write_text("TODO\n")
             (docs / "ignored.md").write_text("TODO\n")
             (root / ".gitignore").write_text("docs/ignored.md\n")
-            normal = subprocess.run(
+            normal = subprocess.run(  # nosec B603 - fixed argv, repo-local scripts
                 [BASH, "scripts/marker-scan.sh"],
                 cwd=root,
                 capture_output=True,
@@ -109,7 +109,7 @@ class ValidationScriptTests(unittest.TestCase):
                 fallback_bin / "python3",
                 f'#!/bin/sh\nexec "{sys.executable}" "$@"\n',
             )
-            fallback = subprocess.run(
+            fallback = subprocess.run(  # nosec B603 - fixed argv, repo-local scripts
                 [BASH, "scripts/marker-scan.sh"],
                 cwd=root,
                 env={**os.environ, "PATH": str(fallback_bin)},
@@ -132,7 +132,7 @@ class ValidationScriptTests(unittest.TestCase):
             docs = root / "docs"
             docs.mkdir()
             (docs / "guide.md").write_text("`missing.md` and `missing.md`\n")
-            result = subprocess.run(
+            result = subprocess.run(  # nosec B603 - fixed argv, repo-local scripts
                 [BASH, "scripts/check-doc-drift.sh", "block"],
                 cwd=root,
                 capture_output=True,
@@ -159,7 +159,7 @@ class ValidationScriptTests(unittest.TestCase):
             bin_dir.mkdir()
             command = bin_dir / "cyclonedx-py"
             _write_executable(command, "#!/bin/sh\nprintf 'replacement\\n'\n")
-            success = subprocess.run(
+            success = subprocess.run(  # nosec B603 - fixed argv, repo-local scripts
                 [BASH, "scripts/generate-sbom.sh"],
                 cwd=root,
                 env={**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"},
@@ -168,7 +168,7 @@ class ValidationScriptTests(unittest.TestCase):
                 check=False,
             )
             _write_executable(command, "#!/bin/sh\nprintf 'partial\\n'\nexit 1\n")
-            failed = subprocess.run(
+            failed = subprocess.run(  # nosec B603 - fixed argv, repo-local scripts
                 [BASH, "scripts/generate-sbom.sh"],
                 cwd=root,
                 env={**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"},

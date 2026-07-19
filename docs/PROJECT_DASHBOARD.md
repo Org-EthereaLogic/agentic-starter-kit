@@ -35,12 +35,11 @@ optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
 plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128,
-#109/#130, and #110/#132. The current follow-on queue is
-[#111, #119, and #133](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+#109/#130, #110/#132, and #133/#136. The current follow-on queue is
+[#111, #119, and #135](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
 covering refactoring/optimization (#111), the `marker-scan.sh`
-vacuous-pass follow-up (#119), and the copier `_envops`
-comment-delimiter collision that breaks copier renders (#133, filed
-during the #110 work). Sprint 1
+vacuous-pass follow-up (#119), and rendered-project `make validate`
+failures surfaced by the new local CI (#135). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
@@ -134,6 +133,7 @@ series. All close tracked issues.
 | [#107](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/107) | [#128](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/128) | devcontainer `post-create.sh` robustness: `ensure_uv` logged false success when the `curl \| sh` pipeline failed (no pipefail); curl missing from the `pkg_bin` apt map despite the comment's promise; unguarded `npm config set prefix` could abort the script under `set -eu` | tooling | ✅ |
 | [#109](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/109) | [#130](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/130) | Shell validation scripts correctness & portability: unquoted `compgen -G` suppressed drift errors for globs with spaces; frontmatter checks grepped the whole file instead of the `--- ... ---` block; unescaped `.` in the action-pin skip prefix exempted single-char-owner actions; `rg`-vs-`grep` marker-scan divergence pinned to one semantic (`rg --no-ignore --hidden`); `check-doc-drift.sh` no longer self-disables on macOS bash 3.2 (`sort -u` dedupe replaces the associative array); `generate-sbom.sh` writes to a temp file and `mv`s on success instead of leaving a truncated SBOM; plus a Critic-found bash 3.2 frontmatter/SIGPIPE fix | tooling | ✅ |
 | [#110](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/110) | [#132](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/132) | Template pruning correctness: orphaned `test_audit_hooks` twins shipped to the wrong language path (unused `.cjs` on python renders, dead `.py` on typescript) now pruned in both the cookiecutter hook and the copier `_tasks` mirror; the dead `docs/sbom-policy.md` prune entry resolved by authoring the planned CycloneDX SBOM generation/review policy (GAP-022/044 → landed); typo'd/unknown variant sentinel keys and nested/unbalanced `# variant:` blocks now raise `VariantError` instead of silently dropping content or corrupting the pruned `pyproject.toml`, with a shared-fixture unit suite exercising both duplicated parser copies | tooling | ✅ |
+| [#133](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/133) | [#136](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/136) | Copier renders aborted because `_envops`'s `[#` comment-start (added to protect bash `${#arr[@]}`) collided with markdown `[#NNN]` issue-links; escaped the three offending links to `[issue #NNN]` (renders identically under both tools) with a `tests/` regression guard. Shipped alongside a **local CI** (`scripts/local-ci/`) standing in for billing-locked Actions — three tiers: host gate (`make local-ci`), OrbStack render matrix (`make ci-orb`), advisory two-model Ollama review (`make review`) | tooling | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
@@ -405,4 +405,39 @@ job is to be readable from the repo at a glance.
   throwaway caches (`.pytest_cache`, `__pycache__`, `.coverage`)
   cleared; the 294 MB gitignored `artifacts/` ADWS evidence tree left
   intact (prior syncs reference it as retained evidence).
+- Updated 2026-07-19 (tenth post-merge sync): shipped
+  [#133](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/133)/[#136](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/136)
+  — escaped the `[#102]` markdown links (`DIRECTIVES.md`,
+  `.claude/hooks/README.md`) that collided with copier's `[#`
+  comment-start, so copier renders again and cookiecutter↔copier
+  equivalence holds; guarded by
+  `tests/test_no_copier_comment_collision.py`. Landed together with a
+  **local CI** (`scripts/local-ci/`) standing in for the
+  billing-locked GitHub Actions: Tier 1 `make local-ci` (host `pytest
+  tests/` on Py 3.12 via uv + a default render smoke); Tier 2 `make
+  ci-orb` (7-variant cookiecutter+copier render matrix +
+  render-equivalence in a `python:3.12-bookworm` OrbStack container,
+  rendering from a clean shallow clone of HEAD to dodge the untracked
+  `artifacts/` nested-repo tree that trips copier's dirty-tree
+  handling; `RUN_VALIDATE=1` opt-in also runs each render's `make
+  validate`); Tier 3 `make review` (advisory two-model Ollama review —
+  `gpt-oss:120b` deep + `qwen3.5:9b` fast — of the branch diff, never
+  blocking). Evidence is append-only JSONL in gitignored `ci_logs/`.
+  Verified locally (Actions billing-locked): Tier 1 green (77 pytest +
+  smoke); Tier 2 default all 16 legs green (all 7 variants × both tools
+  + render-equivalence); Tier 2 `RUN_VALIDATE=1` honestly fails on a
+  pre-existing rendered-test bug (the fail-fast masking was found and
+  fixed — a subshell `set -e` is suppressed under `|| st=fail`, so an
+  `&&` chain is used instead); Tier 3 produced a real review with
+  correct Ollama-down (exit 3) / model-missing (skip) handling. Filed
+  [#135](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/135):
+  the Tier-2 full-validate mode caught a pre-existing template-test bug
+  that billing-locked cloud CI never ran —
+  `test_validation_scripts.py`'s sbom test references
+  `scripts/generate-sbom.sh` without gating on `include_sbom` (pruned
+  for `include_sbom=no`), plus three failures to triage. Surfaced (not
+  committed): repo-root `.env` holds a live-looking GitHub PAT in
+  cleartext — rotate if real. Workspace hygiene: PR branch deleted
+  local+remote on squash-merge, refs pruned; the 294 MB gitignored
+  `artifacts/` tree left intact.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

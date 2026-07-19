@@ -127,6 +127,45 @@ class ValidationScriptTests(unittest.TestCase):
         self.assertIn(".hidden.md", fallback.stdout + fallback.stderr)
         self.assertIn("ignored.md", fallback.stdout + fallback.stderr)
 
+    def test_marker_scan_fails_loudly_when_surfaces_loader_crashes(self) -> None:
+        # Regression test for the CRIT-001 vacuous-scan bug (issue #119): a
+        # governance loader that crashes only on --list-marker-surfaces
+        # (while the preceding --marker-regex call still succeeds) must not
+        # silently leave `surfaces` empty and let the scan proceed against
+        # zero surfaces. It must exit non-zero and name the failing loader
+        # invocation, mirroring
+        # test_skill_contracts.py::test_governance_check_fails_loudly_on_corrupt_rules_file.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _copy_scripts(root, "marker-scan.sh")
+            lib = root / "scripts" / "lib"
+            shutil.copy2(SCRIPTS / "lib" / "governance.py", lib / "governance.py")
+            # Valid prohibited_markers.pattern_pairs (so --marker-regex
+            # succeeds) but surfaces explicitly null: the key IS present,
+            # so GovernanceRules.get_marker_surfaces()'s
+            # `.get("surfaces", [])` default does not apply, and
+            # `list(None)` raises, giving --list-marker-surfaces a
+            # non-zero exit.
+            (root / "governance-rules.yaml").write_text(
+                "prohibited_markers:\n"
+                "  pattern_pairs:\n"
+                "    - [TO, DO]\n"
+                "  surfaces: null\n"
+            )
+            subprocess.run(  # nosec B603, B607 # nosemgrep - fixed argv
+                ["git", "init", "-q"], cwd=root, check=True
+            )
+            result = subprocess.run(  # nosec B603 # nosemgrep - fixed argv, repo-local scripts
+                [BASH, "scripts/marker-scan.sh"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("governance loader failed", result.stderr)
+
     def test_doc_drift_deduplicates_without_associative_arrays(self) -> None:
         self.assertNotIn("declare -A", (SCRIPTS / "check-doc-drift.sh").read_text())
         with tempfile.TemporaryDirectory() as tmp:

@@ -28,13 +28,28 @@ fi
 
 # Marker regex is assembled from split [prefix, suffix] pairs in the
 # YAML so the rules file itself never carries the literal forbidden
-# strings. Surfaces are loaded from governance-rules.yaml. Read-loop
-# substitutes for `mapfile -t` (bash 4+) so this stays bash 3.2-safe.
+# strings. Surfaces are loaded from governance-rules.yaml. The
+# surfaces read is captured into a plain variable first, then parsed
+# line-by-line into an array (rather than read directly from a
+# `done < <(...)` process substitution): under `set -euo pipefail`, a
+# process substitution's exit status is invisible to the enclosing
+# `while` loop, so a governance loader crash specific to
+# `--list-marker-surfaces` would otherwise silently leave `surfaces`
+# empty and the scan would proceed against zero surfaces instead of
+# failing (see CHANGELOG.md, issue #119). The `if ! var="$(...)"`
+# guard form propagates the loader's exit code and lets the script
+# log a diagnostic naming the exact failing invocation before exiting
+# non-zero. The `<<<` here-string parse (rather than `mapfile -t`,
+# bash 4+) keeps this bash 3.2-safe.
 markers="$("${GOV_LOADER[@]}" --marker-regex)"
+if ! surfaces_raw="$("${GOV_LOADER[@]}" --list-marker-surfaces)"; then
+  log_error "governance loader failed: ${GOV_LOADER[*]} --list-marker-surfaces"
+  exit 1
+fi
 surfaces=()
 while IFS= read -r line; do
   [[ -n "$line" ]] && surfaces+=("$line")
-done < <("${GOV_LOADER[@]}" --list-marker-surfaces)
+done <<< "$surfaces_raw"
 
 if [[ -z "$markers" ]]; then
   log_error "no prohibited markers configured in $GOV_RULES"

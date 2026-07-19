@@ -101,11 +101,11 @@ frontmatter_value() {
 # vacuously (see CHANGELOG.md, issue #104). The `if ! var="$(...)"`
 # guard form propagates the loader's exit code and lets the script
 # log a diagnostic naming the exact failing invocation before
-# exiting non-zero. (`scripts/marker-scan.sh` captures its
-# `--marker-regex` read into a plain variable, but its
-# `--list-marker-surfaces` read still uses the unguarded
-# `done < <(...)` form and carries a milder instance of this same
-# vacuous-pass risk — tracked separately, not fixed here.)
+# exiting non-zero. (`scripts/marker-scan.sh` carried a milder
+# instance of this same vacuous-pass risk in its
+# `--list-marker-surfaces` read, which used the unguarded
+# `done < <(...)` form; issue #119 applied this same capture-first
+# guard there too.)
 
 if ! required_files_raw="$("${GOV_LOADER[@]}" --list-required-files)"; then
   log_error "governance loader failed: ${GOV_LOADER[*]} --list-required-files"

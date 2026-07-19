@@ -114,7 +114,11 @@ python3 tests/test_skill_contracts.py
 ### Validation scripts: `test_validation_scripts.py`
 
 - Framework: `unittest`
-- Coverage: shell-validator correctness and portability regressions
+- Coverage: shell-validator correctness and portability regressions,
+  including the CRIT-001 regression that a governance loader crashing
+  only on `--list-marker-surfaces` (while `--marker-regex` still
+  succeeds) makes `marker-scan.sh` exit non-zero with a diagnostic
+  instead of vacuously scanning zero surfaces
 
 Run with:
 

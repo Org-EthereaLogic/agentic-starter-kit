@@ -62,7 +62,12 @@ cookiecutter syntax in them is intentional. Review this git diff for:
 - broken Jinja or cookiecutter variables/conditionals, and any unrendered '{{ ... }}';
 - cookiecutter<->copier prune PARITY: hooks/post_gen_project.py (prune_language_files,
   _prune_variants) must stay aligned with copier.yml _tasks and hooks/_prune_pyproject.py;
-- the copier _envops pitfall: a literal '[#' (e.g. a markdown [#NNN] link) breaks copier renders;
+- the copier _envops pitfall: a literal '[#' (e.g. a markdown [#NNN] link) breaks copier
+  renders, but ONLY inside {{cookiecutter.project_slug}}/. copier.yml sets _subdirectory to
+  that tree, so repo-root files (CHANGELOG.md, docs/**, README.md, AGENTS.md) are never
+  rendered and '[#NNN]' links there are correct and expected -- docs/PROJECT_DASHBOARD.md
+  alone already carries 65 of them. Do NOT flag '[#' outside the template tree; the guard
+  test tests/test_no_copier_comment_collision.py scans only the template tree for this reason;
 - governance / CRIT-NNN rules and shell portability (macOS bash 3.2 vs bash 4+).
 Be concise and specific, citing file + hunk. If nothing is wrong, say so briefly.
 Diff stat:${stat}${note}

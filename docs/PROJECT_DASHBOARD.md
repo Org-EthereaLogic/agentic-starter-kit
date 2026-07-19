@@ -35,10 +35,9 @@ optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
 plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128,
-#109/#130, #110/#132, #133/#136, and #135/#138. The current follow-on queue is
-[#111 and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering refactoring/optimization (#111) and the `marker-scan.sh`
-vacuous-pass follow-up (#119). Sprint 1
+#109/#130, #110/#132, #133/#136, #135/#138, and #119/#140. The current follow-on queue is
+[#111](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering refactoring/optimization (#111). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
@@ -134,12 +133,16 @@ series. All close tracked issues.
 | [#110](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/110) | [#132](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/132) | Template pruning correctness: orphaned `test_audit_hooks` twins shipped to the wrong language path (unused `.cjs` on python renders, dead `.py` on typescript) now pruned in both the cookiecutter hook and the copier `_tasks` mirror; the dead `docs/sbom-policy.md` prune entry resolved by authoring the planned CycloneDX SBOM generation/review policy (GAP-022/044 → landed); typo'd/unknown variant sentinel keys and nested/unbalanced `# variant:` blocks now raise `VariantError` instead of silently dropping content or corrupting the pruned `pyproject.toml`, with a shared-fixture unit suite exercising both duplicated parser copies | tooling | ✅ |
 | [#133](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/133) | [#136](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/136) | Copier renders aborted because `_envops`'s `[#` comment-start (added to protect bash `${#arr[@]}`) collided with markdown `[#NNN]` issue-links; escaped the three offending links to `[issue #NNN]` (renders identically under both tools) with a `tests/` regression guard. Shipped alongside a **local CI** (`scripts/local-ci/`) standing in for billing-locked Actions — three tiers: host gate (`make local-ci`), OrbStack render matrix (`make ci-orb`), advisory two-model Ollama review (`make review`) | tooling | ✅ |
 | [#135](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/135) | [#138](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/138) | Rendered-project `make validate` failures in a clean CI container (first surfaced by the new local CI's `RUN_VALIDATE=1` mode; billing-locked Actions never ran these gates): `test_validation_scripts.py`'s sbom test copied `scripts/generate-sbom.sh` without gating on `include_sbom` (the script is pruned for `include_sbom=no`) → `FileNotFoundError`, now `@unittest.skipUnless((SCRIPTS/"generate-sbom.sh").exists())`; the two `post-create.sh` AI-CLI tests failed because `ensure_uv`'s sole unguarded `mktemp` aborted the script under their stub-only PATH → guarded with `command -v mktemp` (the `sudo` calls were already `if !`-guarded); the governance body-only-agent-key test triaged as already fixed by #130. Shipped via the ADWS pipeline (PROMOTE, 7/7 gates) | tooling | ✅ |
+| [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119) | [#140](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/140) | CRIT-001 `marker-scan.sh` vacuous-scan follow-up to #104: the `--list-marker-surfaces` read used an unguarded `done < <("${GOV_LOADER[@]}" ...)` process substitution, so under `set -euo pipefail` a governance-loader crash specific to that call (after `--marker-regex` had already succeeded) silently left `surfaces` empty and the scan proceeded against zero surfaces instead of failing. Replaced with the same capture-first `if ! surfaces_raw="$(...)"` guard + `<<<` here-string as `check-governance.sh` (bash 3.2-safe); added a regression test (`surfaces: null` fixture asserting non-zero exit **and** `governance loader failed` on stderr, proven non-tautological against the pre-fix script); corrected the now-stale `check-governance.sh` cross-reference comment. Shipped via the ADWS pipeline (PROMOTE with warnings, 7/7 gates, exit 10) | tooling | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
-> — `marker-scan.sh` retains an unguarded `done < <(...)` read for
+> — `marker-scan.sh` retained an unguarded `done < <(...)` read for
 > `--list-marker-surfaces` with a milder instance of the same
-> vacuous-pass risk (`Sprint: Backlog`).
+> vacuous-pass risk. **Resolved in
+> [#140](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/140)**
+> — same capture-first guard as `check-governance.sh`, with a
+> regression test.
 
 > Follow-up filed during the #105 work:
 > [#122](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/122)
@@ -463,4 +466,26 @@ job is to be readable from the repo at a glance.
   actionable comments (5/5 pre-merge checks), Copilot billing-locked;
   merged with `--admin` over billing-locked Actions. Branch deleted
   local+remote; `artifacts/` evidence tree intact.
+- Updated 2026-07-19 (twelfth post-merge sync): shipped
+  [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)/[#140](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/140)
+  — the CRIT-001 `marker-scan.sh` vacuous-scan follow-up filed during
+  the #104/#118 review, run end-to-end through the ADWS pipeline
+  (`job_20260719_0003`, patch → PROMOTE with warnings, exit 10; 7/7
+  gates on first attempt, 9/9 validators pass, consensus clean both
+  rounds, grader 3/4 satisfied + 1 partial, zero rewinds/parse
+  failures). Replaced the unguarded
+  `done < <("${GOV_LOADER[@]}" --list-marker-surfaces)` read with the
+  same capture-first `if ! surfaces_raw="$(...)"` guard + `<<<`
+  here-string as `check-governance.sh` — a loader crash on that call
+  now exits non-zero with a named diagnostic instead of scanning zero
+  surfaces; added a `surfaces: null` regression test (asserts non-zero
+  exit + `governance loader failed`, proven non-tautological against
+  the pre-fix script); corrected the now-stale `check-governance.sh`
+  cross-reference comment. Validation: full `test_validation_scripts.py`
+  suite 5/5 on both Linux (bash 5.2) and macOS (bash 3.2.57);
+  `marker-scan.sh` still exits 0 on the real `governance-rules.yaml`.
+  The single grader warning is AC3's runtime assertions being
+  ungradeable from the static diff alone (proven in the test-phase
+  evidence). Merged with `--admin` over billing-locked Actions; branch
+  deleted local+remote; `artifacts/` evidence tree intact.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

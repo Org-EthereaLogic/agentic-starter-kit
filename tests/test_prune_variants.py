@@ -33,7 +33,7 @@ def _load(filename: str, modname: str) -> ModuleType:
     is guarded by ``if __name__ == "__main__"``.
     """
     spec = importlib.util.spec_from_file_location(modname, HOOKS / filename)
-    assert spec and spec.loader
+    assert spec and spec.loader  # nosec B101
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -156,7 +156,7 @@ VALID_CASES = [
     [pytest.param(t, a, e, id=n) for n, t, a, e in VALID_CASES],
 )
 def test_valid_output(prune, exc, text: str, answers: dict, expected: str) -> None:
-    assert prune(text, answers) == expected
+    assert prune(text, answers) == expected  # nosec B101
 
 
 # --- Malformed input: raises VariantError ---------------------------------
@@ -242,11 +242,11 @@ def test_malformed_raises(prune, exc, text: str, answers: dict, match: str) -> N
 
 def test_variant_error_is_value_error() -> None:
     """Callers can catch either copy's error as a plain ``ValueError``."""
-    assert issubclass(_pp.VariantError, ValueError)
-    assert issubclass(_pg.VariantError, ValueError)
+    assert issubclass(_pp.VariantError, ValueError)  # nosec B101
+    assert issubclass(_pg.VariantError, ValueError)  # nosec B101
 
 
 def test_both_impls_agree_on_a_batch() -> None:
     """Belt-and-braces: both copies produce identical output across cases."""
     for _name, text, answers, _expected in VALID_CASES:
-        assert _pp.prune_text(text, answers) == _pg._prune_variants(text, answers)
+        assert _pp.prune_text(text, answers) == _pg._prune_variants(text, answers)  # nosec B101

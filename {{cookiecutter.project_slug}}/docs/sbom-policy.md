@@ -41,7 +41,7 @@ register entry.
 Output files, one per ecosystem, are written under the `sbom/`
 directory at the project root:
 
-```
+```text
 sbom/sbom-python.cdx.json   ← Python path / polyglot
 sbom/sbom-node.cdx.json     ← TypeScript path / polyglot
 ```

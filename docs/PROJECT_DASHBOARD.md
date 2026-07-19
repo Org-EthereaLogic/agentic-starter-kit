@@ -488,4 +488,34 @@ job is to be readable from the repo at a glance.
   ungradeable from the static diff alone (proven in the test-phase
   evidence). Merged with `--admin` over billing-locked Actions; branch
   deleted local+remote; `artifacts/` evidence tree intact.
+- Updated 2026-07-19 (thirteenth post-merge sync): shipped
+  [#142](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/142)
+  — a docs-only follow-up to the #119/#140 merge. The `#104` CHANGELOG
+  entry's parenthetical still recorded that `marker-scan.sh` "retains an
+  unguarded `done < <(...)` read for `--list-marker-surfaces` ... tracked
+  separately", which #140 superseded. Appended a forward pointer to the
+  `#119` entry rather than rewriting the parenthetical — the changelog is
+  an append-only record of what was true at each release, so correcting
+  the historical claim in place would erase accurate history. No issue
+  filed; no source or template change. Validation: `tests/` 77 passed
+  (the 26 initial failures were a missing `cookiecutter` dep in the local
+  env, not the diff). Review: the two `make review` models split on
+  whether the literal `[#119]` link re-triggers the #133 copier
+  comment-delimiter collision — resolved against the flagging model, since
+  `copier.yml` sets `_subdirectory: {{cookiecutter.project_slug}}` so the
+  root `CHANGELOG.md` is never rendered (which is why
+  `test_no_copier_comment_collision.py` deliberately scans only
+  `TEMPLATE_ROOT`), confirmed empirically by a `copier copy --vcs-ref=HEAD`
+  render at `552ccdb` succeeding with exit 0. Its suggested `[[#119]]`
+  escape would have corrupted a working link to guard a non-existent
+  render path; adjudication recorded as a PR comment. The #133 collision
+  stays live for any `[#` added **under** `{{cookiecutter.project_slug}}/`.
+  Codacy 0 issues, CodeRabbit no actionable comments, Copilot
+  billing-locked; merged by plain squash (no `--admin` needed — the
+  billing-locked Actions are not required checks). Branch deleted
+  local+remote. Housekeeping: pruned four stale remote-tracking refs
+  (`docs/dashboard-sync-pr140`, `docs/sync-dashboard-issue135`,
+  `fix/issue-119-marker-scan-surfaces-guard`, `fix/issue-135-validate-clean-ci`)
+  already deleted on the remote; no untracked files present, and the
+  locally-excluded `artifacts/` evidence tree was left intact.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

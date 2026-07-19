@@ -58,7 +58,8 @@ while IFS= read -r id; do
   ids+=("$id")
 done < <(jq -r '.criteria[].id // empty' "$matrix")
 
-for id in "${ids[@]}"; do
+for id in "${ids[@]:-}"; do
+  [[ -z "$id" ]] && continue
   # source globs
   sources=()
   while IFS= read -r g; do
@@ -66,9 +67,9 @@ for id in "${ids[@]}"; do
     sources+=("$g")
   done < <(jq -r --arg id "$id" \
     '.criteria[] | select(.id == $id) | .source // [] | .[]' "$matrix")
-  for g in "${sources[@]}"; do
-    # shellcheck disable=SC2086
-    if ! compgen -G $g >/dev/null 2>&1; then
+  for g in "${sources[@]:-}"; do
+    [[ -z "$g" ]] && continue
+    if ! compgen -G "$g" >/dev/null 2>&1; then
       log_error "criterion $id source glob matches no files: $g"
     fi
   done
@@ -80,9 +81,9 @@ for id in "${ids[@]}"; do
     tests+=("$g")
   done < <(jq -r --arg id "$id" \
     '.criteria[] | select(.id == $id) | .tests // [] | .[]' "$matrix")
-  for g in "${tests[@]}"; do
-    # shellcheck disable=SC2086
-    if ! compgen -G $g >/dev/null 2>&1; then
+  for g in "${tests[@]:-}"; do
+    [[ -z "$g" ]] && continue
+    if ! compgen -G "$g" >/dev/null 2>&1; then
       log_error "criterion $id tests glob matches no files: $g"
     fi
   done
@@ -94,7 +95,8 @@ for id in "${ids[@]}"; do
     evidence+=("$path")
   done < <(jq -r --arg id "$id" \
     '.criteria[] | select(.id == $id) | .evidence // [] | .[]' "$matrix")
-  for path in "${evidence[@]}"; do
+  for path in "${evidence[@]:-}"; do
+    [[ -z "$path" ]] && continue
     if [[ ! -e "$path" ]]; then
       log_error "criterion $id evidence file missing: $path"
     fi

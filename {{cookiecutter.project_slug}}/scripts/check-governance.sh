@@ -29,16 +29,61 @@ fi
 frontmatter_has_key() {
   local file="$1"
   local key="$2"
-  grep -q "^[[:space:]]*$key:" "$file"
+  awk -v key="$key" '
+    NR == 1 {
+      if ($0 != "---") exit 1
+      opened = 1
+      next
+    }
+    $0 == "---" {
+      closed = 1
+      exit
+    }
+    {
+      line = $0
+      sub(/^[[:space:]]*/, "", line)
+      if (index(line, key ":") == 1) found = 1
+    }
+    END {
+      if (!opened || !closed || !found) exit 1
+    }
+  ' "$file"
 }
 
 frontmatter_value() {
   local file="$1"
   local key="$2"
-  grep -m1 "^[[:space:]]*$key:" "$file" \
-    | sed -E "s/^[[:space:]]*$key:[[:space:]]*//" \
-    | tr -d '"' \
-    | tr -d "'"
+  local value
+  if ! value="$(awk -v key="$key" '
+    NR == 1 {
+      if ($0 != "---") exit 1
+      opened = 1
+      next
+    }
+    $0 == "---" {
+      closed = 1
+      exit
+    }
+    {
+      line = $0
+      sub(/^[[:space:]]*/, "", line)
+      prefix = key ":"
+      if (!found && index(line, prefix) == 1) {
+        value = substr(line, length(prefix) + 1)
+        sub(/^[[:space:]]*/, "", value)
+        found = 1
+      }
+    }
+    END {
+      if (!opened || !closed || !found) exit 1
+      print value
+    }
+  ' "$file")"; then
+    return 1
+  fi
+  value="${value//\"/}"
+  value="${value//\'/}"
+  printf '%s\n' "$value"
 }
 
 # --- Strictly required files (Layer 1 + Layer 2 + Layer 4) ---

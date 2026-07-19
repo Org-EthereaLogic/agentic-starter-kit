@@ -72,7 +72,7 @@ sha_pin='@[0-9A-Fa-f]{40}([[:space:]]|$|#)'
 
 # Local actions (`./`), Docker action refs (`docker://`), and absolute
 # paths are not third-party GitHub Action refs and are excluded.
-skip_prefix='^(./|docker://|/)'
+skip_prefix='^(\./|docker://|/)'
 
 # Tag-pinned exceptions. The SLSA generator reusable workflow MUST
 # be referenced by a semver tag and not by a commit SHA: the trusted

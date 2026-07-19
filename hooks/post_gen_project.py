@@ -65,11 +65,13 @@ def prune_language_files() -> None:
         remove("package.json")
         remove("tsconfig.json")
         remove("tests/test_pre_tool_use_hook.js")
+        remove("tests/test_audit_hooks.cjs")
         remove(".claude/agents/typescript-pro.md")
         remove("QUICKSTART-TYPESCRIPT.md")
     elif PRIMARY_LANGUAGE == "typescript":
         remove("pyproject.toml")
         remove("tests/test_pre_tool_use_hook.py")
+        remove("tests/test_audit_hooks.py")
         remove("tests/test_governance_review.py")
         remove("tests/test_governance_loader.py")
         remove(".claude/agents/python-pro.md")
@@ -116,37 +118,79 @@ _PRUNE_BLOCK_BEGIN = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>[\w.-]+):
 _PRUNE_BLOCK_END = re.compile(r"^\s*#\s*variant:(?P<key>\w+)=(?P<val>[\w.-]+):end\s*$")
 
 
+class VariantError(ValueError):
+    """A variant sentinel is malformed (unknown key, nested/unbalanced block)."""
+
+
+def _require_known(key: str, answers: dict[str, str], lineno: int) -> None:
+    """Raise ``VariantError`` if ``key`` is not a recognised answer key.
+
+    A sentinel naming an unknown key (a future variant not yet wired in,
+    or a typo like ``typecheker``) would otherwise silently drop content
+    from *every* render; failing loudly turns that into a caught bug.
+    """
+    if key not in answers:
+        raise VariantError(
+            f"line {lineno}: unknown variant key '{key}' "
+            f"(known: {sorted(answers)})"
+        )
+
+
 def _prune_variants(text: str, answers: dict[str, str]) -> str:
+    """Return ``text`` with non-matching variant blocks/lines removed.
+
+    Raises ``VariantError`` on a malformed sentinel: an unknown key, a
+    nested block (nesting is not part of the contract), or an unbalanced
+    ``:begin``/``:end`` marker. Structural markers are validated even
+    inside a dropped block, so imbalance/nesting is always caught; an
+    inline sentinel inside a dropped block is unreachable (the whole
+    block is discarded) and needs no validation.
+    """
     out: list[str] = []
-    skip_block: tuple[str, str] | None = None
-    keep_block: tuple[str, str] | None = None
+    active: tuple[str, str, bool] | None = None  # (key, val, keep)
     trailing_newline = text.endswith("\n")
 
-    for line in text.splitlines():
+    for lineno, line in enumerate(text.splitlines(), 1):
         begin = _PRUNE_BLOCK_BEGIN.match(line)
         if begin:
-            tag = (begin["key"], begin["val"])
-            if answers.get(begin["key"]) == begin["val"]:
-                keep_block = tag
-            else:
-                skip_block = tag
+            key, val = begin["key"], begin["val"]
+            _require_known(key, answers, lineno)
+            if active is not None:
+                raise VariantError(
+                    f"line {lineno}: nested variant block '{key}={val}' "
+                    f"inside open '{active[0]}={active[1]}'"
+                )
+            active = (key, val, answers[key] == val)
             continue
+
         end = _PRUNE_BLOCK_END.match(line)
         if end:
-            tag = (end["key"], end["val"])
-            if skip_block == tag:
-                skip_block = None
-            elif keep_block == tag:
-                keep_block = None
+            key, val = end["key"], end["val"]
+            _require_known(key, answers, lineno)
+            if active is None or (active[0], active[1]) != (key, val):
+                raise VariantError(
+                    f"line {lineno}: unbalanced :end for '{key}={val}'"
+                )
+            active = None
             continue
-        if skip_block is not None:
+
+        if active is not None and not active[2]:  # inside a dropped block
             continue
+
         single = _PRUNE_LINE_SENTINEL.match(line)
         if single:
-            if answers.get(single["key"]) == single["val"]:
+            key, val = single["key"], single["val"]
+            _require_known(key, answers, lineno)
+            if answers[key] == val:
                 out.append(single["content"].rstrip())
             continue
+
         out.append(line)
+
+    if active is not None:
+        raise VariantError(
+            f"unclosed variant block '{active[0]}={active[1]}:begin'"
+        )
 
     return "\n".join(out) + ("\n" if trailing_newline else "")
 

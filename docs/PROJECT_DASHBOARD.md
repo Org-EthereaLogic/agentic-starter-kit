@@ -35,9 +35,13 @@ optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
 plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128,
-#109/#130, #110/#132, #133/#136, #135/#138, and #119/#140. The current follow-on queue is
-[#111](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering refactoring/optimization (#111). Sprint 1
+#109/#130, #110/#132, #133/#136, #135/#138, and #119/#140. The local CI
+(`scripts/local-ci/`) is now the adopted interim gate (#145). The current
+follow-on queue is
+[#111 and #144](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering refactoring/optimization (#111) and the last deep-gate failure —
+`check-governance.sh` accepting a body-only agent frontmatter key on Linux
+(#144). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
@@ -518,4 +522,30 @@ job is to be readable from the repo at a glance.
   `fix/issue-119-marker-scan-surfaces-guard`, `fix/issue-135-validate-clean-ci`)
   already deleted on the remote; no untracked files present, and the
   locally-excluded `artifacts/` evidence tree was left intact.
+- Updated 2026-07-19 (fourteenth post-merge sync): shipped
+  [#145](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/145)
+  — **adopted the local CI as the repo's gate** rather than a tool one
+  person happened to run. `.githooks/pre-push` is now **tracked** (it was
+  generated into an untracked file, so the gate existed on exactly one
+  machine); `make install-hooks` points `core.hooksPath` at `.githooks`
+  and chmods the tracked hook, mirroring the `make hooks-install`
+  convention the template already ships to generated projects, so one
+  command wires a fresh clone. `AGENTS.md` gains a **Local CI (interim
+  gate)** section stating the policy — `install-hooks` once per clone,
+  Tier 1 fires automatically on every push, `make ci-orb` before merging,
+  `make review` advisory only, paste the JSONL evidence into the PR body —
+  cross-referenced from *Workflow*. Dogfooded on its own PR: the pre-push
+  hook fired for real on `git push` (pytest 7s + render smoke, PASS) and
+  `make ci-orb` was green (all 7 variants × both tools + equivalence,
+  13s). Also re-checked the deep gate now that
+  [#138](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/138)
+  landed: `RUN_VALIDATE=1` went from four failures to **one**, so
+  `scripts/local-ci/README.md` was refreshed and the residual filed as
+  [#144](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/144)
+  — `check-governance.sh` exits 0 where
+  `test_governance_check_rejects_body_only_agent_key` expects a rejection,
+  i.e. a CRIT-002 gate passing vacuously on Linux/bash 5 (same class as
+  #104/#118 and #119/#140, and it will hit cloud CI once billing is
+  restored). Workspace hygiene: PR branch deleted local+remote on
+  squash-merge with refs pruned; `artifacts/` left intact.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

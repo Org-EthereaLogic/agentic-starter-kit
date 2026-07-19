@@ -34,12 +34,13 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
-plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128, and
-#109/#130. The current follow-on queue is
-[#110, #111, and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering template pruning (#110),
-refactoring/optimization (#111), and the `marker-scan.sh`
-vacuous-pass follow-up (#119). Sprint 1
+plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128,
+#109/#130, and #110/#132. The current follow-on queue is
+[#111, #119, and #133](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering refactoring/optimization (#111), the `marker-scan.sh`
+vacuous-pass follow-up (#119), and the copier `_envops`
+comment-delimiter collision that breaks copier renders (#133, filed
+during the #110 work). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
@@ -132,6 +133,7 @@ series. All close tracked issues.
 | [#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106) | [#126](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/126) | `npm test` on fresh scaffolds ran `vitest run` whose include glob never matched the template's node:test suites; repointed at `node --test` with recursive globs, dropped unused vitest devDependencies, fixed `test-typescript`'s missed `test_*.cjs` | tooling | ✅ |
 | [#107](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/107) | [#128](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/128) | devcontainer `post-create.sh` robustness: `ensure_uv` logged false success when the `curl \| sh` pipeline failed (no pipefail); curl missing from the `pkg_bin` apt map despite the comment's promise; unguarded `npm config set prefix` could abort the script under `set -eu` | tooling | ✅ |
 | [#109](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/109) | [#130](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/130) | Shell validation scripts correctness & portability: unquoted `compgen -G` suppressed drift errors for globs with spaces; frontmatter checks grepped the whole file instead of the `--- ... ---` block; unescaped `.` in the action-pin skip prefix exempted single-char-owner actions; `rg`-vs-`grep` marker-scan divergence pinned to one semantic (`rg --no-ignore --hidden`); `check-doc-drift.sh` no longer self-disables on macOS bash 3.2 (`sort -u` dedupe replaces the associative array); `generate-sbom.sh` writes to a temp file and `mv`s on success instead of leaving a truncated SBOM; plus a Critic-found bash 3.2 frontmatter/SIGPIPE fix | tooling | ✅ |
+| [#110](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/110) | [#132](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/132) | Template pruning correctness: orphaned `test_audit_hooks` twins shipped to the wrong language path (unused `.cjs` on python renders, dead `.py` on typescript) now pruned in both the cookiecutter hook and the copier `_tasks` mirror; the dead `docs/sbom-policy.md` prune entry resolved by authoring the planned CycloneDX SBOM generation/review policy (GAP-022/044 → landed); typo'd/unknown variant sentinel keys and nested/unbalanced `# variant:` blocks now raise `VariantError` instead of silently dropping content or corrupting the pruned `pyproject.toml`, with a shared-fixture unit suite exercising both duplicated parser copies | tooling | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
@@ -362,4 +364,45 @@ job is to be readable from the repo at a glance.
   typescript scaffold `npm test` 49/49, `ruff check` clean.
   Workspace hygiene: ADWS worktree removed and merged
   `adws/job_20260718_0008/…` branch deleted local+remote.
+- Updated 2026-07-19 (ninth post-merge sync): recorded
+  [#110](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/110)/[#132](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/132)
+  — the four template-pruning correctness gaps. (1) The orphaned
+  `test_audit_hooks` twins: a python render shipped an unused
+  `tests/test_audit_hooks.cjs` and a typescript render a dead `.py`
+  (nothing in `hooks.mk` ran the off-language twin), now pruned in
+  both the cookiecutter hook (`prune_language_files`) and the copier
+  `_tasks` mirror, with `LANGUAGE_MATRIX` extended to cover them. (2)
+  The dead `docs/sbom-policy.md` prune entry, resolved by authoring
+  the planned CycloneDX SBOM generation/review policy doc (GAP-022 and
+  GAP-044 flipped `planned` → `landed`; the entry becomes meaningful
+  and the `SECURITY.md`/`generate-sbom.sh` references now resolve). (3)
+  and (4) Two silent-corruption classes in the `# variant:` sentinel
+  parser — unknown/typo'd keys (previously dropped content from *every*
+  render) and nested/unbalanced blocks (could leak marker lines into
+  the pruned `pyproject.toml`) — now raise `VariantError`. The parser
+  fix landed identically in both duplicated copies
+  (`hooks/_prune_pyproject.py` for copier, `hooks/post_gen_project.py`
+  for cookiecutter), guarded by a new shared-fixture suite
+  (`tests/test_prune_variants.py`, 50 cases run against both copies).
+  Review feedback resolved pre-merge: CodeRabbit's MD040
+  fenced-block-language nitpick applied; Codacy's 11 findings were
+  bandit `B101` `assert` noise in the new test file (suppressed per the
+  repo `# nosec B101` convention) plus one pyright pytest-import false
+  positive. Validated locally pre-merge (Actions billing-locked, so no
+  green CI): full pytest suite 76 passed on 3.12; cookiecutter renders
+  confirm twin pruning and sbom-policy shipping/pruning across
+  python/typescript/polyglot; the copier prune script CLI prunes
+  correctly and exits non-zero with `VariantError` on a typo'd key.
+  Filed during verification:
+  [#133](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/133)
+  — a pre-existing bug where copier's `_envops` `[#` comment-start
+  (added to protect `${#arr[@]}` in shell scripts) collides with the
+  markdown link `[#102]` at `DIRECTIVES.md:184`, aborting every copier
+  render and reddening the whole `template-smoke-test` workflow on
+  `main` (independent of this change; also compounded by the
+  billing-locked Actions account). Workspace hygiene: PR branch deleted
+  local+remote on squash-merge with stale remote-tracking refs pruned;
+  throwaway caches (`.pytest_cache`, `__pycache__`, `.coverage`)
+  cleared; the 294 MB gitignored `artifacts/` ADWS evidence tree left
+  intact (prior syncs reference it as retained evidence).
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

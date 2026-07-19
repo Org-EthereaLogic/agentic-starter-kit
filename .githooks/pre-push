@@ -1,0 +1,13 @@
+#!/bin/sh
+# pre-push — run the Tier 1 local-CI gate before every push.
+#
+# GitHub Actions is billing-locked (no cloud CI, no review bots), so this
+# local gate is the interim pre-push CI. It runs `pytest tests/` plus a
+# default cookiecutter render smoke (~7s) and blocks the push on failure.
+#
+# Wired by `make install-hooks`, which points core.hooksPath at this
+# directory. Tracked in git so every maintainer gets the same gate.
+# See scripts/local-ci/README.md and AGENTS.md § Local CI.
+#
+# Emergency bypass: `git push --no-verify` (say why in the PR).
+exec bash scripts/local-ci/gate.sh

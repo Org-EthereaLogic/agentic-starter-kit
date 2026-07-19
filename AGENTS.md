@@ -52,6 +52,8 @@ Before substantive changes, read in this order:
 - Update path references in the same change when moving files.
 - Run focused checks first, then broader template validation when
   available.
+- The Tier 1 local-CI gate runs automatically on push; run `make ci-orb`
+  before merging (see *Local CI*).
 - Report verification evidence and any checks that were not run.
 
 ## Useful Checks
@@ -62,6 +64,29 @@ Before substantive changes, read in this order:
   dependencies are installed.
 - `grep -RIn --exclude-dir=.git "<old-path>" .` is the fallback stale
   path check when ripgrep is unavailable.
+
+## Local CI (interim gate)
+
+GitHub Actions is billing-locked, so no cloud CI or review bot runs.
+`scripts/local-ci/` is the interim gate; see its `README.md` for
+prerequisites (OrbStack, `ollama serve`, `uv`, `jq`).
+
+- `make install-hooks` — **once per clone.** Points `core.hooksPath` at
+  the tracked `.githooks/pre-push`, so **Tier 1 runs automatically on
+  every push**: `pytest tests/` plus a default render smoke (~7s). It
+  blocks the push on failure; `git push --no-verify` bypasses in a
+  genuine emergency (say why in the PR).
+- `make ci-orb` — **run before merging.** Renders all seven variants
+  under both cookiecutter and copier in a Linux container and checks
+  render-equivalence. `RUN_VALIDATE=1` additionally runs each render's
+  own `make validate` (deeper, and currently one known failure — see the
+  README).
+- `make review` — advisory only, never blocks. Two local models review
+  the branch diff; a second pair of eyes, not a sign-off, and not
+  independent verification.
+
+Paste the printed JSONL evidence record into the PR body; it stands in
+for the missing cloud check runs.
 
 ## Related Guides
 

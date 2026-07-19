@@ -50,12 +50,11 @@ review:
 codacy-local:
 	@bash .codacy/cli.sh analyze
 
-# Install a pre-push hook that runs the Tier 1 gate. Respects a configured
-# core.hooksPath (the repo may set it to .githooks); falls back to .git/hooks.
+# Wire the tracked .githooks/pre-push (Tier 1 gate) via core.hooksPath, so a
+# fresh clone gets the same gate with one command. Idempotent: `git config`
+# overwrites the same key. The hook itself is tracked, not generated here, so
+# there is a single source of truth.
 install-hooks:
-	@hooks_dir="$$(git config core.hooksPath 2>/dev/null)"; \
-	if [ -z "$$hooks_dir" ]; then hooks_dir="$$(git rev-parse --git-path hooks)"; fi; \
-	mkdir -p "$$hooks_dir"; \
-	printf '#!/bin/sh\nexec bash scripts/local-ci/gate.sh\n' > "$$hooks_dir/pre-push"; \
-	chmod +x "$$hooks_dir/pre-push"; \
-	echo "install-hooks: pre-push -> scripts/local-ci/gate.sh (in $$hooks_dir)"
+	@git config core.hooksPath .githooks
+	@chmod +x .githooks/pre-push 2>/dev/null || true
+	@echo "install-hooks: core.hooksPath -> .githooks; pre-push runs the Tier 1 gate (scripts/local-ci/gate.sh)"

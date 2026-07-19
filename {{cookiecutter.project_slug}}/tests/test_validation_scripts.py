@@ -88,6 +88,9 @@ class ValidationScriptTests(unittest.TestCase):
             (docs / ".hidden.md").write_text("TODO\n")
             (docs / "ignored.md").write_text("TODO\n")
             (root / ".gitignore").write_text("docs/ignored.md\n")
+            subprocess.run(  # nosec B603 # nosemgrep - fixed argv
+                ["git", "init", "-q"], cwd=root, check=True
+            )
             normal = subprocess.run(  # nosec B603 # nosemgrep - fixed argv, repo-local scripts
                 [BASH, "scripts/marker-scan.sh"],
                 cwd=root,

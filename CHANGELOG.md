@@ -40,6 +40,38 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ### Fixed
 
+- **Rendered `make validate` no longer fails on a clean, billing-lock
+  workaround CI run for four tests GitHub Actions never actually
+  exercised
+  ([#135](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/135)).**
+  `tests/test_validation_scripts.py::ValidationScriptTests::test_python_sbom_replaces_only_successful_output`
+  is now gated with
+  `@unittest.skipUnless((SCRIPTS / "generate-sbom.sh").exists(), ...)`,
+  matching the file's existing `jq`-presence skip idiom: the post-gen
+  hook prunes `scripts/generate-sbom.sh` on `include_sbom=no` renders,
+  so the test previously raised `FileNotFoundError` from
+  `_copy_scripts` on every such render; it now skips there and still
+  runs and passes unchanged on `include_sbom=yes` renders.
+  `.devcontainer/post-create.sh`'s `ensure_uv` now guards its
+  `uv_installer="$(mktemp)"` call with a `command -v mktemp` check
+  (logging and returning 0 when absent), mirroring the file's other
+  "log and continue" guards — this was the actual root cause of
+  `tests/test_post_create_ai_clis.py::test_skips_npm_install_when_npm_absent`
+  and `::test_skips_gh_copilot_when_gh_absent` failing under a clean
+  Linux render: both tests source the script with `PATH` restricted to
+  a stub-only directory (no `mktemp`), and the sourced file's own
+  trailing `main "$@"` reached `ensure_uv` — and died under `set -eu`
+  — before the driver ever exercised the npm/gh-absent branches the
+  tests assert on. Finally,
+  `tests/test_skill_contracts.py::SkillContractTests::test_governance_check_rejects_body_only_agent_key`
+  was triaged and found already passing on current main: commit
+  `7198373` (PR [#130](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/130))
+  scoped `check-governance.sh`'s `frontmatter_has_key` awk
+  implementation to exit at the first closing `---` fence, so an
+  agent-key line placed in the document body (after frontmatter) is
+  never scanned into `found` and the check correctly fails closed — no
+  further source change was required for that criterion.
+
 - **Devcontainer `post-create.sh` no longer logs a false "uv installed"
   success, silently skips installing `curl`, or can abort the
   container build on an npm-prefix reconfiguration failure

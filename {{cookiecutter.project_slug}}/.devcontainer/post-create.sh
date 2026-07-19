@@ -96,6 +96,10 @@ ensure_uv() {
   # (network blocked, 404, truncated download) behind sh's exit code,
   # which can be 0 on an empty/partial script and falsely report success.
   local uv_installer
+  if ! command -v mktemp >/dev/null 2>&1; then
+    log "mktemp not on PATH; skipping uv install (re-run this script manually)"
+    return 0
+  fi
   uv_installer="$(mktemp)"
   if ! curl -LsSf https://astral.sh/uv/install.sh -o "$uv_installer"; then
     log "uv install failed (continuing — re-run this script manually)"

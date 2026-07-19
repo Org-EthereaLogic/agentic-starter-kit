@@ -262,7 +262,10 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
   naming the exact loader invocation, and exit non-zero before any
   downstream check or the success line can run. (`scripts/marker-scan.sh`
   retains an unguarded `done < <(...)` read for `--list-marker-surfaces`
-  with a milder instance of the same risk; it is tracked separately.)
+  with a milder instance of the same risk; it is tracked separately —
+  since fixed, see
+  [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
+  under [Unreleased].)
   ([#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104))
 - **`Makefile.fragments/typescript.mk`'s `test-typescript` recipe no
   longer reports success on a failing JS test.** The recipe chained

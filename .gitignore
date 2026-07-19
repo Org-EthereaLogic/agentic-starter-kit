@@ -59,6 +59,9 @@ Thumbs.db
 *.log
 logs/
 
+# Local CI evidence sink (scripts/local-ci/*) — append-only JSONL + per-run logs
+ci_logs/
+
 # SBOM artifacts (template repo's own SBOM if generated)
 sbom/
 

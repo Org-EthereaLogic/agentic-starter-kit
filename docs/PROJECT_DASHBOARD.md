@@ -35,11 +35,10 @@ optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
 plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128,
-#109/#130, #110/#132, and #133/#136. The current follow-on queue is
-[#111, #119, and #135](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering refactoring/optimization (#111), the `marker-scan.sh`
-vacuous-pass follow-up (#119), and rendered-project `make validate`
-failures surfaced by the new local CI (#135). Sprint 1
+#109/#130, #110/#132, #133/#136, and #135/#138. The current follow-on queue is
+[#111 and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering refactoring/optimization (#111) and the `marker-scan.sh`
+vacuous-pass follow-up (#119). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
@@ -134,6 +133,7 @@ series. All close tracked issues.
 | [#109](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/109) | [#130](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/130) | Shell validation scripts correctness & portability: unquoted `compgen -G` suppressed drift errors for globs with spaces; frontmatter checks grepped the whole file instead of the `--- ... ---` block; unescaped `.` in the action-pin skip prefix exempted single-char-owner actions; `rg`-vs-`grep` marker-scan divergence pinned to one semantic (`rg --no-ignore --hidden`); `check-doc-drift.sh` no longer self-disables on macOS bash 3.2 (`sort -u` dedupe replaces the associative array); `generate-sbom.sh` writes to a temp file and `mv`s on success instead of leaving a truncated SBOM; plus a Critic-found bash 3.2 frontmatter/SIGPIPE fix | tooling | ✅ |
 | [#110](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/110) | [#132](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/132) | Template pruning correctness: orphaned `test_audit_hooks` twins shipped to the wrong language path (unused `.cjs` on python renders, dead `.py` on typescript) now pruned in both the cookiecutter hook and the copier `_tasks` mirror; the dead `docs/sbom-policy.md` prune entry resolved by authoring the planned CycloneDX SBOM generation/review policy (GAP-022/044 → landed); typo'd/unknown variant sentinel keys and nested/unbalanced `# variant:` blocks now raise `VariantError` instead of silently dropping content or corrupting the pruned `pyproject.toml`, with a shared-fixture unit suite exercising both duplicated parser copies | tooling | ✅ |
 | [#133](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/133) | [#136](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/136) | Copier renders aborted because `_envops`'s `[#` comment-start (added to protect bash `${#arr[@]}`) collided with markdown `[#NNN]` issue-links; escaped the three offending links to `[issue #NNN]` (renders identically under both tools) with a `tests/` regression guard. Shipped alongside a **local CI** (`scripts/local-ci/`) standing in for billing-locked Actions — three tiers: host gate (`make local-ci`), OrbStack render matrix (`make ci-orb`), advisory two-model Ollama review (`make review`) | tooling | ✅ |
+| [#135](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/135) | [#138](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/138) | Rendered-project `make validate` failures in a clean CI container (first surfaced by the new local CI's `RUN_VALIDATE=1` mode; billing-locked Actions never ran these gates): `test_validation_scripts.py`'s sbom test copied `scripts/generate-sbom.sh` without gating on `include_sbom` (the script is pruned for `include_sbom=no`) → `FileNotFoundError`, now `@unittest.skipUnless((SCRIPTS/"generate-sbom.sh").exists())`; the two `post-create.sh` AI-CLI tests failed because `ensure_uv`'s sole unguarded `mktemp` aborted the script under their stub-only PATH → guarded with `command -v mktemp` (the `sudo` calls were already `if !`-guarded); the governance body-only-agent-key test triaged as already fixed by #130. Shipped via the ADWS pipeline (PROMOTE, 7/7 gates) | tooling | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
@@ -440,4 +440,27 @@ job is to be readable from the repo at a glance.
   cleartext — rotate if real. Workspace hygiene: PR branch deleted
   local+remote on squash-merge, refs pruned; the 294 MB gitignored
   `artifacts/` tree left intact.
+- Updated 2026-07-19 (eleventh post-merge sync): shipped
+  [#135](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/135)/[#138](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/138)
+  — the first fix driven by the new local CI's Tier-2
+  `RUN_VALIDATE=1` findings, run end-to-end through the ADWS pipeline
+  (`job_20260719_0002`, patch → PROMOTE, exit 0; 7/7 gates on first
+  attempt, consensus clean both rounds, grader 4/4, zero rewinds/parse
+  failures). Gated `test_validation_scripts.py`'s sbom test on
+  `generate-sbom.sh` presence (`skipUnless` — skipped, not
+  `FileNotFoundError`, on `include_sbom=no`; still runs on `=yes`);
+  guarded `ensure_uv`'s sole unguarded `mktemp` in `post-create.sh`
+  (the real exit-127 crash under the two AI-CLI tests' stub-only PATH —
+  the `sudo` calls were already `if !`-guarded); triaged the governance
+  body-only-agent-key test as already resolved by #130 (awk scoped to
+  the first `--- ... ---` fence) — documented, no code change.
+  Validation: rendered `python-mit-ty` (`include_sbom=no`) under Py
+  3.12 = 133 passed, 1 skipped, 0 failed (baseline 3 failed); macOS
+  failure-set parity confirmed vs `main` — the two post-create tests
+  stay red on both from a pre-existing bash-3.2 `declare -A`
+  incompatibility at `post-create.sh:57` (`jq` unbound), out of #135's
+  scope and a follow-up candidate. Codacy 0 issues, CodeRabbit no
+  actionable comments (5/5 pre-merge checks), Copilot billing-locked;
+  merged with `--admin` over billing-locked Actions. Branch deleted
+  local+remote; `artifacts/` evidence tree intact.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

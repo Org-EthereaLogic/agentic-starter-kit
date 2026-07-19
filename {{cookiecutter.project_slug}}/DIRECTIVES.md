@@ -180,8 +180,8 @@ defense-in-depth** — a fast, agent-facing early block, **not** the
 guarantee.
 
 **Rationale.** A command-string matcher inspects the proposed command
-*before* the shell resolves it, so shell syntax can defeat it (issue
-[#102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102)).
+*before* the shell resolves it, so shell syntax can defeat it
+([issue #102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102)).
 Enforcement at the git layer runs *after* shell resolution and is the
 real boundary. **Honest scope:** git hooks are an operator-integrity
 control, not a sandbox. Two limitations are documented rather than

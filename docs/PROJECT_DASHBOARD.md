@@ -34,11 +34,10 @@ Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
-plus #104/#118, #108/#123, #105/#121, #106/#126, and #107/#128. The
-current follow-on queue is
-[#109, #110, #111, and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering shell-script
-correctness & portability (#109), template pruning (#110),
+plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128, and
+#109/#130. The current follow-on queue is
+[#110, #111, and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering template pruning (#110),
 refactoring/optimization (#111), and the `marker-scan.sh`
 vacuous-pass follow-up (#119). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
@@ -132,6 +131,7 @@ series. All close tracked issues.
 | [#105](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/105) | [#121](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/121) | `test-typescript` swallowed a failing `node --test` exit code (`\|\| echo` bound to the whole `&&` chain), so a red JS suite passed `make test` / `make validate`; rewritten with a three-way `find` guard (scan error → loud failure, no matches → WARN + exit 0, matches → run and propagate) | ci / tooling | ✅ |
 | [#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106) | [#126](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/126) | `npm test` on fresh scaffolds ran `vitest run` whose include glob never matched the template's node:test suites; repointed at `node --test` with recursive globs, dropped unused vitest devDependencies, fixed `test-typescript`'s missed `test_*.cjs` | tooling | ✅ |
 | [#107](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/107) | [#128](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/128) | devcontainer `post-create.sh` robustness: `ensure_uv` logged false success when the `curl \| sh` pipeline failed (no pipefail); curl missing from the `pkg_bin` apt map despite the comment's promise; unguarded `npm config set prefix` could abort the script under `set -eu` | tooling | ✅ |
+| [#109](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/109) | [#130](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/130) | Shell validation scripts correctness & portability: unquoted `compgen -G` suppressed drift errors for globs with spaces; frontmatter checks grepped the whole file instead of the `--- ... ---` block; unescaped `.` in the action-pin skip prefix exempted single-char-owner actions; `rg`-vs-`grep` marker-scan divergence pinned to one semantic (`rg --no-ignore --hidden`); `check-doc-drift.sh` no longer self-disables on macOS bash 3.2 (`sort -u` dedupe replaces the associative array); `generate-sbom.sh` writes to a temp file and `mv`s on success instead of leaving a truncated SBOM; plus a Critic-found bash 3.2 frontmatter/SIGPIPE fix | tooling | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
@@ -329,4 +329,37 @@ job is to be readable from the repo at a glance.
   sixth sync omitted from the July fixes table. Workspace hygiene:
   merged `adws/job_20260719_0001/…` branch deleted local+remote with
   its remote-tracking ref pruned.
+- Updated 2026-07-19 (eighth post-merge sync): recorded
+  [#109](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/109)/[#130](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/130)
+  — six correctness/portability fixes across the shell validation
+  scripts (quoted `compgen -G` glob resolution in
+  `check-traceability.sh`; frontmatter checks in
+  `check-governance.sh` constrained to the first `--- ... ---`
+  block; escaped action-pin skip prefix in `check-action-pins.sh`;
+  marker-scan search semantics pinned to `rg --no-ignore --hidden`
+  parity in `lib/common.sh`; `check-doc-drift.sh` bash-3.2-portable
+  dedupe so the gate no longer self-disables on macOS;
+  `generate-sbom.sh` temp-file + `mv` so failures cannot leave a
+  truncated SBOM), plus a Critic-found bash 3.2 frontmatter/SIGPIPE
+  fix, all with a new focused regression suite
+  (`tests/test_validation_scripts.py`, incl. a 200,000-line bash 3.2
+  regression). Produced through the ADWS pipeline
+  (job_20260718_0008): the initial run terminated
+  RETRY/TEST_GATE_FAILURE (execution report retained at
+  `artifacts/job_20260718_0008/`); the retry fixed the two real gate
+  blockers (ruff import order; the marker-fallback fixture's
+  `python3` symlink broke venv resolution and dropped PyYAML — now
+  an interpreter shim script) and confirmed the remaining 31
+  template-test failures byte-identical on `main` (pre-existing
+  macOS-env failures; the branch adds 8 newly passing tests, 0 new
+  failures). Review feedback resolved pre-merge: Codacy's 20 new
+  findings were bandit/semgrep noise on `subprocess.run` in the test
+  file (suppressed per repo `# nosec`/`# nosemgrep` convention,
+  Codacy green); CodeRabbit's two nitpicks applied (`git init` in
+  the marker-scan fixture so `.gitignore` scoping is genuinely
+  exercised; `B607` added to the git-init nosec). Validated locally
+  pre-merge (Actions still billing-locked): new suite 4/4, rendered
+  typescript scaffold `npm test` 49/49, `ruff check` clean.
+  Workspace hygiene: ADWS worktree removed and merged
+  `adws/job_20260718_0008/…` branch deleted local+remote.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

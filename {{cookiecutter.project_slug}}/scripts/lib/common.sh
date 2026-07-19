@@ -76,7 +76,7 @@ find_pattern_in_files() {
   local paths=("$@")
 
   if command -v rg >/dev/null 2>&1; then
-    rg --no-heading --line-number --color=never \
+    rg --hidden --no-ignore --no-heading --line-number --color=never \
       --regexp "$pattern" "${paths[@]}" 2>/dev/null || true
   else
     local matches=""

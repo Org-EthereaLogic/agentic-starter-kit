@@ -29,6 +29,8 @@ generated=0
 
 if [[ -f pyproject.toml ]]; then
   if command -v cyclonedx-py >/dev/null 2>&1; then
+    python_sbom="sbom/sbom-python.cdx.json"
+    python_tmp="$(mktemp "${python_sbom}.tmp.XXXXXX")"
     # `cyclonedx-py environment` introspects an installed Python
     # environment; the positional argument has to be either a venv
     # directory or an interpreter executable. Passing the project
@@ -38,12 +40,19 @@ if [[ -f pyproject.toml ]]; then
     # the script keeps working in environments where deps live
     # in system Python (some CI runners, Dockerfile builds).
     if [[ -d .venv ]]; then
-      cyclonedx-py environment .venv > sbom/sbom-python.cdx.json
+      if ! cyclonedx-py environment .venv > "$python_tmp"; then
+        rm -f "$python_tmp"
+        exit 1
+      fi
     else
       log_warn "no .venv at project root; using the current Python interpreter"
-      cyclonedx-py environment > sbom/sbom-python.cdx.json
+      if ! cyclonedx-py environment > "$python_tmp"; then
+        rm -f "$python_tmp"
+        exit 1
+      fi
     fi
-    log_ok "SBOM generated: sbom/sbom-python.cdx.json"
+    mv -f "$python_tmp" "$python_sbom"
+    log_ok "SBOM generated: $python_sbom"
     generated=$((generated + 1))
   else
     log_warn "cyclonedx-py not installed; install via 'pip install cyclonedx-bom'"
@@ -52,8 +61,14 @@ fi
 
 if [[ -f package.json ]]; then
   if command -v cyclonedx-npm >/dev/null 2>&1; then
-    cyclonedx-npm --output-file sbom/sbom-node.cdx.json
-    log_ok "SBOM generated: sbom/sbom-node.cdx.json"
+    node_sbom="sbom/sbom-node.cdx.json"
+    node_tmp="$(mktemp "${node_sbom}.tmp.XXXXXX")"
+    if ! cyclonedx-npm --output-file "$node_tmp"; then
+      rm -f "$node_tmp"
+      exit 1
+    fi
+    mv -f "$node_tmp" "$node_sbom"
+    log_ok "SBOM generated: $node_sbom"
     generated=$((generated + 1))
   else
     log_warn "cyclonedx-npm not installed; install via 'npm install -g @cyclonedx/cyclonedx-npm'"

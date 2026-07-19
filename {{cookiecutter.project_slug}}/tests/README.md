@@ -18,6 +18,11 @@ inventory, reviewed skill-language regressions, and the
 whitespace-tolerant frontmatter parsing enforced by
 `scripts/check-governance.sh`.
 
+The validation-script suite exercises shell-validator edge cases in
+temporary projects, including traceability globs with spaces, marker
+search scope, Bash-3.2-safe documentation drift deduplication, and
+atomic SBOM publication.
+
 **Test coverage:** hook regression suites plus Layer-3 contract
 checks across Python (`unittest`) and JavaScript (`node:test`).
 
@@ -104,6 +109,17 @@ Run with:
 
 ```sh
 python3 tests/test_skill_contracts.py
+```
+
+### Validation scripts: `test_validation_scripts.py`
+
+- Framework: `unittest`
+- Coverage: shell-validator correctness and portability regressions
+
+Run with:
+
+```sh
+python3 tests/test_validation_scripts.py
 ```
 
 ### Python hook driver: `test_pre_tool_use_hook.py`

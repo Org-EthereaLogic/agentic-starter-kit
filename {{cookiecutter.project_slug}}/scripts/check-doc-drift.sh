@@ -6,16 +6,6 @@
 # referenced path exists in the repo. Surfaces drift (referenced
 # path missing) as findings.
 
-# Bash 4+ is required for the associative array used to dedupe
-# findings. macOS ships Bash 3.2 by default and never upgrades it,
-# so soft-skip there with a hint instead of failing `make validate`.
-# Linux CI runs Bash 5+, so the check still gates on every PR.
-if (( BASH_VERSINFO[0] < 4 )); then
-    echo "check-doc-drift: Bash 4+ required (got ${BASH_VERSION}); skipping." >&2
-    echo "  On macOS: \`brew install bash\` and re-run via the Homebrew bash." >&2
-    exit 0
-fi
-
 set -euo pipefail
 
 # Source common utilities
@@ -53,7 +43,19 @@ fi
 backtick_path_regex='`[A-Za-z0-9_./-]+\.(md|json|sh|js|py|ts|yml|yaml|toml|cff)`'
 
 reset_counters
-declare -A reported
+reported=()
+
+finding_is_reported() {
+  local candidate="$1"
+  local existing
+  for existing in "${reported[@]:-}"; do
+    if [[ "$existing" == "$candidate" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 for f in "${md_files[@]}"; do
   while IFS= read -r raw; do
     [[ -z "$raw" ]] && continue
@@ -70,9 +72,9 @@ for f in "${md_files[@]}"; do
     # Resolve relative to repo root (the script is run from there).
     if [[ ! -e "$path" ]]; then
       key="${f}::${path}"
-      if [[ -z "${reported[$key]:-}" ]]; then
+      if ! finding_is_reported "$key"; then
         log_error "DRIFT in $f: referenced path does not exist: $path"
-        reported[$key]=1
+        reported+=("$key")
       fi
     fi
   done < <(grep -hoE "$backtick_path_regex" "$f" 2>/dev/null || true)

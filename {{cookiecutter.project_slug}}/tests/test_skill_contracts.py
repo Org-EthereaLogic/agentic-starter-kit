@@ -132,7 +132,7 @@ def _run_governance_check(project_root: Path) -> subprocess.CompletedProcess[str
         "PATH": f"{bin_dir}:{os.environ.get('PATH', '')}",
     }
     return subprocess.run(
-        ["bash", str(GOVERNANCE_CHECK)],
+        ["/bin/bash", str(GOVERNANCE_CHECK)],
         cwd=project_root,
         env=env,
         capture_output=True,
@@ -193,6 +193,22 @@ class SkillContractTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
 
+    def test_governance_check_accepts_large_valid_frontmatter(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            _create_minimal_project(tmp_path)
+            skill = tmp_path / ".claude" / "skills" / "run-validate.md"
+            text = skill.read_text()
+            text = text.replace(
+                "\n---\n",
+                "\n" + "# frontmatter padding\n" * 200_000 + "---\n",
+                1,
+            )
+            skill.write_text(text)
+            result = _run_governance_check(tmp_path)
+
+        self.assertEqual(result.returncode, 0, result.stderr + result.stdout)
+
     def test_governance_check_rejects_missing_skill_frontmatter(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
@@ -207,6 +223,42 @@ class SkillContractTests(unittest.TestCase):
                 flags=re.MULTILINE,
             )
             skill.write_text(text)
+            result = _run_governance_check(tmp_path)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("missing required frontmatter", result.stderr)
+
+    def test_governance_check_rejects_body_only_skill_key(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            _create_minimal_project(tmp_path)
+            skill = tmp_path / ".claude" / "skills" / "run-validate.md"
+            text = re.sub(
+                r"^description:.*\n",
+                "",
+                skill.read_text(),
+                count=1,
+                flags=re.MULTILINE,
+            )
+            skill.write_text(f"{text}\ndescription: body-only\n")
+            result = _run_governance_check(tmp_path)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("missing required frontmatter", result.stderr)
+
+    def test_governance_check_rejects_body_only_agent_key(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            _create_minimal_project(tmp_path)
+            agent = next((tmp_path / ".claude" / "agents").glob("*.md"))
+            text = re.sub(
+                r"^model:.*\n",
+                "",
+                agent.read_text(),
+                count=1,
+                flags=re.MULTILINE,
+            )
+            agent.write_text(f"{text}\nmodel: body-only\n")
             result = _run_governance_check(tmp_path)
 
         self.assertNotEqual(result.returncode, 0)

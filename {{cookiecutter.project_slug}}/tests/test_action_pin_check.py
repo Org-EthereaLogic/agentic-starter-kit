@@ -89,6 +89,18 @@ class ActionPinCheckTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_single_character_owner_is_not_a_local_action(self) -> None:
+        result = _run_checker(
+            "jobs:\n"
+            "  test:\n"
+            "    steps:\n"
+            "      - uses: x/action@v1\n",
+            "--strict",
+        )
+
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("x/action@v1", result.stdout)
+
     def test_slsa_generator_tag_pin_is_allowed(self) -> None:
         # The SLSA generator reusable workflow MUST be tag-pinned per
         # upstream policy (the trusted-workflow signature is anchored

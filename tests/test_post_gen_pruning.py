@@ -41,6 +41,7 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
         "present": (
             "pyproject.toml",
             "tests/test_pre_tool_use_hook.py",
+            "tests/test_audit_hooks.py",
             "tests/test_governance_review.py",
             "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
@@ -50,6 +51,7 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "package.json",
             "tsconfig.json",
             "tests/test_pre_tool_use_hook.js",
+            "tests/test_audit_hooks.cjs",
             ".claude/agents/typescript-pro.md",
             "QUICKSTART-TYPESCRIPT.md",
         ),
@@ -59,12 +61,14 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "package.json",
             "tsconfig.json",
             "tests/test_pre_tool_use_hook.js",
+            "tests/test_audit_hooks.cjs",
             ".claude/agents/typescript-pro.md",
             "QUICKSTART-TYPESCRIPT.md",
         ),
         "absent": (
             "pyproject.toml",
             "tests/test_pre_tool_use_hook.py",
+            "tests/test_audit_hooks.py",
             "tests/test_governance_review.py",
             "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
@@ -78,6 +82,8 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
             "tsconfig.json",
             "tests/test_pre_tool_use_hook.py",
             "tests/test_pre_tool_use_hook.js",
+            "tests/test_audit_hooks.py",
+            "tests/test_audit_hooks.cjs",
             "tests/test_governance_review.py",
             "tests/test_governance_loader.py",
             ".claude/agents/python-pro.md",
@@ -91,14 +97,11 @@ LANGUAGE_MATRIX: dict[str, dict[str, tuple[str, ...]]] = {
 
 # Flag → paths the post-gen hook removes when the flag is "no".
 # When the flag is "yes" the same paths must remain in the rendered tree.
-# `docs/sbom-policy.md` is intentionally excluded: the hook lists it for
-# defensive cleanup, but the template does not currently ship the file,
-# so its absence is not a meaningful signal.
 INCLUDE_FLAG_PATHS: dict[str, tuple[str, ...]] = {
     "include_codacy": (".codacy.yml",),
     "include_codecov": ("codecov.yaml",),
     "include_snyk": (".snyk",),
-    "include_sbom": ("scripts/generate-sbom.sh",),
+    "include_sbom": ("scripts/generate-sbom.sh", "docs/sbom-policy.md"),
     "include_devcontainer": (".devcontainer", "Dockerfile", ".dockerignore"),
     "include_docs_site": (
         "mkdocs.yml",

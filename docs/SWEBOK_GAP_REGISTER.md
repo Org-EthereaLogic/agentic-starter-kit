@@ -50,7 +50,7 @@ Anchored to ISO/IEC/IEEE 32675:2022 (DevOps).
 | GAP-019 | §3.4 | Security design patterns referenced from design docs | `specs/deep_specs/design-template.md` (security-patterns section) | n/a | planned |
 | GAP-020 | §6.4 | Security telemetry KPIs surfaced in monitoring | `docs/monitoring-strategy.md §4` | n/a | planned |
 | GAP-021 | §4.4 | CERT Top 10 self-audit map | `docs/cert-top-10-compliance.md` | n/a | planned |
-| GAP-022 | §1, §4.6 | SBOM policy + generation tooling (CycloneDX or SPDX) | `docs/sbom-policy.md` + `scripts/generate-sbom.sh` + CI job | `.github/workflows/ci.yml` (sbom job) | planned |
+| GAP-022 | §1, §4.6 | SBOM policy + generation tooling (CycloneDX or SPDX) | `docs/sbom-policy.md` + `scripts/generate-sbom.sh` + CI job | `.github/workflows/ci.yml` (sbom job) | landed |
 | GAP-023 | §3.2 | Secrets-handling policy (template-level, not project-specific) | `docs/security/secrets-policy.md` | `make marker-scan` (extended) | planned |
 | GAP-024 | §1.1 | Asset inventory and data classification | `docs/THREAT_MODEL.md §2` | n/a | planned |
 | GAP-025 | §3.5 | Security testing levels (SAST + DAST + dependency + secret scan) | `docs/SECURITY_PROGRAM.md §4` + CI jobs | `.github/workflows/ci.yml` | planned |
@@ -102,7 +102,7 @@ Anchored to IEEE 42010.
 | GAP-041 | IEEE 42010 (Architecture description) | `docs/STANDARDS.md`, `docs/ARCHITECTURE.md` header | planned |
 | GAP-042 | AGENTS.md (Linux Foundation Agentic AI Foundation) | `docs/STANDARDS.md`, `AGENTS.md` itself | planned |
 | GAP-043 | IEEE 2675 (Continuous risk for DevOps) | `docs/STANDARDS.md`, `docs/operations/risk-management.md` | planned |
-| GAP-044 | CycloneDX or SPDX (SBOM) | `docs/sbom-policy.md`, `docs/STANDARDS.md` | planned |
+| GAP-044 | CycloneDX or SPDX (SBOM) | `docs/sbom-policy.md`, `docs/STANDARDS.md` | landed |
 | GAP-045 | CERT Top 10 (Secure coding) | `docs/cert-top-10-compliance.md`, `docs/STANDARDS.md` | planned |
 | GAP-046 | SWEBOK v4.0a (overall reference) | `docs/STANDARDS.md` | planned |
 

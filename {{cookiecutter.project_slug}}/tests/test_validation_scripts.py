@@ -149,6 +149,10 @@ class ValidationScriptTests(unittest.TestCase):
             1,
         )
 
+    @unittest.skipUnless(
+        (SCRIPTS / "generate-sbom.sh").exists(),
+        "generate-sbom.sh not present (include_sbom=no render)",
+    )
     def test_python_sbom_replaces_only_successful_output(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

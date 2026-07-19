@@ -40,6 +40,25 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ### Fixed
 
+- **`scripts/marker-scan.sh` no longer vacuously scans zero surfaces
+  when the governance loader crashes on `--list-marker-surfaces`
+  (CRIT-001, a milder instance of the CRIT-002 bug fixed in
+  [#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104)).**
+  The script filled its `surfaces` array from a `while read` loop over
+  a process substitution piping `scripts/lib/governance.py
+  --list-marker-surfaces`. Under `set -euo pipefail`, a process
+  substitution's exit status is invisible to the enclosing loop, so a
+  loader crash specific to that call (while the preceding
+  `--marker-regex` call still succeeded) silently left `surfaces`
+  empty and the scan proceeded against zero surfaces instead of
+  failing. The read now captures the loader's raw output into a plain
+  variable first, guards it with `if ! surfaces_raw="$(...)"` so the
+  loader's exit code propagates, fails loudly with a diagnostic naming
+  the exact failing invocation, and exits non-zero — mirroring the
+  capture-first guard idiom already used in
+  `scripts/check-governance.sh`. A regression test was added to
+  `tests/test_validation_scripts.py`.
+  ([#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119))
 - **Rendered `make validate` no longer fails on a clean, billing-lock
   workaround CI run for four tests GitHub Actions never actually
   exercised

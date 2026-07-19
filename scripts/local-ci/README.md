@@ -72,12 +72,15 @@ make install-hooks                   # pre-push hook -> runs Tier 1 before every
 - **`RUN_VALIDATE` default is 0** (the reliable deterministic core: render +
   no-unrendered + shell-identity + YAML + equivalence, across all 7 variants ×
   both tools). `RUN_VALIDATE=1` additionally runs the rendered project's own
-  `make validate` in each render. It is opt-in because, in a clean Linux
-  container, it currently surfaces **pre-existing** rendered-test failures that
-  billing-locked cloud CI never actually ran — e.g. a `make validate` test that
-  references `scripts/generate-sbom.sh` without gating on `include_sbom` (the
-  file is pruned for `include_sbom=no`). These are tracked separately; the local
-  CI reporting them is the tool working, not a harness bug.
+  `make validate` in each render. It stays opt-in because, in a clean Linux
+  container, it surfaces **pre-existing** rendered-test failures that
+  billing-locked cloud CI never actually ran. Of the four it originally found,
+  #138 fixed three (the `generate-sbom.sh` test not gated on `include_sbom`,
+  plus two `post-create.sh` `mktemp` cases). **One remains** (#144):
+  `tests/test_skill_contracts.py::SkillContractTests::test_governance_check_rejects_body_only_agent_key`
+  — `check-governance.sh` exits 0 where the test expects a rejection. Until
+  #144 lands, `RUN_VALIDATE=1` reports one failing leg; the local CI reporting
+  it is the tool working, not a harness bug.
 - **Offline matrix**: every Tier-2 leg renders with `include_promptfoo=no` so
   `make validate`'s `eval` step (which calls an external LLM provider) is
   skipped. Everything else mirrors cloud CI.

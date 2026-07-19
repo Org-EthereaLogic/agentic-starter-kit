@@ -58,6 +58,7 @@ ensure_apt_packages() {
     [jq]=jq
     [ripgrep]=rg
     [make]=make
+    [curl]=curl
   )
   local missing=()
   for pkg in "${!pkg_bin[@]}"; do
@@ -66,7 +67,7 @@ ensure_apt_packages() {
     fi
   done
   if [ "${#missing[@]}" -eq 0 ]; then
-    log "apt packages already present (jq, ripgrep, make)"
+    log "apt packages already present (jq, ripgrep, make, curl)"
     return 0
   fi
   log "installing apt packages: ${missing[*]}"
@@ -90,12 +91,28 @@ ensure_uv() {
   log "installing uv (Astral) to /usr/local/bin"
   # Drop the binary into a system-wide location so it survives across
   # shells without relying on the user's ~/.local/bin being on PATH.
-  if ! curl -LsSf https://astral.sh/uv/install.sh \
-        | sudo env UV_INSTALL_DIR=/usr/local/bin UV_NO_MODIFY_PATH=1 sh; then
+  # Download to a temp file and check curl's own exit status before
+  # running it — piping curl directly into `sh` masks a curl failure
+  # (network blocked, 404, truncated download) behind sh's exit code,
+  # which can be 0 on an empty/partial script and falsely report success.
+  local uv_installer
+  uv_installer="$(mktemp)"
+  if ! curl -LsSf https://astral.sh/uv/install.sh -o "$uv_installer"; then
     log "uv install failed (continuing — re-run this script manually)"
+    rm -f "$uv_installer"
     return 0
   fi
-  log "uv installed: $(uv --version)"
+  if ! sudo env UV_INSTALL_DIR=/usr/local/bin UV_NO_MODIFY_PATH=1 sh "$uv_installer"; then
+    log "uv install failed (continuing — re-run this script manually)"
+    rm -f "$uv_installer"
+    return 0
+  fi
+  rm -f "$uv_installer"
+  if command -v uv >/dev/null 2>&1; then
+    log "uv installed: $(uv --version)"
+  else
+    log "uv install script reported success but 'uv' is not on PATH (continuing — re-run this script manually)"
+  fi
 }
 
 ensure_ai_clis() {
@@ -114,8 +131,8 @@ ensure_ai_clis() {
     npm_prefix=$(npm config get prefix 2>/dev/null) || npm_prefix=""
     if [ -n "$npm_prefix" ] && [ ! -w "$npm_prefix" ]; then
       log "npm global prefix '${npm_prefix}' not writable — reconfiguring to \$HOME/.npm-global"
-      npm config set prefix "$HOME/.npm-global"
-      mkdir -p "$HOME/.npm-global/bin"
+      npm config set prefix "$HOME/.npm-global" || log "npm config set prefix failed (continuing — npm-distributed AI CLI installs may fail)"
+      mkdir -p "$HOME/.npm-global/bin" || log "mkdir -p \$HOME/.npm-global/bin failed (continuing — npm-distributed AI CLI installs may fail)"
       export PATH="$HOME/.npm-global/bin:$PATH"
     fi
 

@@ -40,6 +40,25 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ### Fixed
 
+- **Devcontainer `post-create.sh` no longer logs a false "uv installed"
+  success, silently skips installing `curl`, or can abort the
+  container build on an npm-prefix reconfiguration failure
+  ([#107](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/107)).**
+  `ensure_uv` now downloads the Astral install script to a temp file
+  and checks curl's own exit status before running it — previously the
+  `curl ... | sudo ... sh` pipeline only checked `sh`'s exit code,
+  which could report success on an empty or truncated download; it
+  also gates the "uv installed" log line on `command -v uv` actually
+  resolving. The `pkg_bin` map in `ensure_apt_packages` gained a
+  `[curl]=curl` entry so the apt install step actually installs curl
+  when absent, matching the promise already made by the
+  `check_outbound_network` comment and log message. The
+  `npm config set prefix` and companion `mkdir -p` calls in
+  `ensure_ai_clis` are now guarded with `|| log ...` so a failure
+  there (e.g. read-only `$HOME`) reports and continues instead of
+  aborting the whole script under `set -eu`, preserving the script's
+  "never fails the container build" contract.
+
 - **`npm test` no longer reports "No test files found" on a freshly
   rendered TypeScript or polyglot scaffold
   ([#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106)).**

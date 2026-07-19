@@ -1,0 +1,33 @@
+# Dockerfile.ci — local CI image mirroring the cloud runner environment
+# (Python 3.12 + Node 20). Running the matrix in Linux is deliberate: several
+# rendered-project scripts assume bash 4+ (e.g. check-doc-drift.sh) and jq, and
+# broke on macOS's stock bash 3.2 — this image sidesteps that.
+#
+# Deps are baked as root so the container can run as the host uid with the repo
+# bind-mounted at /repo (nothing is COPYed in — the working tree is the source).
+# Non-slim bookworm ships git + curl.
+FROM python:3.12-bookworm
+
+# Node 20 (the nodesource script runs apt-get update) + jq for the runner +
+# sudo, which the rendered project's devcontainer post-create tests invoke
+# (cloud runners have it; the slim base does not).
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+ && apt-get install -y --no-install-recommends nodejs jq sudo \
+ && rm -rf /var/lib/apt/lists/*
+
+# Template + render toolchain. uv provides ruff/ty at `make validate` time.
+RUN pip install --no-cache-dir \
+      uv cookiecutter copier pytest pytest-cov mkdocs-material
+
+ENV npm_config_cache=/opt/npm-cache \
+    PYTHONDONTWRITEBYTECODE=1 \
+    RUFF_CACHE_DIR=/tmp/ruff \
+    PYTEST_ADDOPTS=-p\ no:cacheprovider
+
+# promptfoo is only needed when a leg enables it; run-matrix.sh renders with
+# include_promptfoo=no to stay offline, so this is best-effort convenience.
+RUN mkdir -p /opt/npm-cache && chmod 0777 /opt/npm-cache \
+ && (npm install -g promptfoo >/dev/null 2>&1 || true)
+
+WORKDIR /repo
+CMD ["bash", "scripts/local-ci/run-matrix.sh"]

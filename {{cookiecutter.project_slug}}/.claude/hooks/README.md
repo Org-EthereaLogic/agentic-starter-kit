@@ -9,7 +9,7 @@ directory is registered in `.claude/settings.json`.
 > inspects the proposed command *string* before the shell resolves it,
 > so shell idioms (`eval`, `exec`, `\git`, `git${IFS}push`, `bash -cl`,
 > `sudo`/`doas`, `stdbuf`/`setsid`, `&` chains) can defeat it
-> (issue [#102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102)).
+> ([issue #102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102)).
 > The **primary, enforced** boundary is the git-layer hook —
 > [`../../.githooks/`](../../.githooks/README.md) (`pre-commit` +
 > `pre-merge-commit` + `pre-push`, installed via
@@ -68,8 +68,8 @@ attempted under load:
 8. **Chained subcommands.** `&&`, `||`, `;`, `|`, and newline
    separators — each subcommand is evaluated independently.
 
-Classes 9–15 close the seven bypass classes documented in issue
-[#102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102)
+Classes 9–15 close the seven bypass classes documented in
+[issue #102](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/102)
 (CRIT-008 hardening):
 
 9. **`HEAD` refspec destination.** `git push origin HEAD` while HEAD

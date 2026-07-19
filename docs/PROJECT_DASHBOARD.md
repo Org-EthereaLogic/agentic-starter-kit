@@ -30,14 +30,14 @@ then shipped opportunistically alongside Phase C.**
 
 Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 
-**Current state (2026-07-18):** all roadmap work and the original
+**Current state (2026-07-19):** all roadmap work and the original
 optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
-plus #104/#118, #108/#123, #105/#121, and #106/#126. The current
-follow-on queue is
-[#107, #109, #110, #111, and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering devcontainer post-create behavior (#107), shell-script
+plus #104/#118, #108/#123, #105/#121, #106/#126, and #107/#128. The
+current follow-on queue is
+[#109, #110, #111, and #119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
+covering shell-script
 correctness & portability (#109), template pruning (#110),
 refactoring/optimization (#111), and the `marker-scan.sh`
 vacuous-pass follow-up (#119). Sprint 1
@@ -130,6 +130,8 @@ series. All close tracked issues.
 | [#104](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/104) | [#118](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/118) | CRIT-002 gate passed vacuously when the governance loader crashed (process-substitution masked the exit code) | tooling | ✅ |
 | [#108](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/108) | [#123](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/123) | Eliminate `governance_review` false negatives for rule-data drift, malformed traceability, invalid UTF-8, empty YAML, and structural hook registration | governance | ✅ |
 | [#105](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/105) | [#121](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/121) | `test-typescript` swallowed a failing `node --test` exit code (`\|\| echo` bound to the whole `&&` chain), so a red JS suite passed `make test` / `make validate`; rewritten with a three-way `find` guard (scan error → loud failure, no matches → WARN + exit 0, matches → run and propagate) | ci / tooling | ✅ |
+| [#106](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/106) | [#126](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/126) | `npm test` on fresh scaffolds ran `vitest run` whose include glob never matched the template's node:test suites; repointed at `node --test` with recursive globs, dropped unused vitest devDependencies, fixed `test-typescript`'s missed `test_*.cjs` | tooling | ✅ |
+| [#107](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/107) | [#128](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/128) | devcontainer `post-create.sh` robustness: `ensure_uv` logged false success when the `curl \| sh` pipeline failed (no pipefail); curl missing from the `pkg_bin` apt map despite the comment's promise; unguarded `npm config set prefix` could abort the script under `set -eu` | tooling | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
@@ -301,4 +303,30 @@ job is to be readable from the repo at a glance.
   (`_to_delete/`) removed, and the stale zero-byte `.git/index.lock`
   (held open read-only by a desktop app, no live git process)
   removed per the F-10 checklist before applying the patches.
+- Updated 2026-07-19 (seventh post-merge sync): recorded
+  [#107](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/107)/[#128](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/128)
+  — three related robustness bugs in the template's devcontainer
+  `post-create.sh`: `ensure_uv` logged "uv installed" even when the
+  `curl \| sh` pipeline failed (`set -eu` without `pipefail` let an
+  empty-stdin `sh` exit 0), now fixed by downloading the installer to
+  a temp file, checking curl's own exit status, and gating the
+  success log on `command -v uv`; `[curl]=curl` added to the
+  `pkg_bin` apt map so the network-probe comment's "apt step will
+  install curl" promise is actually kept on minimal images; and
+  `npm config set prefix` plus its `mkdir -p` guarded with `\|\| log`
+  so a read-only npmrc can no longer abort the whole script,
+  preserving the "never fails the container build" contract.
+  Produced end-to-end through the ADWS pipeline (job_20260719_0001,
+  patch mode, clean PROMOTE, drift-grader 4/4 satisfied) — first run
+  orchestrated from the standalone `adws-pipeline-skill` workflow
+  rather than the in-repo copy; evidence tree retained at
+  `artifacts/job_20260719_0001/`. Validated locally pre-merge:
+  template pytest suite 26 passed; rendered typescript scaffold
+  `npm test` 49/49; `bash -n` + shellcheck clean on the modified
+  script (no new findings vs baseline). GitHub Actions remains
+  billing-locked, so the merge was gated on local validation as with
+  the prior batches. This sync also backfills the #106/#126 row the
+  sixth sync omitted from the July fixes table. Workspace hygiene:
+  merged `adws/job_20260719_0001/…` branch deleted local+remote with
+  its remote-tracking ref pruned.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)

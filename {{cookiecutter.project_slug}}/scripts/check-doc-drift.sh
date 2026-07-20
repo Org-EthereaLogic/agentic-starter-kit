@@ -20,14 +20,23 @@ if [[ ! -d docs && ! -d specs ]]; then
 fi
 
 # Collect markdown files (compatible with bash 3.2+).
-md_files=()
-while IFS= read -r f; do
-  [[ -z "$f" ]] && continue
-  md_files+=("$f")
-done < <(
+# The `|| true` matters under `set -o pipefail`: `find docs` and
+# `find specs` each individually may exit non-zero when only one of
+# the two directories exists (the guard above only early-exits when
+# BOTH are absent), and without it that non-zero would propagate
+# through the pipe into this command substitution and abort the whole
+# script via `set -e` — silently, since stderr is already suppressed.
+# The original `done < <(...)` process-substitution form this
+# replaces was immune to this by construction (a process
+# substitution's exit status is invisible to the enclosing command);
+# `|| true` restores that same tolerance for the capture-first form.
+md_files_raw="$(
   { find docs -name '*.md' 2>/dev/null; find specs -name '*.md' 2>/dev/null; } \
-    | sort -u
-)
+    | sort -u \
+    || true
+)"
+read_lines_into_array "$md_files_raw"
+md_files=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
 
 if [[ ${#md_files[@]} -eq 0 ]]; then
   echo "check-doc-drift: no markdown files in docs/ or specs/ yet"
@@ -56,7 +65,7 @@ finding_is_reported() {
   return 1
 }
 
-for f in "${md_files[@]}"; do
+for f in ${md_files[@]+"${md_files[@]}"}; do
   while IFS= read -r raw; do
     [[ -z "$raw" ]] && continue
     # Strip surrounding backticks.

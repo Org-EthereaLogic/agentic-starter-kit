@@ -285,6 +285,21 @@ def main() -> None:
     parser.add_argument("--list-optional-dirs", action="store_true", help="Emit optional_dirs (one per line)")
     parser.add_argument("--list-marker-surfaces", action="store_true", help="Emit prohibited_markers.surfaces (one per line)")
     parser.add_argument("--marker-regex", action="store_true", help="Emit the assembled prohibited-marker alternation regex")
+    parser.add_argument(
+        "--emit",
+        metavar="SECTION[,SECTION...]",
+        help=(
+            "Emit one or more enforcement-data sections in a single process "
+            "invocation, as tab-separated 'section<TAB>value' lines (comma-"
+            "separated section names, e.g. --emit required_files,optional_dirs). "
+            "List-valued sections emit one line per item; the scalar "
+            "marker_regex section emits a single line. Supported sections: "
+            "required_files, required_agents, required_skills, optional_dirs, "
+            "marker_surfaces, marker_regex. Lets callers that need several of "
+            "these lists (check-governance.sh, marker-scan.sh) start the "
+            "loader once instead of once per --list-* flag."
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -306,6 +321,47 @@ def main() -> None:
             for item in getter():
                 print(item)
             sys.exit(0)
+
+    if args.emit:
+        list_sections: dict[str, Any] = {
+            "required_files": rules.get_required_files,
+            "required_agents": rules.get_required_agents,
+            "required_skills": rules.get_required_skills,
+            "optional_dirs": rules.get_optional_dirs,
+            "marker_surfaces": rules.get_marker_surfaces,
+        }
+        scalar_sections: dict[str, Any] = {
+            "marker_regex": rules.get_marker_regex,
+        }
+        requested = [s.strip() for s in args.emit.split(",") if s.strip()]
+        unknown = [s for s in requested if s not in list_sections and s not in scalar_sections]
+        if unknown:
+            print(f"ERROR: Unknown --emit section(s): {', '.join(unknown)}", file=sys.stderr)
+            sys.exit(1)
+        for section in requested:
+            values = (
+                list(list_sections[section]())
+                if section in list_sections
+                else [scalar_sections[section]()]
+            )
+            for item in values:
+                # The tab-separated line protocol frames exactly one item
+                # per line (`section<TAB>value\n`). A literal newline in a
+                # value would split it across lines and silently corrupt
+                # the downstream awk demux, so refuse to emit it rather
+                # than produce unrepresentable output (loud-failure
+                # philosophy). An embedded tab is fine: the demux strips
+                # only the leading `section<TAB>` prefix and preserves the
+                # rest of the line verbatim.
+                if "\n" in item:
+                    print(
+                        f"ERROR: --emit cannot represent a newline in section "
+                        f"'{section}' value: {item!r}",
+                        file=sys.stderr,
+                    )
+                    sys.exit(1)
+                print(f"{section}\t{item}")
+        sys.exit(0)
 
     if args.marker_regex:
         print(rules.get_marker_regex())
@@ -363,21 +419,39 @@ def main() -> None:
             print(f"ERROR: Directive not found: {args.id}", file=sys.stderr)
             sys.exit(1)
 
-    directives = rules.get_enabled_directives() if args.enabled else rules.data["directives"]
+    def emit_directive_listing() -> None:
+        """Print the directive listing, honouring --enabled / --class /
+        --automated / --json. Shared by the explicit ``--list`` selector
+        and the no-flag default so the two stay byte-identical."""
+        directives = rules.get_enabled_directives() if args.enabled else rules.data["directives"]
 
-    if args.class_name:
-        directives = [d for d in directives if d["class"] == args.class_name]
+        if args.class_name:
+            directives = [d for d in directives if d["class"] == args.class_name]
 
-    if args.automated:
-        automated_ids = {d["id"] for d in rules.get_automated_directives()}
-        directives = [d for d in directives if d["id"] in automated_ids]
+        if args.automated:
+            automated_ids = {d["id"] for d in rules.get_automated_directives()}
+            directives = [d for d in directives if d["id"] in automated_ids]
 
-    if args.json:
-        print(json.dumps(directives, indent=2))
-    else:
-        for d in directives:
-            status = "✓" if d.get("enabled", True) else "○"
-            print(f"{status} {d['id']:8} [{d['class']:11}] {d['title']}")
+        if args.json:
+            print(json.dumps(directives, indent=2))
+        else:
+            for d in directives:
+                status = "✓" if d.get("enabled", True) else "○"
+                print(f"{status} {d['id']:8} [{d['class']:11}] {d['title']}")
+
+    if args.list:
+        # `--list` is the explicit, documented selector for the directive
+        # listing. scripts/query-governance.sh forwards it (its usage
+        # example #1), so the flag must stay wired and actually read here,
+        # not merely parsed. Registering `--list` explicitly also resolves
+        # the argparse prefix ambiguity it would otherwise share with the
+        # `--list-*` enforcement-data flags. It produces the same output
+        # as the no-flag default below, so `--list` and a bare invocation
+        # are byte-identical.
+        emit_directive_listing()
+        sys.exit(0)
+
+    emit_directive_listing()
 
 
 if __name__ == "__main__":

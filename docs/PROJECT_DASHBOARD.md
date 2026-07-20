@@ -49,6 +49,58 @@ use the file's existing accepted `@pytest.mark.skipif(..., reason=...)` pattern.
 covered by #110/#132). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
+## Field verification — #144 / #147 candidate (2026-07-20)
+
+These are measured local-CI results for the PR #150 candidate, not hosted
+GitHub Actions results. The shipped code commit is
+`dd82f8921df98b3e2c4aa146ddf77281047cfee7`; retained focused evidence used
+the pre-ship test commit `916b0468e0608ea096bd22dab9d5d514421813a3`.
+
+- **#144 focused regression:**
+  `uv run --with pytest python -m pytest
+  '{{cookiecutter.project_slug}}/tests/test_skill_contracts.py::SkillContractTests::test_governance_check_rejects_body_only_agent_key'
+  -q` passed on macOS (`1 passed in 0.38s`) and in the Linux/arm64 local-CI
+  image (`1 passed in 0.10s`). The test selected the sorted non-README agent
+  and asserted that `check-governance.sh` returned nonzero with `missing
+  required frontmatter` after the body-only model-key mutation. The complete
+  `test_skill_contracts.py` run passed (`10 passed in 2.39s`).
+- **Tier 1 at the shipped commit:** the tracked pre-push gate passed with
+  `pytest` in 7s and default render smoke in 1s:
+  `{"event":"gate","run_id":"20260720T044837Z","git_commit":"dd82f8921df98b3e2c4aa146ddf77281047cfee7","branch":"adws/job_20260720_0003/issues-144-147-deep-green","dirty":false,"overall":"pass","steps":[{"step":"pytest","status":"pass","duration_s":7},{"step":"render-smoke","status":"pass","duration_s":1}]}`.
+- **#147 arbitrary UID/GID:** the Linux/arm64 image run with `--user
+  12345:23456` reported `uid=12345 gid=23456 cache-write=PASS
+  npm-cache-verify=PASS` (exit 0). The audit found no existing
+  `/opt/npm-cache` file or directory lacking other-write permission, and a
+  non-root descendant create/write passed; runtime `--user` behavior and
+  permissions outside `/opt/npm-cache` were unchanged.
+- **Focused deep legs and preserved skips:**
+  `RUN_VALIDATE=1 TOOLS_OVERRIDE=cookiecutter
+  VARIANTS_OVERRIDE=python-mit-ty make ci-orb` passed at `916b046` (repo
+  pytest plus cookiecutter `python-mit-ty` in 7s; overall 14s).
+  `RUN_VALIDATE=1 VARIANTS_OVERRIDE=typescript-mit make ci-orb` passed at
+  `916b046` (cookiecutter 5s, copier 4s, render equivalence pass; overall
+  16s). Direct `pytest.skip` calls are absent; focused template-source
+  execution retained the two unchanged skip reasons and reported exactly
+  `2 skipped in 0.02s`. The Python ty deep leg and all six ty-selected legs
+  in the complete matrix passed.
+- **Fresh complete matrix at the shipped commit:** from a clean,
+  self-contained clone pinned to `dd82f89`, `RUN_VALIDATE=1 make ci-orb`
+  exited 0 and passed repo-root pytest, all seven variants under both
+  cookiecutter and copier (14 renderer/variant legs), and render equivalence
+  in 117s. Complete matrix record:
+
+```json
+{"event":"orb_matrix","run_id":"20260720T045653Z","git_commit":"dd82f8921df98b3e2c4aa146ddf77281047cfee7","run_validate":"1","overall":"pass","legs":[{"step":"pytest","status":"pass"},{"tool":"cookiecutter","variant":"python-mit-ty","language":"python","status":"pass","duration_s":11},{"tool":"copier","variant":"python-mit-ty","language":"python","status":"pass","duration_s":7},{"tool":"cookiecutter","variant":"python-mit-mypy","language":"python","status":"pass","duration_s":8},{"tool":"copier","variant":"python-mit-mypy","language":"python","status":"pass","duration_s":9},{"tool":"cookiecutter","variant":"python-apache-sbom-ty","language":"python","status":"pass","duration_s":7},{"tool":"copier","variant":"python-apache-sbom-ty","language":"python","status":"pass","duration_s":7},{"tool":"cookiecutter","variant":"typescript-mit","language":"typescript","status":"pass","duration_s":6},{"tool":"copier","variant":"typescript-mit","language":"typescript","status":"pass","duration_s":4},{"tool":"cookiecutter","variant":"typescript-apache-tools","language":"typescript","status":"pass","duration_s":4},{"tool":"copier","variant":"typescript-apache-tools","language":"typescript","status":"pass","duration_s":4},{"tool":"cookiecutter","variant":"polyglot-mit-all-ty","language":"polyglot","status":"pass","duration_s":10},{"tool":"copier","variant":"polyglot-mit-all-ty","language":"polyglot","status":"pass","duration_s":10},{"tool":"cookiecutter","variant":"polyglot-mit-all-macaron-mypy","language":"polyglot","status":"pass","duration_s":11},{"tool":"copier","variant":"polyglot-mit-all-macaron-mypy","language":"polyglot","status":"pass","duration_s":12},{"step":"render-equivalence","status":"pass"}]}
+```
+
+Runner note: the first required invocation directly from the linked worktree
+produced `{"event":"orb_ci","run_id":"20260720T045610Z","git_commit":"dd82f8921df98b3e2c4aa146ddf77281047cfee7","duration_s":0,"overall":"fail"}`
+before any matrix leg ran: the container could not resolve the bind-mounted
+worktree's host-only `.git/worktrees/...` target and reported `clone failed`.
+The self-contained exact-commit clone above removed only that runner-layout
+constraint; no source file changed between the failed invocation and the
+passing matrix.
+
 ---
 
 ## Phase A — Hardening (v0.2, shipped 2026-05-03)

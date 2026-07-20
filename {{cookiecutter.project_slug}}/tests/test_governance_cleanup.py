@@ -133,16 +133,20 @@ def _run_make(target: str) -> subprocess.CompletedProcess[str]:
 
 
 @pytest.mark.skipif(MAKE is None, reason="make not installed")
+@pytest.mark.skipif(
+    _TEMPLATE_SOURCE,
+    reason="requires rendered scaffold; Makefile fragments contain Jinja in template source",
+)
 def test_governance_check_target_still_passes_after_defs_mk_cleanup() -> None:
-    if _TEMPLATE_SOURCE:
-        pytest.skip(reason="requires rendered scaffold; Makefile fragments contain Jinja in template source")
     result = _run_make("governance-check")
     assert result.returncode == 0, result.stdout + result.stderr
 
 
 @pytest.mark.skipif(MAKE is None, reason="make not installed")
+@pytest.mark.skipif(
+    _TEMPLATE_SOURCE,
+    reason="requires rendered scaffold; Makefile fragments contain Jinja in template source",
+)
 def test_marker_scan_target_still_passes_after_defs_mk_cleanup() -> None:
-    if _TEMPLATE_SOURCE:
-        pytest.skip(reason="requires rendered scaffold; Makefile fragments contain Jinja in template source")
     result = _run_make("marker-scan")
     assert result.returncode == 0, result.stdout + result.stderr

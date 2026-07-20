@@ -27,7 +27,8 @@ ENV npm_config_cache=/opt/npm-cache \
 # promptfoo is only needed when a leg enables it; run-matrix.sh renders with
 # include_promptfoo=no to stay offline, so this is best-effort convenience.
 RUN mkdir -p /opt/npm-cache && chmod 0777 /opt/npm-cache \
- && (npm install -g promptfoo >/dev/null 2>&1 || true)
+ && (npm install -g promptfoo >/dev/null 2>&1 || true) \
+ && chmod -R a+rwX /opt/npm-cache
 
 WORKDIR /repo
 CMD ["bash", "scripts/local-ci/run-matrix.sh"]

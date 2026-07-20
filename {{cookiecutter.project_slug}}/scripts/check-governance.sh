@@ -86,37 +86,53 @@ frontmatter_value() {
   printf '%s\n' "$value"
 }
 
-# --- Strictly required files (Layer 1 + Layer 2 + Layer 4) ---
-# Loaded from governance-rules.yaml ▸ required_files. `mapfile` would
-# be cleaner but is bash 4+ and these scripts target bash 3.2 (macOS
-# default), so each of the four loader-fed lists below is captured
-# into a plain variable first, then parsed line-by-line into an
-# array. Capturing first (rather than reading directly from a
-# `done < <(...)` process substitution) matters under
+# --- Governance list data (required_files, required_agents, ---
+# --- required_skills, optional_dirs) ---
+# Loaded from governance-rules.yaml in a single loader invocation via
+# `--emit`, rather than one `--list-*` subprocess per list (4 Python
+# interpreter startups collapsed to 1). `mapfile` would be cleaner but
+# is bash 4+ and these scripts target bash 3.2 (macOS default), so the
+# combined tab-separated `section<TAB>value` output is captured into a
+# plain variable first, then demuxed per section via
+# `read_lines_into_array`. Capturing first (rather than reading
+# directly from a `done < <(...)` process substitution) matters under
 # `set -euo pipefail`: a process substitution's exit status is
 # invisible to the enclosing `while` loop, so a governance loader
 # crash (corrupt governance-rules.yaml, missing PyYAML) would
-# silently leave the array empty and every loader-driven check would
+# silently leave every list empty and every loader-driven check would
 # be skipped instead of failing — this is what let CRIT-002 pass
 # vacuously (see CHANGELOG.md, issue #104). The `if ! var="$(...)"`
 # guard form propagates the loader's exit code and lets the script
 # log a diagnostic naming the exact failing invocation before
-# exiting non-zero. (`scripts/marker-scan.sh` carried a milder
-# instance of this same vacuous-pass risk in its
-# `--list-marker-surfaces` read, which used the unguarded
-# `done < <(...)` form; issue #119 applied this same capture-first
-# guard there too.)
+# exiting non-zero, and now covers all four lists since they share
+# one invocation. (`scripts/marker-scan.sh` carried a milder instance
+# of this same vacuous-pass risk in its `--list-marker-surfaces`
+# read, which used the unguarded `done < <(...)` form; issue #119
+# applied this same capture-first guard there too.)
 
-if ! required_files_raw="$("${GOV_LOADER[@]}" --list-required-files)"; then
-  log_error "governance loader failed: ${GOV_LOADER[*]} --list-required-files"
+if ! governance_lists_raw="$("${GOV_LOADER[@]}" --emit required_files,required_agents,required_skills,optional_dirs)"; then
+  log_error "governance loader failed: ${GOV_LOADER[*]} --emit required_files,required_agents,required_skills,optional_dirs"
   exit 1
 fi
-required_files=()
-while IFS= read -r line; do
-  [[ -n "$line" ]] && required_files+=("$line")
-done <<< "$required_files_raw"
 
-for f in "${required_files[@]}"; do
+# Demux the combined `section<TAB>value` stream per section. Strip only
+# the leading `section<TAB>` prefix (`sub(/^[^\t]*\t/, "")`) rather than
+# printing `$2`, so a value that itself contains a tab is preserved in
+# full instead of being truncated at its first embedded tab. For the
+# common tab-free values this is byte-identical to `print $2`. The
+# emitter (`governance.py --emit`) refuses to emit a value containing a
+# newline, so the one-item-per-line framing here is always intact.
+required_files_raw="$(printf '%s\n' "$governance_lists_raw" | awk -F'\t' '$1 == "required_files" { sub(/^[^\t]*\t/, ""); print }')"
+required_agents_raw="$(printf '%s\n' "$governance_lists_raw" | awk -F'\t' '$1 == "required_agents" { sub(/^[^\t]*\t/, ""); print }')"
+required_skills_raw="$(printf '%s\n' "$governance_lists_raw" | awk -F'\t' '$1 == "required_skills" { sub(/^[^\t]*\t/, ""); print }')"
+optional_dirs_raw="$(printf '%s\n' "$governance_lists_raw" | awk -F'\t' '$1 == "optional_dirs" { sub(/^[^\t]*\t/, ""); print }')"
+
+# --- Strictly required files (Layer 1 + Layer 2 + Layer 4) ---
+
+read_lines_into_array "$required_files_raw"
+required_files=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
+
+for f in ${required_files[@]+"${required_files[@]}"}; do
   check_file_exists "$f" || true
 done
 
@@ -180,16 +196,10 @@ fi
 # polyglot path keeps both, single-language paths keep one (this
 # language-conditional check stays here, not in YAML).
 
-if ! required_agents_raw="$("${GOV_LOADER[@]}" --list-required-agents)"; then
-  log_error "governance loader failed: ${GOV_LOADER[*]} --list-required-agents"
-  exit 1
-fi
-required_agents=()
-while IFS= read -r line; do
-  [[ -n "$line" ]] && required_agents+=("$line")
-done <<< "$required_agents_raw"
+read_lines_into_array "$required_agents_raw"
+required_agents=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
 
-for f in "${required_agents[@]}"; do
+for f in ${required_agents[@]+"${required_agents[@]}"}; do
   check_file_exists "$f" || true
 done
 
@@ -217,16 +227,10 @@ fi
 # list that gates lazy loading). Loaded from
 # governance-rules.yaml ▸ required_skills.
 
-if ! required_skills_raw="$("${GOV_LOADER[@]}" --list-required-skills)"; then
-  log_error "governance loader failed: ${GOV_LOADER[*]} --list-required-skills"
-  exit 1
-fi
-required_skills=()
-while IFS= read -r line; do
-  [[ -n "$line" ]] && required_skills+=("$line")
-done <<< "$required_skills_raw"
+read_lines_into_array "$required_skills_raw"
+required_skills=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
 
-for f in "${required_skills[@]}"; do
+for f in ${required_skills[@]+"${required_skills[@]}"}; do
   check_file_exists "$f" || true
 done
 
@@ -251,16 +255,10 @@ fi
 # --- Optionally required (later phases populate) ---
 # Loaded from governance-rules.yaml ▸ optional_dirs.
 
-if ! optional_dirs_raw="$("${GOV_LOADER[@]}" --list-optional-dirs)"; then
-  log_error "governance loader failed: ${GOV_LOADER[*]} --list-optional-dirs"
-  exit 1
-fi
-optional_dirs=()
-while IFS= read -r line; do
-  [[ -n "$line" ]] && optional_dirs+=("$line")
-done <<< "$optional_dirs_raw"
+read_lines_into_array "$optional_dirs_raw"
+optional_dirs=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
 
-for d in "${optional_dirs[@]}"; do
+for d in ${optional_dirs[@]+"${optional_dirs[@]}"}; do
   check_dir_exists "$d" || log_warn "optional directory not yet present: $d"
 done
 

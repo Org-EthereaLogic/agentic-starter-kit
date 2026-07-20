@@ -126,6 +126,40 @@ reset_counters() {
   _WARNINGS=0
 }
 
+# Split a raw multi-line string into a plain array, dropping blank
+# lines. Mirrors the `while IFS= read -r line; do [[ -n "$line" ]] &&
+# arr+=("$line"); done <<< "$raw"` loop duplicated across the
+# governance validation scripts. Bash 3.2 (the target for these
+# scripts; see comments in check-governance.sh, marker-scan.sh,
+# check-doc-drift.sh, and check-traceability.sh) has neither `local
+# -n` namerefs (bash 4.3+) nor safe indirect array assignment, and an
+# eval-based indirect append is a well-known shellcheck trigger this
+# repo avoids — so this helper populates a fixed-name global result
+# array instead of accepting an output-variable name.
+#
+# Usage:
+#   read_lines_into_array "$raw"
+#   my_array=("${READ_LINES_RESULT[@]}")
+read_lines_into_array() {
+  local raw="$1"
+  READ_LINES_RESULT=()
+  local line
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && READ_LINES_RESULT+=("$line")
+  done <<< "$raw"
+  # Explicit success return. Without this, the function's own exit
+  # status is inherited from the while loop above, whose status is 1
+  # whenever the final line processed is blank (including the empty-
+  # input case, `raw=""`, which reads one empty line). Under
+  # `set -euo pipefail` in every caller, a bare `read_lines_into_array
+  # "..."` statement is a simple command like any other: if callers
+  # relied on the loop's own exit code, an empty or blank-terminated
+  # section (e.g. a governance-rules.yaml list that is legitimately
+  # empty) would silently abort the whole script instead of just
+  # yielding an empty array — the opposite of this helper's contract.
+  return 0
+}
+
 # Resolve a Python interpreter that can import PyYAML. Governance
 # scripts read `governance-rules.yaml` via PyYAML; in a clean dev
 # container the system `python3` has no third-party packages, so

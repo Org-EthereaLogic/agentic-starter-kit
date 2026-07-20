@@ -336,7 +336,7 @@ directives:
       when_fails: build break
     enabled: true
 
-  # ========== RECOMMENDED (4) ==========
+  # ========== RECOMMENDED (3) ==========
   - id: REC-001
     class: Recommended
     title: Conventional file size budget

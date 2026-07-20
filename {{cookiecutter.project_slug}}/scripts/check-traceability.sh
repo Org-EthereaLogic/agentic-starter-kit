@@ -52,21 +52,50 @@ if [[ "$criteria" -eq 0 ]]; then
 fi
 
 # Iterate criteria; for each, validate source / tests / evidence (bash 3.2 compatible).
-ids=()
-while IFS= read -r id; do
-  [[ -z "$id" ]] && continue
-  ids+=("$id")
-done < <(jq -r '.criteria[].id // empty' "$matrix")
+ids_raw="$(jq -r '.criteria[].id // empty' "$matrix")"
+read_lines_into_array "$ids_raw"
+ids=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
 
 for id in "${ids[@]:-}"; do
   [[ -z "$id" ]] && continue
-  # source globs
-  sources=()
-  while IFS= read -r g; do
-    [[ -z "$g" ]] && continue
-    sources+=("$g")
-  done < <(jq -r --arg id "$id" \
-    '.criteria[] | select(.id == $id) | .source // [] | .[]' "$matrix")
+  # source / tests / evidence, extracted in a single jq pass per
+  # criterion (down from three) as tab-separated `field<TAB>value`
+  # lines, then demuxed per field.
+  #
+  # The tab-delimited line protocol frames exactly one value per line
+  # (`field<TAB>value\n`). A value containing an embedded NEWLINE cannot
+  # be represented: it would split across physical lines and the untagged
+  # continuation line would be silently dropped by the awk demux below.
+  # This site consumes jq output from "$matrix", not governance.py --emit,
+  # so it is NOT protected by that emitter's newline guard — mirror the
+  # same loud-failure philosophy here: detect any newline-bearing
+  # source/tests/evidence value inside the single jq pass (`error(...)`
+  # makes jq exit non-zero) and turn a non-zero jq exit into an explicit
+  # log_error + exit 1, rather than silently dropping the value. An
+  # embedded TAB is fine — the demux strips only the leading `field<TAB>`
+  # prefix and preserves the rest of the value verbatim.
+  if ! fields_raw="$(jq -r --arg id "$id" \
+    'def reject_newline(field):
+       if (type == "string" and contains("\n")) then
+         error("criterion \($id) \(field) value contains an embedded newline: \(.)")
+       else . end;
+     .criteria[] | select(.id == $id) | (
+       ((.source // [])[]   | reject_newline("source")   | "source\t\(.)"),
+       ((.tests // [])[]    | reject_newline("tests")    | "tests\t\(.)"),
+       ((.evidence // [])[] | reject_newline("evidence") | "evidence\t\(.)")
+     )' "$matrix")"; then
+    log_error "criterion $id: a source/tests/evidence value contains an embedded newline, which cannot be represented in the tab-delimited field protocol (refusing to silently drop it)"
+    exit 1
+  fi
+
+  # Demux per field by stripping only the leading `field<TAB>` prefix
+  # (`sub(/^[^\t]*\t/, "")`) rather than printing `$2`, so a source/tests
+  # glob or evidence path that itself contains a tab is preserved in full
+  # instead of being truncated at its first embedded tab. Byte-identical
+  # to `print $2` for tab-free values.
+  sources_raw="$(printf '%s\n' "$fields_raw" | awk -F'\t' '$1 == "source" { sub(/^[^\t]*\t/, ""); print }')"
+  read_lines_into_array "$sources_raw"
+  sources=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
   for g in "${sources[@]:-}"; do
     [[ -z "$g" ]] && continue
     if ! compgen -G "$g" >/dev/null 2>&1; then
@@ -74,13 +103,9 @@ for id in "${ids[@]:-}"; do
     fi
   done
 
-  # tests globs
-  tests=()
-  while IFS= read -r g; do
-    [[ -z "$g" ]] && continue
-    tests+=("$g")
-  done < <(jq -r --arg id "$id" \
-    '.criteria[] | select(.id == $id) | .tests // [] | .[]' "$matrix")
+  tests_raw="$(printf '%s\n' "$fields_raw" | awk -F'\t' '$1 == "tests" { sub(/^[^\t]*\t/, ""); print }')"
+  read_lines_into_array "$tests_raw"
+  tests=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
   for g in "${tests[@]:-}"; do
     [[ -z "$g" ]] && continue
     if ! compgen -G "$g" >/dev/null 2>&1; then
@@ -88,13 +113,9 @@ for id in "${ids[@]:-}"; do
     fi
   done
 
-  # evidence paths (exact, not globs)
-  evidence=()
-  while IFS= read -r path; do
-    [[ -z "$path" ]] && continue
-    evidence+=("$path")
-  done < <(jq -r --arg id "$id" \
-    '.criteria[] | select(.id == $id) | .evidence // [] | .[]' "$matrix")
+  evidence_raw="$(printf '%s\n' "$fields_raw" | awk -F'\t' '$1 == "evidence" { sub(/^[^\t]*\t/, ""); print }')"
+  read_lines_into_array "$evidence_raw"
+  evidence=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
   for path in "${evidence[@]:-}"; do
     [[ -z "$path" ]] && continue
     if [[ ! -e "$path" ]]; then

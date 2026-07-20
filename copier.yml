@@ -227,41 +227,132 @@ cookiecutter:
 # every PR. Each task removes files belonging to an unselected
 # language path or opted-out integration. Tasks run after `copier
 # copy` and `copier update`.
+#
+# Every deletion task's `command:` is a YAML *list* of argv tokens
+# (not a shell string): copier runs a string command through
+# `subprocess.run(cmd, shell=True)` but a list command through
+# `subprocess.run(cmd, shell=False)` (see copier/_main.py
+# `_execute_tasks`), so a list form has no dependency on a POSIX
+# shell, `rm`, or `find` — it works identically on Windows. Each
+# payload is inline Python passed via `-c`, mirroring the `remove()`
+# helper hooks/post_gen_project.py uses for the same purpose.
 _tasks:
   # Language pruning — Python path keeps Python build files.
   # Mirrors `prune_language_files` in hooks/post_gen_project.py.
-  - command: "rm -f package.json tsconfig.json tests/test_pre_tool_use_hook.js tests/test_audit_hooks.cjs .claude/agents/typescript-pro.md QUICKSTART-TYPESCRIPT.md"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        for p in ["package.json", "tsconfig.json", "tests/test_pre_tool_use_hook.js", "tests/test_audit_hooks.cjs", ".claude/agents/typescript-pro.md", "QUICKSTART-TYPESCRIPT.md"]:
+            pathlib.Path(p).unlink(missing_ok=True)
     when: "{{ primary_language == 'python' }}"
 
   # TypeScript path keeps Node build files.
-  - command: "rm -f pyproject.toml tests/test_pre_tool_use_hook.py tests/test_audit_hooks.py tests/test_governance_review.py tests/test_governance_loader.py .claude/agents/python-pro.md QUICKSTART-PYTHON.md"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        for p in ["pyproject.toml", "tests/test_pre_tool_use_hook.py", "tests/test_audit_hooks.py", "tests/test_governance_review.py", "tests/test_governance_loader.py", ".claude/agents/python-pro.md", "QUICKSTART-PYTHON.md"]:
+            pathlib.Path(p).unlink(missing_ok=True)
     when: "{{ primary_language == 'typescript' }}"
 
   # Strip variant-tagged content from pyproject.toml. The template
   # ships a single, valid-TOML file with both type-checker sections
   # and the union of dev deps so editors/LSPs can parse it; this
   # pass removes whichever variant the user did not pick. Mirrors
-  # `prune_pyproject_variants` in hooks/post_gen_project.py.
+  # `prune_pyproject_variants` in hooks/post_gen_project.py. Already
+  # Windows-portable (no rm/find) — a pure Python script invocation —
+  # so this task is unchanged.
   - command: "{{ _copier_python }} \"{{ _copier_conf.src_path }}/hooks/_prune_pyproject.py\" --typechecker {{ python_typechecker }} --include-sbom {{ include_sbom }}"
     when: "{{ primary_language in ['python', 'polyglot'] }}"
 
   # Integration pruning — drop configs the user opted out of.
-  - command: "rm -f .codacy.yml"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        pathlib.Path(".codacy.yml").unlink(missing_ok=True)
     when: "{{ include_codacy == 'no' }}"
-  - command: "rm -f codecov.yaml"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        pathlib.Path("codecov.yaml").unlink(missing_ok=True)
     when: "{{ include_codecov == 'no' }}"
-  - command: "rm -f .snyk"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        pathlib.Path(".snyk").unlink(missing_ok=True)
     when: "{{ include_snyk == 'no' }}"
-  - command: "rm -f scripts/generate-sbom.sh docs/sbom-policy.md"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        for p in ["scripts/generate-sbom.sh", "docs/sbom-policy.md"]:
+            pathlib.Path(p).unlink(missing_ok=True)
     when: "{{ include_sbom == 'no' }}"
-  - command: "rm -rf .devcontainer Dockerfile .dockerignore"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        import shutil
+        for p in [".devcontainer", "Dockerfile", ".dockerignore"]:
+            path = pathlib.Path(p)
+            if path.is_dir():
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                path.unlink(missing_ok=True)
     when: "{{ include_devcontainer == 'no' }}"
-  - command: "rm -f mkdocs.yml docs/index.md .github/workflows/docs.yml"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        for p in ["mkdocs.yml", "docs/index.md", ".github/workflows/docs.yml"]:
+            pathlib.Path(p).unlink(missing_ok=True)
     when: "{{ include_docs_site == 'no' }}"
-  - command: "rm -f .cz.toml release-please-config.json release-please-manifest.json .github/workflows/release-please.yml"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        for p in [".cz.toml", "release-please-config.json", "release-please-manifest.json", ".github/workflows/release-please.yml"]:
+            pathlib.Path(p).unlink(missing_ok=True)
     when: "{{ include_release_automation == 'no' }}"
-  - command: "rm -rf prompts evals docs/prompt-versioning-policy.md Makefile.fragments/evals.mk"
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import pathlib
+        import shutil
+        for p in ["prompts", "evals", "docs/prompt-versioning-policy.md", "Makefile.fragments/evals.mk"]:
+            path = pathlib.Path(p)
+            if path.is_dir():
+                shutil.rmtree(path, ignore_errors=True)
+            else:
+                path.unlink(missing_ok=True)
     when: "{{ include_promptfoo == 'no' }}"
 
   # Strip placeholder .gitkeep files left from the template scaffold.
-  - command: "find . -name .gitkeep -type f -delete"
+  # os.walk prunes `.git` out of dirnames in place before descending
+  # (not just filtering it out of results afterward), so `copier
+  # update` — which runs against a live checkout that already has a
+  # `.git` directory — never walks the git object store.
+  - command:
+      - "{{ _copier_python }}"
+      - "-c"
+      - |
+        import os
+        for dirpath, dirnames, filenames in os.walk("."):
+            dirnames[:] = [d for d in dirnames if d != ".git"]
+            for name in filenames:
+                if name == ".gitkeep":
+                    os.remove(os.path.join(dirpath, name))

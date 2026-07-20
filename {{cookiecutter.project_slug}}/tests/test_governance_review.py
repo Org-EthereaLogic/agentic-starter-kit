@@ -10,6 +10,8 @@ test suite, not part of the validator's own packaging tests.
 from __future__ import annotations
 
 import json
+import os
+import subprocess  # nosec B404 - test exercises the repo-local -m entry point
 import sys
 from pathlib import Path
 from subprocess import CompletedProcess
@@ -432,3 +434,47 @@ def test_cli_warnings_as_errors_changes_exit_code(
 
     assert code == 1
     assert payload["findings"][0]["id"] == "GOV-012"
+
+
+def test_main_module_import_does_not_execute_cli() -> None:
+    """Importing governance_review.__main__ must not run the CLI.
+
+    Regression test for issue #111 item #6: the module used to execute
+    `raise SystemExit(main())` unconditionally at import time, so even a
+    plain `import governance_review.__main__` (e.g. from a test harness or
+    another module) ran the full CLI and exited the interpreter. The fix
+    wraps that line in `if __name__ == "__main__":`, mirroring the guard
+    `cli.py` already has.
+    """
+    import importlib
+
+    try:
+        module = importlib.import_module("governance_review.__main__")
+    except SystemExit as exc:  # pragma: no cover - regression guard
+        raise AssertionError(
+            f"importing governance_review.__main__ raised SystemExit({exc.code})"
+        ) from exc
+
+    assert hasattr(module, "main")
+
+
+def test_main_module_still_runs_cli_via_dash_m() -> None:
+    """`python -m governance_review` must still invoke the CLI.
+
+    The import-time guard added for issue #111 item #6 must not disturb
+    the `-m` invocation path: Python sets `__name__ == "__main__"`
+    specifically for the module executed via `-m`, so the guarded
+    `raise SystemExit(main())` still fires in that case.
+    """
+    result = subprocess.run(  # nosec B603 # nosemgrep - fixed argv, repo-local module
+        [sys.executable, "-m", "governance_review", "--list-checks"],
+        cwd=PROJECT_ROOT,
+        env={**os.environ, "PYTHONPATH": str(PACKAGE_PATH)},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    for spec in CHECKS:
+        assert spec.id in result.stdout

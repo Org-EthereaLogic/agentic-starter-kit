@@ -51,12 +51,10 @@ fi
 
 # Discover workflow files. `.yaml` is rare but valid. `mapfile` is
 # Bash 4+ and macOS still ships 3.2, so collect via a portable loop.
-workflows=()
-workflow_count=0
-while IFS= read -r f; do
-  workflows+=("$f")
-  workflow_count=$((workflow_count + 1))
-done < <(find "$WORKFLOW_DIR" -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) | sort)
+workflows_raw="$(find "$WORKFLOW_DIR" -maxdepth 1 -type f \( -name '*.yml' -o -name '*.yaml' \) | sort)"
+read_lines_into_array "$workflows_raw"
+workflows=( ${READ_LINES_RESULT[@]+"${READ_LINES_RESULT[@]}"} )
+workflow_count=${#workflows[@]}
 
 if [[ $workflow_count -eq 0 ]]; then
   log_info "no workflow files under $WORKFLOW_DIR"
@@ -83,7 +81,7 @@ skip_prefix='^(\./|docker://|/)'
 allow_tag_pin='^slsa-framework/slsa-github-generator(/|@)'
 
 findings=0
-for wf in "${workflows[@]}"; do
+for wf in ${workflows[@]+"${workflows[@]}"}; do
   # Extract `uses:` lines with their line numbers; trim leading
   # whitespace and the `uses:` keyword to leave just the reference.
   while IFS=: read -r lineno raw; do

@@ -76,6 +76,92 @@ class ValidationScriptTests(unittest.TestCase):
         self.assertNotEqual(failed.returncode, 0)
         self.assertIn("tests glob matches no files", failed.stderr)
 
+    @unittest.skipUnless(shutil.which("jq"), "jq is required by check-traceability")
+    def test_traceability_demux_preserves_tab_and_rejects_newline(self) -> None:
+        # Robustness regression for check-traceability.sh's single-jq-pass
+        # field demux (the jq->awk multiplexing site that governance.py
+        # --emit's newline guard does NOT cover, because this site consumes
+        # jq output from traceability.json rather than the --emit protocol).
+        # Each source/tests/evidence value is framed as a tab-delimited
+        # `field<TAB>value` line, so:
+        #   * an embedded TAB inside a value must be PRESERVED end-to-end
+        #     (the demux strips only the leading `field<TAB>` prefix), never
+        #     truncated at the first embedded tab; and
+        #   * an embedded NEWLINE cannot be represented on one line, so it
+        #     must cause a LOUD non-zero exit with a stderr diagnostic —
+        #     never a silently dropped continuation line.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            _copy_scripts(root, "check-traceability.sh")
+            specs = root / "specs"
+            specs.mkdir()
+
+            # (a) TAB preserved: an evidence path whose name contains a literal
+            # tab resolves via `[[ -e ]]` ONLY if the full tabbed value
+            # survives the demux. Truncation at the first tab would leave the
+            # path "evid", which does not exist -> a drift finding -> exit 1.
+            tab_name = "evid\tence.txt"
+            (root / tab_name).write_text("x\n")
+            self.assertFalse((root / "evid").exists())  # truncation target absent
+            tab_matrix = {
+                "criteria": [
+                    {"id": "C1", "source": [], "tests": [], "evidence": [tab_name]}
+                ]
+            }
+            (specs / "traceability.json").write_text(json.dumps(tab_matrix))
+            tab_result = subprocess.run(  # nosec B603 # nosemgrep - fixed argv, repo-local scripts
+                [BASH, "scripts/check-traceability.sh"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            # (b) NEWLINE -> loud non-zero exit + stderr diagnostic, no drop.
+            newline_matrix = {
+                "criteria": [
+                    {
+                        "id": "C1",
+                        "source": ["line1\nline2"],
+                        "tests": [],
+                        "evidence": [],
+                    }
+                ]
+            }
+            (specs / "traceability.json").write_text(json.dumps(newline_matrix))
+            newline_result = subprocess.run(  # nosec B603 # nosemgrep - fixed argv, repo-local scripts
+                [BASH, "scripts/check-traceability.sh"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+            # (c) realistic (tab/newline-free) input still resolves cleanly.
+            (root / "real.txt").write_text("y\n")
+            ok_matrix = {
+                "criteria": [
+                    {"id": "C1", "source": [], "tests": [], "evidence": ["real.txt"]}
+                ]
+            }
+            (specs / "traceability.json").write_text(json.dumps(ok_matrix))
+            ok_result = subprocess.run(  # nosec B603 # nosemgrep - fixed argv, repo-local scripts
+                [BASH, "scripts/check-traceability.sh"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+
+        # (a) tab preserved end-to-end: the tab-named evidence file resolved.
+        self.assertEqual(tab_result.returncode, 0, tab_result.stderr)
+        self.assertNotIn("evidence file missing", tab_result.stderr)
+        # (b) newline -> loud failure with a diagnostic, never a silent drop.
+        self.assertNotEqual(newline_result.returncode, 0)
+        self.assertIn("newline", newline_result.stderr)
+        # (c) realistic input unaffected by the demux hardening.
+        self.assertEqual(ok_result.returncode, 0, ok_result.stderr)
+
     def test_hidden_and_ignored_marker_search_scope_matches_fallback(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

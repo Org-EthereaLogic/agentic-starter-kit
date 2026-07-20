@@ -40,6 +40,30 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
 
 ### Fixed
 
+- **The Linux deep-gate body-only-agent-key regression now exercises an
+  actual agent definition
+  ([#144](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/144)).**
+  `test_governance_check_rejects_body_only_agent_key` previously selected the
+  first `.claude/agents/*.md` entry without excluding `README.md`. Linux render
+  order returns that intentionally skipped file first, so the test expected a
+  rejection for an input `check-governance.sh` never validates. The test now
+  selects a sorted non-README agent; removing its frontmatter `model:` key and
+  appending a body-only replacement exercises the intended fail-closed path.
+- **The local-CI npm cache remains writable when the deep matrix runs as an
+  arbitrary host UID
+  ([#147](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/147)).**
+  `Dockerfile.ci` previously made only the empty `/opt/npm-cache` root writable
+  before a root-time promptfoo install populated it with root-owned
+  descendants. The image build now normalizes permissions recursively inside
+  that cache after the best-effort install, preserving non-root matrix
+  execution and the complete rendered-project validation path.
+- **The PR #148 governance-cleanup regression tests remain skippable under
+  template source while passing rendered-project `ty` checks.** Their two
+  template-source conditions and unchanged explanatory messages now live in
+  `@pytest.mark.skipif(..., reason=...)` decorators, an existing accepted
+  pattern. This removes direct `pytest.skip` calls that `ty` rejects in both
+  keyword and positional forms. No type errors or validation legs are
+  suppressed.
 - **`scripts/marker-scan.sh` no longer vacuously scans zero surfaces
   when the governance loader crashes on `--list-marker-surfaces`
   (CRIT-001, a milder instance of the CRIT-002 bug fixed in
@@ -83,13 +107,11 @@ Pre-1.0 releases bump the **minor** version on breaking changes and the
   — before the driver ever exercised the npm/gh-absent branches the
   tests assert on. Finally,
   `tests/test_skill_contracts.py::SkillContractTests::test_governance_check_rejects_body_only_agent_key`
-  was triaged and found already passing on current main: commit
-  `7198373` (PR [#130](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/130))
-  scoped `check-governance.sh`'s `frontmatter_has_key` awk
-  implementation to exit at the first closing `---` fence, so an
-  agent-key line placed in the document body (after frontmatter) is
-  never scanned into `found` and the check correctly fails closed — no
-  further source change was required for that criterion.
+  initially appeared to pass against a real agent after PR
+  [#130](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/130)
+  corrected frontmatter scanning. A later clean Linux render exposed the
+  separate order-sensitive fixture defect tracked in #144: the test selected
+  the intentionally skipped agent `README.md` instead of an agent definition.
 
 - **Devcontainer `post-create.sh` no longer logs a false "uv installed"
   success, silently skips installing `curl`, or can abort the

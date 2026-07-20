@@ -250,7 +250,11 @@ class SkillContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             _create_minimal_project(tmp_path)
-            agent = next((tmp_path / ".claude" / "agents").glob("*.md"))
+            agent = next(
+                path
+                for path in sorted((tmp_path / ".claude" / "agents").glob("*.md"))
+                if path.name != "README.md"
+            )
             text = re.sub(
                 r"^model:.*\n",
                 "",

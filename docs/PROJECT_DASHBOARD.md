@@ -35,13 +35,18 @@ optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
 plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128,
-#109/#130, #110/#132, #133/#136, #135/#138, #119/#140, and #111/#148. The local CI
-(`scripts/local-ci/`) is now the adopted interim gate (#145). The current
-follow-on queue is
-[#144](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue)
-— the last deep-gate failure, `check-governance.sh` accepting a body-only
-agent frontmatter key on Linux; #111's refactoring/optimization epic
-shipped via #148 (#1/#2 already covered by #110/#132). Sprint 1
+#109/#130, #110/#132, #133/#136, #135/#138, #119/#140, and #111/#148.
+The local CI (`scripts/local-ci/`) is now the adopted interim gate (#145). The
+current follow-on queue is
+[#144 and #147](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue):
+an order-sensitive test selecting the intentionally skipped agent `README.md`
+instead of an agent definition on Linux (#144), root-owned npm-cache descendants
+blocking TypeScript and polyglot deep-matrix legs (#147), and two PR #148
+direct `pytest.skip` calls that `ty` rejects in both keyword and positional
+forms after those defects are fixed. Their template-source-only conditions now
+use the file's existing accepted `@pytest.mark.skipif(..., reason=...)` pattern.
+#111's refactoring/optimization epic shipped via #148 (#1/#2 were already
+covered by #110/#132). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
@@ -543,11 +548,20 @@ job is to be readable from the repo at a glance.
   landed: `RUN_VALIDATE=1` went from four failures to **one**, so
   `scripts/local-ci/README.md` was refreshed and the residual filed as
   [#144](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/144)
-  — `check-governance.sh` exits 0 where
-  `test_governance_check_rejects_body_only_agent_key` expects a rejection,
-  i.e. a CRIT-002 gate passing vacuously on Linux/bash 5 (same class as
-  #104/#118 and #119/#140, and it will hit cloud CI once billing is
-  restored). Workspace hygiene: PR branch deleted local+remote on
+  — `test_governance_check_rejects_body_only_agent_key` exits red on Linux.
+  Follow-up verification corrected the initial diagnosis: Linux render order
+  returns `.claude/agents/README.md` first, the test selected that file, and
+  `check-governance.sh` correctly skipped it. Selecting a real agent definition
+  proves the validator rejects the body-only key, so #144 is a deterministic
+  test-selection fix rather than another CRIT-002 vacuous-pass defect. The full
+  deep-matrix rerun then exposed a separate root-owned npm-cache failure in the
+  TypeScript and polyglot legs, tracked as #147. Independent testing of both
+  fixes upheld dissent because six `ty` legs then rejected the two PR #148
+  `pytest.skip(reason=...)` calls. A first positional-message correction
+  preserved runtime behavior but `ty` rejected that form too. Moving the same
+  conditions and messages to `@pytest.mark.skipif` decorators uses an accepted
+  pattern without weakening validation. Workspace hygiene: PR branch deleted
+  local+remote on
   squash-merge with refs pruned; `artifacts/` left intact.
 - Updated 2026-07-20 (fifteenth post-merge sync): shipped
   [#148](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/148)

@@ -72,15 +72,24 @@ make install-hooks                   # pre-push hook -> runs Tier 1 before every
 - **`RUN_VALIDATE` default is 0** (the reliable deterministic core: render +
   no-unrendered + shell-identity + YAML + equivalence, across all 7 variants ×
   both tools). `RUN_VALIDATE=1` additionally runs the rendered project's own
-  `make validate` in each render. It stays opt-in because, in a clean Linux
-  container, it surfaces **pre-existing** rendered-test failures that
-  billing-locked cloud CI never actually ran. Of the four it originally found,
-  #138 fixed three (the `generate-sbom.sh` test not gated on `include_sbom`,
-  plus two `post-create.sh` `mktemp` cases). **One remains** (#144):
-  `tests/test_skill_contracts.py::SkillContractTests::test_governance_check_rejects_body_only_agent_key`
-  — `check-governance.sh` exits 0 where the test expects a rejection. Until
-  #144 lands, `RUN_VALIDATE=1` reports one failing leg; the local CI reporting
-  it is the tool working, not a harness bug.
+  `make validate` in each render. The deep gate originally found four rendered-
+  test failures that billing-locked cloud CI never actually ran. #138 fixed
+  three (the `generate-sbom.sh` test not gated on `include_sbom`, plus two
+  `post-create.sh` `mktemp` cases). #144 fixes the remaining test harness bug:
+  its body-only-agent-key test selected the first `*.md` entry without excluding
+  `README.md`, which Linux render order returned first even though
+  `check-governance.sh` intentionally skips that file. The test now selects a
+  deterministic non-README agent and exercises the intended rejection path.
+  The subsequent deep-matrix run exposed #147: root-time promptfoo installation
+  created root-owned descendants after `/opt/npm-cache` itself was made
+  writable. `Dockerfile.ci` now normalizes permissions recursively within that
+  cache after priming it, so the unchanged host-UID container can run npm in
+  TypeScript and polyglot legs without broader runtime privileges. The same run
+  caught two PR #148 cleanup tests whose direct `pytest.skip` calls `ty`
+  rejects in both keyword and positional forms. Their template-source-only
+  skips now use `@pytest.mark.skipif(..., reason=...)`, matching the accepted
+  decorator pattern already in the file without suppressing type errors or
+  changing the deep matrix.
 - **Offline matrix**: every Tier-2 leg renders with `include_promptfoo=no` so
   `make validate`'s `eval` step (which calls an external LLM provider) is
   skipped. Everything else mirrors cloud CI.

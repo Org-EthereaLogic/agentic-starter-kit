@@ -30,18 +30,18 @@ then shipped opportunistically alongside Phase C.**
 
 Status legend: 📋 Todo · 🟡 In Progress · ✅ Done · ⏸ Deferred
 
-**Current state (2026-07-19):** all roadmap work and the original
+**Current state (2026-07-20):** all roadmap work and the original
 optimization set (#69–#74) are merged. The v0.7.x release-hardening
 batch (#87–#101) and the July governance-hardening batch have also
 shipped: #102/#112, #103/#113 with the #115 precedence-pin follow-up,
 plus #104/#118, #108/#123, #105/#121, #106/#126, #107/#128,
-#109/#130, #110/#132, #133/#136, #135/#138, and #119/#140. The local CI
+#109/#130, #110/#132, #133/#136, #135/#138, #119/#140, and #111/#148. The local CI
 (`scripts/local-ci/`) is now the adopted interim gate (#145). The current
 follow-on queue is
-[#111 and #144](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue),
-covering refactoring/optimization (#111) and the last deep-gate failure —
-`check-governance.sh` accepting a body-only agent frontmatter key on Linux
-(#144). Sprint 1
+[#144](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues?q=is%3Aopen+is%3Aissue)
+— the last deep-gate failure, `check-governance.sh` accepting a body-only
+agent frontmatter key on Linux; #111's refactoring/optimization epic
+shipped via #148 (#1/#2 already covered by #110/#132). Sprint 1
 (2026-05-06 → 2026-05-19) was never populated and its window has closed.
 
 ---
@@ -138,6 +138,7 @@ series. All close tracked issues.
 | [#133](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/133) | [#136](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/136) | Copier renders aborted because `_envops`'s `[#` comment-start (added to protect bash `${#arr[@]}`) collided with markdown `[#NNN]` issue-links; escaped the three offending links to `[issue #NNN]` (renders identically under both tools) with a `tests/` regression guard. Shipped alongside a **local CI** (`scripts/local-ci/`) standing in for billing-locked Actions — three tiers: host gate (`make local-ci`), OrbStack render matrix (`make ci-orb`), advisory two-model Ollama review (`make review`) | tooling | ✅ |
 | [#135](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/135) | [#138](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/138) | Rendered-project `make validate` failures in a clean CI container (first surfaced by the new local CI's `RUN_VALIDATE=1` mode; billing-locked Actions never ran these gates): `test_validation_scripts.py`'s sbom test copied `scripts/generate-sbom.sh` without gating on `include_sbom` (the script is pruned for `include_sbom=no`) → `FileNotFoundError`, now `@unittest.skipUnless((SCRIPTS/"generate-sbom.sh").exists())`; the two `post-create.sh` AI-CLI tests failed because `ensure_uv`'s sole unguarded `mktemp` aborted the script under their stub-only PATH → guarded with `command -v mktemp` (the `sudo` calls were already `if !`-guarded); the governance body-only-agent-key test triaged as already fixed by #130. Shipped via the ADWS pipeline (PROMOTE, 7/7 gates) | tooling | ✅ |
 | [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119) | [#140](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/140) | CRIT-001 `marker-scan.sh` vacuous-scan follow-up to #104: the `--list-marker-surfaces` read used an unguarded `done < <("${GOV_LOADER[@]}" ...)` process substitution, so under `set -euo pipefail` a governance-loader crash specific to that call (after `--marker-regex` had already succeeded) silently left `surfaces` empty and the scan proceeded against zero surfaces instead of failing. Replaced with the same capture-first `if ! surfaces_raw="$(...)"` guard + `<<<` here-string as `check-governance.sh` (bash 3.2-safe); added a regression test (`surfaces: null` fixture asserting non-zero exit **and** `governance loader failed` on stderr, proven non-tautological against the pre-fix script); corrected the now-stale `check-governance.sh` cross-reference comment. Shipped via the ADWS pipeline (PROMOTE with warnings, 7/7 gates, exit 10) | tooling | ✅ |
+| [#111](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/111) | [#148](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/148) | Refactoring & optimization epic — five remaining items (#1 coverage-theater and #2 triplicated-prune sync-test were already resolved by #110/#132; verified, untouched): **#3** governance-loader fan-out collapsed to one `--emit` call per script (~6→2 interpreter starts per `make validate`); **#4** shared `read_lines_into_array` helper across the five check scripts + `check-traceability.sh` triple-`jq`→single pass; **#5** dead `check_tool`/`check_file` `defs.mk` macros removed, the parsed-but-unread `--list` flag **wired** to actually list (keeps `query-governance.sh --list` working) rather than deleted, `RECOMMENDED (4)`→`(3)` yaml count comment; **#6** `governance_review/__main__.py`'s module-level `raise SystemExit(main())` guarded behind `if __name__`; **#7** copier `_tasks` deletions made Windows-portable (YAML-list `python`, no `rm`/`find`), `.gitkeep` sweep no longer traverses `.git`. Field-multiplexing hardened to preserve embedded tabs / loud-fail on embedded newlines at both the `--emit` and `check-traceability.sh` sites; the empty-array `"${arr[@]}"` expansion guarded (`${arr[@]+…}`) for macOS bash 3.2 — a real empty-list crash caught in Mac validation that the Linux/bash-5 pipeline is structurally blind to. Shipped via the ADWS pipeline (job_20260720_0001, PROMOTE 7/7 gates, consensus 2 rounds clean, grader 6/6) + operator bash-3.2 fix | tooling | ✅ |
 
 > Follow-up filed during the #118 review:
 > [#119](https://github.com/Org-EthereaLogic/agentic-starter-kit/issues/119)
@@ -548,4 +549,33 @@ job is to be readable from the repo at a glance.
   #104/#118 and #119/#140, and it will hit cloud CI once billing is
   restored). Workspace hygiene: PR branch deleted local+remote on
   squash-merge with refs pruned; `artifacts/` left intact.
+- Updated 2026-07-20 (fifteenth post-merge sync): shipped
+  [#148](https://github.com/Org-EthereaLogic/agentic-starter-kit/pull/148)
+  — issue #111's five remaining cleanup items (#3 governance-loader fan-out
+  `--emit`; #4 `read_lines_into_array` helper + `check-traceability.sh`
+  single-`jq`-pass; #5 dead `defs.mk` macros removed, `--list` **wired** not
+  deleted, `RECOMMENDED` yaml count comment; #6 `__main__` import guard; #7
+  copier `_tasks` Windows portability). #111's #1/#2 were already resolved
+  by #110/#132 (verified, untouched). Produced by the ADWS pipeline: two
+  jobs ended **RETRY** when the Critic caught real regressions the tester
+  missed (deleting `--list` broke the shipped `query-governance.sh --list`;
+  a `check-traceability.sh` embedded-newline value silently dropped) before
+  job_20260720_0001 reached a clean **PROMOTE** (7/7 gates, consensus 2
+  rounds clean, grader 6/6). **Mac-side validation then caught a macOS
+  bash-3.2 regression the Linux/bash-5 container is structurally blind to**:
+  empty `read_lines_into_array` arrays expanded as `"${arr[@]}"` abort under
+  `set -u` on bash 3.2 (a real crash on empty governance/traceability
+  lists; baseline handled them) — guarded with `${arr[@]+"${arr[@]}"}` and
+  re-validated on macOS (all 5 governance scripts byte-identical to baseline
+  incl. empty-list cases; pytest failure-set parity with main, 0 new
+  failures; TypeScript scaffold `npm test`). Merged by plain squash (main
+  unprotected; billing-locked Actions are not required checks); CodeRabbit 0
+  actionable, Copilot no comments, Codacy the repo-tolerated test-assert
+  noise class + one soft complexity warning on the validated
+  `emit_directive_listing`. Branch deleted local+remote; `artifacts/`
+  evidence left intact. Observation (out of #111 scope, not changed):
+  `docs/BRIEFING.md` documents four RECOMMENDED practices (REC-001..004)
+  while `governance-rules.yaml` implements three (REC-001..003); #5
+  corrected only the yaml's own count comment, leaving the briefing/yaml
+  delta for a separate decision.
 - Related memory: `peer_template_landscape.md` (May 2026 survey)
